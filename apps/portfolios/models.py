@@ -153,7 +153,7 @@ class Transaction(models.Model):
     def get_gross_cost(self):
         additional_cost = self.brokerage_fee
         for field in type(self).ADDITIONAL_COST_FIELDS:
-            additional_cost += getattr(self, field, 0)
+            additional_cost += getattr(self, field, decimal.Decimal(0))
 
         if self.type == TransactionType.SELL:
             return self.net_cost - additional_cost

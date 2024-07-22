@@ -1,0 +1,27 @@
+
+button:disabled, input:disabled{
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed !important;
+}
+
+select{
+    background-color: rgb(74, 50, 178) !important;
+    padding: 6px 8px !important;
+}
+
+select option{
+    background-color: inherit;
+}
+
+.show-block{
+    display: block !important;
+}
+
+.show-flex{
+    display: flex !important;
+}
+
+.remove{
+    display: none !important;
+}

@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     # Installed apps
     "apps.accounts",
     "apps.portfolios",
-    "app",
     "apps.stocks",
 ]
 

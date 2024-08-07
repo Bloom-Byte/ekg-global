@@ -1,15 +1,15 @@
 const transactionAddForm = document.querySelector('#transaction-add-form');
 const transactionAddFormCard = transactionAddForm.parentElement;
 const transactionAddButton = transactionAddForm.querySelector('.submit-btn');
-const priceFetchButton = transactionAddForm.querySelector('#price-fetch-btn');
+const rateFetchButton = transactionAddForm.querySelector('#rate-fetch-btn');
 const stockInputField = transactionAddForm.querySelector("select[name='stock']") 
-const priceInputField = transactionAddForm.querySelector("input[name='price']") 
+const rateInputField = transactionAddForm.querySelector("input[name='rate']") 
 
 addOnPostAndOnResponseFuncAttr(transactionAddButton, 'Processing...');
-addOnPostAndOnResponseFuncAttr(priceFetchButton, 'Fetching Price...');
+addOnPostAndOnResponseFuncAttr(rateFetchButton, 'Fetching Price...');
 
 
-priceFetchButton.onclick = function(e){
+rateFetchButton.onclick = function(e){
     e.stopImmediatePropagation();
     e.preventDefault();
 
@@ -18,7 +18,7 @@ priceFetchButton.onclick = function(e){
         "stock": stockInputField.value
     }
 
-    priceFetchButton.onPost();
+    rateFetchButton.onPost();
     const options = {
         method: 'POST',
         headers: {
@@ -31,19 +31,19 @@ priceFetchButton.onclick = function(e){
 
     fetch(url, options).then((response) => {
         if (!response.ok) {
-            priceFetchButton.onResponse();
+            rateFetchButton.onResponse();
             response.json().then((data) => {
                 pushNotification("error", data.detail ?? data.message ?? 'An error occurred!');
             });
 
         }else{
-            priceFetchButton.onResponse();
+            rateFetchButton.onResponse();
 
             response.json().then((data) => {
                 const latestPrice  = data.data.latest_price ?? null
                 if(!latestPrice) return;
 
-                priceInputField.value = latestPrice;
+                rateInputField.value = latestPrice;
             });
         }
     });
@@ -82,8 +82,15 @@ transactionAddForm.onsubmit = function(e) {
 
                     for (const [fieldName, msg] of Object.entries(errors)){
                         if (fieldName == "__all__"){
-                            pushNotification("error", msg);
-                        }
+                            if (typeof msg === Array){
+                                msg.forEach((m) => {
+                                    pushNotification("error", m);
+                                });
+                            }else{
+                                pushNotification("error", msg);
+                            };
+                        };
+                        
                         let field = this.querySelector(`*[name=${fieldName}]`);
                         if (!field) return;
                         field.scrollIntoView({"block": "center"});

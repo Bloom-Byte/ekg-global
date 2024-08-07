@@ -90,7 +90,7 @@ class ModelDataCleanerMeta(type):
 
 class ModelDataCleaner(Generic[M], metaclass=ModelDataCleanerMeta):
     """
-    Helper class for cleaning data from Prembly API.
+    Helper class for cleaning data from raw dictionary data.
 
     This helps to clean the raw data fetched and
     prepare it for creating a new instance of a model.

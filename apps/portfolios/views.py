@@ -4,30 +4,66 @@ from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views import generic
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .models import Portfolio, Transaction
+from .models import Portfolio, Investment
 from apps.stocks.models import Stock
-from .forms import PortfolioCreateForm, TransactionAddForm
+from .forms import PortfolioCreateForm, InvestmentAddForm, PortfolioUpdateForm
 from helpers.exceptions import capture
+from helpers.logging import log_exception
+from .helpers import (
+    get_portfolio_allocation_piechart_data,
+    get_portfolio_performance_graph_data,
+    get_stocks_invested_in,
+    handle_transactions_file,
+    get_transactions_upload_template
+)
 
 
 portfolio_qs = Portfolio.objects.select_related("owner").all()
-transaction_qs = Transaction.objects.all()
+investment_qs = Investment.objects.all()
 
 
 class PortfolioListView(LoginRequiredMixin, generic.ListView):
     context_object_name = "portfolios"
-    # paginate_by = 20
+    paginate_by = 20
     queryset = portfolio_qs
     template_name = "portfolios/portfolio_list.html"
+    http_method_names = ["get", "post"]
 
     def get_queryset(self) -> QuerySet[Portfolio]:
         user = self.request.user
         qs = super().get_queryset()
         return qs.filter(owner=user)
+    
+    def post(self, request, *args, **kwargs):
+        transactions_file = request.FILES.get("transactions_file", None)
+        try:
+            if transactions_file:
+                handle_transactions_file(transactions_file, request.user)
+                messages.success(request, "Transactions upload successful.")
+        except Exception as exc:
+            log_exception(exc)
+            messages.error(request, "Upload failed! Check the file and try again.")
+
+        return redirect("portfolios:portfolio_list")
+    
+
+class TransactionsUploadTemplateDownloadView(generic.View):
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        template = get_transactions_upload_template()
+
+        if not template:
+            return HttpResponse(status=404)
+        headers = {
+            "Content-Disposition": f"attachment; filename={template.name}",
+            "Content-Type": template.content_type,
+        }
+        return HttpResponse(content=template, headers=headers, status=200)
 
 
 @capture.enable
@@ -68,13 +104,83 @@ class PortfolioDetailView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["stocks"] = Stock.objects.all()
+        context["all_stocks"] = Stock.objects.all()
+        context["invested_stocks"] = get_stocks_invested_in(self.object)
+        context["pie_chart_data"] = json.dumps(
+            get_portfolio_allocation_piechart_data(self.object)
+        )
+        context["line_chart_data"] = json.dumps(
+            get_portfolio_performance_graph_data(self.object)
+        )
         return context
 
     def get_queryset(self) -> QuerySet[Portfolio]:
         user = self.request.user
         qs = super().get_queryset()
-        return qs.prefetch_related("transactions").filter(owner=user)
+        return qs.prefetch_related("investments").filter(owner=user)
+
+
+@capture.enable
+@capture.capture(content="Oops! An error occurred")
+class PortfolioPerformanceDataView(LoginRequiredMixin, generic.View):
+    http_method_names = ["post"]
+
+    def get_object(self):
+        return get_object_or_404(Portfolio, id=self.kwargs["portfolio_id"])
+
+    def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
+        data: Dict = json.loads(request.body)
+        dt_filter = data.get("dt_filter", "5D")
+        stocks = data.get("stocks", None)
+        timezone = data.get("timezone", None)
+        portfolio = self.get_object()
+        data = get_portfolio_performance_graph_data(
+            portfolio=portfolio,
+            dt_filter=dt_filter,
+            stocks=stocks,
+            timezone=timezone,
+        )
+        return JsonResponse(
+            data={
+                "status": "success",
+                "detail": "Performance data fetched successfully",
+                "data": data,
+            },
+            status=200,
+        )
+
+
+@capture.enable
+@capture.capture(content="Oops! An error occurred")
+class PortfolioUpdateView(LoginRequiredMixin, generic.View):
+    http_method_names = ["patch"]
+    form_class = PortfolioUpdateForm
+
+    def get_object(self):
+        return get_object_or_404(Portfolio, id=self.kwargs["portfolio_id"])
+
+    def patch(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
+        data: Dict = json.loads(request.body)
+        form = self.form_class(data=data, instance=self.get_object())
+
+        if not form.is_valid():
+            return JsonResponse(
+                data={
+                    "status": "error",
+                    "detail": "An error occurred",
+                    "errors": form.errors,
+                },
+                status=400,
+            )
+        form.save()
+        return JsonResponse(
+            data={
+                "status": "success",
+                "detail": "Portfolio updated successfully",
+                "redirect_url": reverse("portfolios:portfolio_list"),
+            },
+            status=200,
+        )
 
 
 class PortfolioDeleteView(LoginRequiredMixin, generic.View):
@@ -99,9 +205,9 @@ class PortfolioDeleteView(LoginRequiredMixin, generic.View):
 
 
 @capture.enable
-class TransactionAddView(LoginRequiredMixin, generic.View):
+class InvestmentAddView(LoginRequiredMixin, generic.View):
     http_method_names = ["post"]
-    form_class = TransactionAddForm
+    form_class = InvestmentAddForm
 
     @capture.capture(content="Oops! An error occurred")
     def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
@@ -127,7 +233,7 @@ class TransactionAddView(LoginRequiredMixin, generic.View):
         return JsonResponse(
             data={
                 "status": "success",
-                "detail": "Transaction added successfully",
+                "detail": "Investment added successfully",
                 "redirect_url": reverse(
                     "portfolios:portfolio_detail", kwargs={"portfolio_id": portfolio_id}
                 ),
@@ -136,22 +242,22 @@ class TransactionAddView(LoginRequiredMixin, generic.View):
         )
 
 
-class TransactionDeleteView(LoginRequiredMixin, generic.View):
-    queryset = transaction_qs
+class InvestmentDeleteView(LoginRequiredMixin, generic.View):
+    queryset = investment_qs
     http_method_names = ["get"]
 
-    def get_queryset(self) -> QuerySet[Transaction]:
+    def get_queryset(self) -> QuerySet[Investment]:
         user = self.request.user
         portfolio_id = self.kwargs["portfolio_id"]
         qs = self.queryset
         return qs.filter(portfolio_id=portfolio_id, portfolio__owner=user)
 
     def get_object(self):
-        return get_object_or_404(self.get_queryset(), id=self.kwargs["transaction_id"])
+        return get_object_or_404(self.get_queryset(), id=self.kwargs["investment_id"])
 
     def get(self, request, *args, **kwargs):
-        transaction = self.get_object()
-        transaction.delete()
+        investment = self.get_object()
+        investment.delete()
         return redirect(self.get_success_url())
 
     def get_success_url(self) -> str:
@@ -162,9 +268,12 @@ class TransactionDeleteView(LoginRequiredMixin, generic.View):
 
 
 portfolio_list_view = PortfolioListView.as_view()
+transactions_upload_template_download_view = TransactionsUploadTemplateDownloadView.as_view()
 portfolio_create_view = PortfolioCreateView.as_view()
 portfolio_detail_view = PortfolioDetailView.as_view()
+portfolio_performance_data_view = PortfolioPerformanceDataView.as_view()
+portfolio_update_view = PortfolioUpdateView.as_view()
 portfolio_delete_view = PortfolioDeleteView.as_view()
 
-transaction_add_view = TransactionAddView.as_view()
-transaction_delete_view = TransactionDeleteView.as_view()
+investment_add_view = InvestmentAddView.as_view()
+investment_delete_view = InvestmentDeleteView.as_view()

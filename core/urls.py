@@ -8,7 +8,6 @@ urlpatterns = [
     path("accounts/", include("apps.accounts.urls", namespace="accounts")),
     path("stocks/", include("apps.stocks.urls", namespace="stocks")),
     path("portfolios/", include("apps.portfolios.urls", namespace="portfolios")),
-    path("", include("app.urls")),
 ]
 
 admin.site.site_header = f"{settings.APPLICATION_NAME} Admin"

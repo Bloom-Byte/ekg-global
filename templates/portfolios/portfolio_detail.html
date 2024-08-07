@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load tz %}
+{% load humanize %}
 
 {% block stylesheets %}
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
@@ -19,13 +20,13 @@
             </div>
 
             <div class="modal-body">
-                <form action="{% url 'portfolios:transaction_add' portfolio.id %}" method="post" id="transaction-add-form">
+                <form action="{% url 'portfolios:investment_add' portfolio.id %}" method="post" id="transaction-add-form">
                     {% csrf_token %}
     
                     <div class="form-fields">
                         <div class="form-field">
-                            <label for="name">Transaction Type</label>
-                            <select class="form-control form-select" name="type">
+                            <label for="transaction_type">Transaction Type</label>
+                            <select class="form-control form-select" name="transaction_type">
                                 <option value="buy">Buy</option>
                                 <option value="sell">Sell</option>
                             </select>
@@ -36,20 +37,22 @@
                         <div class="form-field">
                             <label for="stock">Stock</label>
                             <select class="form-control form-select" name="stock">
-                                {% for stock in stocks %}
-                                    <option value="{{ stock.ticker }}">{{ stock.ticker }}</option>
+                                {% for stock in all_stocks %}
+                                    <option value="{{ stock.ticker }}">
+                                        {{ stock.ticker }}
+                                    </option>
                                 {% endfor %}
                             </select>
                             <small class="field-message"></small>
                         </div>
 
                         <div class="form-field">
-                            <label for="price">Price/Cash Amount</label>
+                            <label for="rate">Price/Rate</label>
                             <input 
                                 type="number" 
                                 class="form-input form-control input-rounded" 
-                                placeholder="Price/Cash amount (PKR)" 
-                                name="price"
+                                placeholder="Rate (PKR)" 
+                                name="rate"
                                 step="0.00001"
                                 required
                             >
@@ -57,12 +60,23 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="date">Transaction Date</label>
+                            <label for="transaction_date">Transaction Date</label>
                             <input 
                                 type="date"
                                 class=" form-input form-control input-rounded" 
-                                name="date"
+                                name="transaction_date"
+                                value="{% now 'Y-m-d' %}"
                                 max="{% now 'Y-m-d' %}"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="transaction_time">Transaction Time</label>
+                            <input 
+                                type="time"
+                                class=" form-input form-control input-rounded" 
+                                name="transaction_time"
                             >
                             <small class="field-message"></small>
                         </div>
@@ -97,10 +111,10 @@
                         <button 
                             type="button" 
                             class="btn btn-square btn-outline-light btn-sm" 
-                            id="price-fetch-btn"
+                            id="rate-fetch-btn"
                             data-url="{% url 'stocks:stock_latest_price' %}"
                         >
-                            Fetch Current Price
+                            Fetch Current Rate
                         </button>
                     </div>
 
@@ -133,12 +147,12 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="psx_laga">PSX LAGA (Optional)</label>
+                            <label for="psx">PSX (Optional)</label>
                             <input 
                                 type="text" 
                                 class="form-input form-control input-rounded" 
-                                placeholder="PSX LAGA"
-                                name="psx_laga" 
+                                placeholder="PSX"
+                                name="psx" 
                                 min="0"
                                 step="0.01"
                             >
@@ -146,12 +160,12 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="secp_laga">SECP LAGA</label>
+                            <label for="secp">SECP (Optional)</label>
                             <input 
                                 type="text" 
                                 class="form-input form-control input-rounded" 
-                                placeholder="SECP LAGA"
-                                name="secp_laga" 
+                                placeholder="SECP"
+                                name="secp" 
                                 min="0"
                                 step="0.01"
                             >
@@ -185,12 +199,25 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="wht">WHT (Optional)</label>
+                            <label for="whts">WHTS (Optional)</label>
                             <input 
                                 type="text" 
                                 class="form-input form-control input-rounded" 
-                                placeholder="WHT"
-                                name="wht" 
+                                placeholder="WHTS"
+                                name="whts" 
+                                min="0"
+                                step="0.01"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="whtc">WHTC (Optional)</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="WHTC"
+                                name="whtc" 
                                 min="0"
                                 step="0.01"
                             >
@@ -222,6 +249,58 @@
                             >
                             <small class="field-message"></small>
                         </div>
+
+                        <div class="form-field">
+                            <label for="laga">LAGA (Optional)</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="LAGA"
+                                name="laga" 
+                                min="0"
+                                step="0.01"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="nlaga">N-LAGA (Optional)</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="N-LAGA"
+                                name="nlaga" 
+                                min="0"
+                                step="0.01"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="fed">FED (Optional)</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="FED"
+                                name="fed" 
+                                min="0"
+                                step="0.01"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="misc">MISC (Optional)</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="MISC"
+                                name="misc" 
+                                min="0"
+                                step="0.01"
+                            >
+                            <small class="field-message"></small>
+                        </div>
                     </div>
                     
                     <div class="modal-footer">
@@ -234,12 +313,159 @@
     </div>
 </div>
 
+<!-- Portfolio Edit Modal -->
+<div class="modal fade" id="portfolio{{ portfolio.id }}EditModal" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Portfolio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <form 
+                    action="{% url 'portfolios:portfolio_update' portfolio.id %}" 
+                    method="patch" 
+                    class="portfolio-edit-form"
+                    data-successURL="{% url 'portfolios:portfolio_detail' portfolio.id %}"
+                >
+                    {% csrf_token %}
+    
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <label for="name">Portfolio Name</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="Portfolio Name" 
+                                name="name"
+                                required
+                                title="Edit the portfolio name."
+                                value="{{ portfolio.name }}"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="brokerage_percentage">Brokerage Percentage (%)</label>
+                            <input 
+                                type="number" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="Brokerage Percentage"
+                                name="brokerage_percentage" 
+                                min="0"
+                                max="99.99"
+                                step="0.01"
+                                title="Update your default brokerage percentage."
+                                value="{{ portfolio.brokerage_percentage }}"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="cash_addition">Cash Addition</label>
+                            <input 
+                                type="number" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="Cash Addition (PKR)"
+                                name="cash_addition" 
+                                min="0"
+                                step="0.01"
+                                title="Add cash to your portfolio."
+                                value="0.00"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="description">Description</label>
+                            <textarea 
+                                class="form-input form-control input-rounded" 
+                                rows="7" 
+                                placeholder="Description" 
+                                name="description" 
+                                title="Update the portfolio description."
+                                value="{{ portfolio.description }}"
+                            ></textarea>
+                            <small class="field-message"></small>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="submit" class="btn light btn-success btn-sm submit-btn">Done</button>
+                        <button type="button" class="btn btn-danger light btn-sm" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>       
+            </div>
+        </div>
+    </div>
+</div>  
+
+<!-- Stock Comparison Modal -->
+<div class="modal fade" id="stockComparisonModal" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Compare Stocks</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="stock-comparison">
+                    <div id="selected-stocks-section">
+                        <h5>Selected stocks</h5>
+
+                        <div id="selected-stocks">
+                            <!-- Stocks selected for comparison go here -->
+                        </div>
+                    </div>
+
+                    <div id="stock-choices-section">
+                        <strong>Choose stocks to compare</strong>
+
+                        <div id="stock-choices">
+                            {% for stock in invested_stocks %}
+                            <button 
+                                type="button" 
+                                class="btn btn-outline-primary btn-xs stock-choice"
+                                data-value="{{ stock }}"
+                            >
+                                {{ stock }}
+                                <i class="fas fa-plus fa-xs"></i>
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
 
 <div class="row">
     <div class="col-xl-12">
         <div class="card text-white" id="primary-card">
             <div class="card-header flex-wrap">
                 <h5 class="card-title text-white">{{ portfolio.name }} Portfolio</h5>
+
+                <div class="dropdown custom-dropdown">
+                    <div class="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown" aria-expanded="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18px" height="18px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="12" cy="5" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="19" r="2"></circle></g></svg>
+                    </div>
+                    <div class="dropdown-menu dropdown-menu-end" data-popper-placement="top-end" data-popper-reference-hidden="" style="position: absolute; inset: auto 0px 0px auto; margin: 0px; transform: translate(-1.01735px, -36.3924px);">
+                        <a 
+                            class="dropdown-item" 
+                            href="javascript:voiud(0);" 
+                            data-bs-toggle="modal"
+                            data-bs-target="#portfolio{{ portfolio.id }}EditModal"
+                        >
+                            Edit
+                        </a>
+                        <a class="dropdown-item" href="{% url 'portfolios:portfolio_delete' portfolio.id %}">Delete</a>
+                    </div>
+                </div>
             </div>
             <div class="tab-content" id="myTabContent4">
                 <div class="tab-pane fade show active" id="Primarycard" role="tabpanel" aria-labelledby="home-tab">
@@ -251,7 +477,7 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>		
+            </div>	  
         </div>
     </div>
 
@@ -259,16 +485,10 @@
         <div class="widget-stat card">
             <div class="card-body  p-4">
                 <div class="media ai-icon">
-                    <span class="me-3 bgl-info text-info">
-                        <svg id="icon-revenue" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
-                            <line x1="12" y1="1" x2="12" y2="23"></line>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                        </svg>
-                    </span>
+                    <span class="me-3 bgl-warning text-warning">PKR</span>
                     <div class="media-body">
                         <p class="mb-1">Portfolio Capital</p>
-                        <h4 class="mb-0">{{ portfolio.cash_amount }}</h4>
-                        <!-- <span class="badge badge-danger">-3.5%</span> -->
+                        <h4 class="mb-0">{{ portfolio.capital|intcomma }}</h4>
                     </div>
                 </div>
             </div>
@@ -277,40 +497,182 @@
         <div class="widget-stat card">
             <div class="card-body  p-4">
                 <div class="media ai-icon">
-                    <span class="me-3 bgl-success text-success">
-                        <svg id="icon-revenue" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
-                            <line x1="12" y1="1" x2="12" y2="23"></line>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                        </svg>
-                    </span>
+                    <span class="me-3 bgl-info text-info">PKR</span>
                     <div class="media-body">
-                        <p class="mb-1">Portfolio Balance</p>
-                        <h4 class="mb-0">{{ portfolio.balance }}</h4>
-                        <!-- <span class="badge badge-danger">-3.5%</span> -->
+                        <p class="mb-1">Invested Capital</p>
+                        <h4 class="mb-0">{{ portfolio.invested_capital|intcomma }}</h4>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="widget-stat card">
-            <div class="card-body p-4">
+            <div class="card-body  p-4">
                 <div class="media ai-icon">
-                    <span class="me-3 bgl-danger text-danger">
-                        <svg id="icon-database-widget" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-database">
-                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-                        </svg>
+                    <span class="me-3 bgl-success text-success">PKR</span>
+                    <div class="media-body">
+                        <p class="mb-1">Cash Balance</p>
+                        <h4 class="mb-0">{{ portfolio.cash_balance|intcomma }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-stat card">
+            <div class="card-body  p-4">
+                <div class="media ai-icon">
+                    <span 
+                        {% if portfolio.current_value %}
+                            {% if portfolio.current_value < portfolio.capital %}
+                                class="me-3 bgl-danger text-danger"
+                            {% else %}
+                                class="me-3 bgl-success text-success"
+                            {% endif %}
+
+                        {% else %}
+                            class="me-3 bgl-info text-info"
+                        {% endif %}
+                    >
+                        PKR
                     </span>
                     <div class="media-body">
-                        <p class="mb-1">Total Expenditure</p>
-                        <h4 class="mb-0">{{ portfolio.total_expenditure }}</h4>
-                        <!-- <span class="badge badge-success">-3.5%</span> -->
+                        <p class="mb-1">Portfolio Value</p>
+                        <h4 class="mb-0">{{ portfolio.value|intcomma }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-stat card">
+            <div class="card-body  p-4">
+                <div class="media ai-icon">
+                    <span 
+                        {% if portfolio.total_investments_value %}
+                            {% if portfolio.total_investments_value < portfolio.invested_capital %}
+                                class="me-3 bgl-danger text-danger"
+                            {% else %}
+                                class="me-3 bgl-success text-success"
+                            {% endif %}
+
+                        {% else %}
+                            class="me-3 bgl-info text-info"
+                        {% endif %}
+                    >
+                        PKR
+                    </span>
+                    <div class="media-body">
+                        <p class="mb-1">Investments Value</p>
+                        <h4 class="mb-0">{{ portfolio.total_investments_value|intcomma }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-stat card">
+            <div class="card-body  p-4">
+                <div class="media ai-icon">
+                    <span 
+                    {% if portfolio.total_return_on_investments %}
+                        {% if portfolio.total_return_on_investments.is_signed %}
+                            class="me-3 bgl-danger text-danger"
+                        {% else %}
+                            class="me-3 bgl-success text-success"
+                        {% endif %}
+
+                    {% else %}
+                        class="me-3 bgl-info text-info"
+                    {% endif %}
+                    >
+                        PKR
+                    </span>
+                    <div class="media-body">
+                        <p class="mb-1">Return on Investments</p>
+                        <h4 class="mb-0">{{ portfolio.total_return_on_investments|intcomma }}</h4>
+
+                        {% if portfolio.total_return_on_investments %}
+                        <span 
+                            {% if portfolio.percentage_return_on_investments.is_signed %}
+                                class="badge light badge-danger"
+                            {% else %}
+                                class="badge light badge-success"
+                            {% endif %}
+                        >
+                            {{ portfolio.percentage_return_on_investments }}%
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    {% if portfolio.investments.exists %}
+    <section id="charts-section">
+        <div id="portfolio-performance" data-filterURL="{% url 'portfolios:portfolio_performance_data' portfolio.id %}">
+            <div class="section-head">
+                <div>
+                    <h4>Portfolio Performance</h4>
+                    <nav id="portfolio-performance-filters">
+                        {% csrf_token %}
+                        <ul class="pagination pagination-sm pagination-gutter pagination-info">
+                            <li class="page-item active">
+                                <button class="page-link portfolio-performance-filter" data-value="5D">5D</button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link portfolio-performance-filter" data-value="1M">1M</button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link portfolio-performance-filter" data-value="3M">3M</button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link portfolio-performance-filter" data-value="6M">6M</button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link portfolio-performance-filter" data-value="1Y">1Y</button>
+                            </li>
+                            <li class="page-item">
+                                <button class="page-link portfolio-performance-filter" data-value="5Y">5Y</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <button 
+                    type="button" 
+                    class="btn btn-square btn-sm btn-light" 
+                    style="height: min-content;"
+                    data-bs-toggle="modal"
+                    data-bs-target="#stockComparisonModal"
+                    id="stock-comparison-btn"
+                >
+                    Compare stocks
+                    <span 
+                        id="stock-comparison-counter" 
+                        class="badge badge-circle badge-warning" 
+                        style="display: none;"
+                    >
+                        __
+                    </span>
+                </button>
+            </div>
+
+            <div class="card chart-wrapper">
+                <canvas id="portfolio-performance-chart" data-chartData="{{ line_chart_data }}">
+                    <!-- Performance Line Chart -->
+                </canvas>
+            </div>
+        </div>
+
+        <div id="portfolio-allocation">
+            <h4>Portfolio Allocation</h4>
+            <div class="card chart-wrapper">
+                <canvas id="portfolio-allocation-chart" data-chartData="{{ pie_chart_data }}">
+                    <!-- Performance Pie Chart -->
+                </canvas>
+            </div>
+        </div>
+    </section>
+    {% endif %}
 
     <div class="col-lg-12">
         <div class="card">
@@ -331,42 +693,60 @@
                         <thead>
                             <tr>
                                 <th style="width:80px;"><small>#</small></th>
+                                <th><small>Transaction Date</small></th>
                                 <th><small>Stock</small></th>
-                                <th><small>Type</small></th>
+                                <th><small>Transaction Type</small></th>
                                 <th><small>Quantity</small></th>
-                                <th><small>Price</small></th>
-                                <th><small>Net Cost</small></th>
-                                <th><small>Gross Cost</small></th>
-                                <th><small>Brokerage Fee</small></th>
-                                <th><small>Date</small></th>
+                                <th><small>Rate (PKR)</small></th>
+                                <th><small>Brokerage Fee (PKR)</small></th>
+                                <th><small>Additional Fees (PKR)</small></th>
+                                <th><small>Principal (PKR)</small></th>
+                                <th><small>Current Value (PKR)</small></th>
+                                <th><small>Unrealized Gain/Loss</small></th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for transaction in portfolio.transactions.all %}
+                            {% for investment in portfolio.investments.all %}
                             <tr>
                                 <td><strong>{{ forloop.counter }}</strong></td>
-                                <td>{{ transaction.stock.ticker }}</td>
+                                <td>{{ investment.transaction_date }}</td>
+                                <td>{{ investment.symbol }}</td>
                                 <td>
                                     <span
-                                        {% if transaction.type == "buy" %}
+                                        {% if investment.transaction_type == "buy" %}
                                         class="badge light badge-success"
                                         {% else %}
                                         class="badge light badge-danger"
                                         {% endif %}
                                     >
-                                        {{ transaction.type | title }}
+                                        {{ investment.transaction_type | title }}
                                     </span>
                                 </td>
-                                <td>{{ transaction.quantity }}</td>
-                                <td>{{ transaction.price }}</td>
-                                <td>{{ transaction.net_cost }}</td>
-                                <td>{{ transaction.gross_cost }}</td>
-                                <td>{{ transaction.brokerage_fee }}</td>
-                                <td>{{ transaction.date }}</td>
+                                <td>{{ investment.quantity }}</td>
+                                <td>{{ investment.rate }}</td>
+                                <td>{{ investment.brokerage_fee }}</td>
+                                <td>{{ investment.additional_fees }}</td>
+                                <td>{{ investment.principal }}</td>
+                                <td>{{ investment.value | default:"__" }}</td>
+                                <td>
+                                    {{ investment.return_value | default:"__" }}
+                                    
+                                    {% if investment.return_value %}
+                                        {% if investment.percentage_return.is_signed %}
+                                        <strong class="badge light badge-danger">
+                                            {{ investment.percentage_return | default:"__" }}%
+                                        </strong>
+                                        {% else %}
+                                        <strong class="badge light badge-success">
+                                            {{ investment.percentage_return | default:"__" }}%
+                                        </strong>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <a 
-                                        href="{% url 'portfolios:transaction_delete' portfolio.id transaction.id %}" 
+                                        href="{% url 'portfolios:investment_delete' portfolio.id investment.id %}" 
                                         class="btn btn-danger shadow btn-xs sharp"
                                     >
                                         <i class="fa fa-trash"></i>
@@ -385,7 +765,12 @@
 
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
 <script src="{% static 'portfolios//scripts//transactionAdd.js' %}"></script>
+<script src="{% static 'portfolios//scripts//portfolioEdit.js' %}"></script>
+<script src="{% static 'portfolios//scripts//portfolioAllocationChart.js' %}"></script>
+<script src="{% static 'portfolios//scripts//portfolioPerformanceChart.js' %}"></script>
 {% endblock scripts %}
  

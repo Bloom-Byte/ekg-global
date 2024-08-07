@@ -14,6 +14,10 @@ select option{
     background-color: inherit;
 }
 
+textarea{
+    resize: none !important;
+}
+
 .show-block{
     display: block !important;
 }

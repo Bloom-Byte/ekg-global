@@ -8,6 +8,7 @@
 {% endblock stylesheets %}
 
 {% block content %}
+<!-- Portfolio Create Modal -->
 <div class="modal fade" id="portfolioCreateModal" style="display: none;" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -36,12 +37,12 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="cash_amount">Cash Amount</label>
+                            <label for="capital">Capital</label>
                             <input 
                                 type="number" 
                                 class="form-input form-control input-rounded" 
                                 placeholder="Cash amount (PKR)" 
-                                name="cash_amount"
+                                name="capital"
                                 required
                                 title="Portfolio cash amount."
                             >
@@ -49,7 +50,7 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="brokerage_percentage">Brokerage Percentage</label>
+                            <label for="brokerage_percentage">Brokerage Percentage (%)</label>
                             <input 
                                 type="number" 
                                 class="form-input form-control input-rounded" 
@@ -65,7 +66,7 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="description">Description</label>
+                            <label for="description">Description (Optional)</label>
                             <textarea 
                                 class="form-input form-control input-rounded" 
                                 rows="7" 
@@ -79,6 +80,49 @@
                     
                     <div class="modal-footer">
                         <button type="submit" class="btn light btn-success btn-sm submit-btn">Create</button>
+                        <button type="button" class="btn btn-danger light btn-sm" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>       
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions Upload Modal -->
+<div class="modal fade" id="transactionsUploadModal" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Transactions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="col-md-6" style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+                    <strong>Upload a copy of the file containing the transactions.</strong> 
+                    <p>
+                        Ensure that the file is of the right format.
+                        Also, check that the data contained in the file is correctly formatted.
+                    </p>
+                    <p>
+                        Click <a href="{% url 'portfolios:transactions_upload_template_download' %}" download style="color: #e2e2e2; text-decoration: underline;">here</a> 
+                        to download a copy of the upload template
+                    </p>
+                </div>
+                
+                <form action="{% url 'portfolios:portfolio_list' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+    
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <input name="transactions_file" type="file" class="form-control">
+                            <small class="field-message"></small>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="submit" class="btn light btn-success btn-sm submit-btn">Upload</button>
                         <button type="button" class="btn btn-danger light btn-sm" data-bs-dismiss="modal">Close</button>
                     </div>
                 </form>       
@@ -104,6 +148,15 @@
                         >
                             Create Portfolio
                         </button>
+
+                        <button 
+                            type="button" 
+                            class="btn btn-light btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#transactionsUploadModal"
+                        >
+                            Upload Transactions
+                        </button>
                     </div>
                 </div>
             </div>		
@@ -121,26 +174,167 @@
                         <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18px" height="18px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="12" cy="5" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="19" r="2"></circle></g></svg>
                     </div>
                     <div class="dropdown-menu dropdown-menu-end" data-popper-placement="top-end" data-popper-reference-hidden="" style="position: absolute; inset: auto 0px 0px auto; margin: 0px; transform: translate(-1.01735px, -36.3924px);">
-                        <a class="dropdown-item" href="javascript:voiud(0);">Edit</a>
+                        <a 
+                            class="dropdown-item" 
+                            href="javascript:voiud(0);" 
+                            data-bs-toggle="modal"
+                            data-bs-target="#portfolio{{ portfolio.id }}EditModal"
+                        >
+                            Edit
+                        </a>
                         <a class="dropdown-item" href="{% url 'portfolios:portfolio_delete' portfolio.id %}">Delete</a>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <p class="card-text">{{ portfolio.description }}</p>
+                <p class="card-text">
+                    {% if portfolio.description %}
+                    <p class="card-text">{{ portfolio.description }}</p>
+                    {% else %}
+                    <p class="card-text">No description</p>
+                    {% endif %}
+                </p>
             </div>
-            <div class="card-footer d-sm-flex justify-content-between align-items-center">
+            <div class="card-footer d-sm-flex justify-content-between align-items-center" style="gap: 0 6px;">
                 <div class="card-footer-link mb-4 mb-sm-0">
                     <p class="card-text d-inline">
                         Last updated {{ portfolio.updated_at|timesince }} ago
                     </p>
                 </div>
         
-                <a href="{% url 'portfolios:portfolio_detail' portfolio.id %}" class="btn btn-outline-primary btn-sm text-white">View Details</a>
+                <a href="{% url 'portfolios:portfolio_detail' portfolio.id %}" class="btn btn-outline-primary btn-sm text-white" style="flex-shrink: 0;">View Details</a>
             </div>
+
+            <!-- Portfolio Edit Modal -->
+            <div class="modal fade" id="portfolio{{ portfolio.id }}EditModal" style="display: none;" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Portfolio</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal">
+                            </button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <form 
+                                action="{% url 'portfolios:portfolio_update' portfolio.id %}" 
+                                method="patch" 
+                                class="portfolio-edit-form"
+                                data-successURL="{% url 'portfolios:portfolio_list' %}"
+                            >
+                                {% csrf_token %}
+                
+                                <div class="form-fields">
+                                    <div class="form-field">
+                                        <label for="name">Portfolio Name</label>
+                                        <input 
+                                            type="text" 
+                                            class="form-input form-control input-rounded" 
+                                            placeholder="Portfolio Name" 
+                                            name="name"
+                                            required
+                                            title="Edit the portfolio name."
+                                            value="{{ portfolio.name }}"
+                                        >
+                                        <small class="field-message"></small>
+                                    </div>
+            
+                                    <div class="form-field">
+                                        <label for="brokerage_percentage">Brokerage Percentage</label>
+                                        <input 
+                                            type="number" 
+                                            class="form-input form-control input-rounded" 
+                                            placeholder="Brokerage Percentage"
+                                            name="brokerage_percentage" 
+                                            min="0"
+                                            max="99.99"
+                                            step="0.01"
+                                            title="Update your default brokerage percentage."
+                                            value="{{ portfolio.brokerage_percentage }}"
+                                        >
+                                        <small class="field-message"></small>
+                                    </div>
+
+                                    <div class="form-field">
+                                        <label for="cash_addition">Cash Addition</label>
+                                        <input 
+                                            type="number" 
+                                            class="form-input form-control input-rounded" 
+                                            placeholder="Cash Addition (PKR)"
+                                            name="cash_addition" 
+                                            min="0"
+                                            step="0.01"
+                                            title="Add cash to your portfolio."
+                                            value="0.00"
+                                        >
+                                        <small class="field-message"></small>
+                                    </div>
+            
+                                    <div class="form-field">
+                                        <label for="description">Description</label>
+                                        <textarea 
+                                            class="form-input form-control input-rounded" 
+                                            rows="7" 
+                                            placeholder="Description" 
+                                            name="description" 
+                                            title="Update the portfolio description."
+                                            value="{{ portfolio.description }}"
+                                        ></textarea>
+                                        <small class="field-message"></small>
+                                    </div>
+                                </div>
+                                
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn light btn-success btn-sm submit-btn">Done</button>
+                                    <button type="button" class="btn btn-danger light btn-sm" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </form>       
+                        </div>
+                    </div>
+                </div>
+            </div>            
         </div>  
         {% endfor %}
     </section>
+
+    <!-- Paginator -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav>
+        <ul class="pagination pagination-gutter">
+            {% if page_obj.has_previous %}
+            <li class="page-item page-indicator">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    <i class="la la-angle-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {# Display a range of page numbers around the current page #}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %}
+                    {% if num == page_obj.number %}
+                        <li class="page-item active">
+                            <a class="page-link" href="javascript:void(0)">{{ num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item page-indicator">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    <i class="la la-angle-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
 </div>
 
 {% endblock %}
@@ -148,4 +342,5 @@
 {% block scripts %}
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioCreate.js' %}"></script>
+<script src="{% static 'portfolios//scripts//portfolioEdit.js' %}"></script>
 {% endblock scripts %}

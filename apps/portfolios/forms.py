@@ -2,81 +2,130 @@ from django import forms
 import decimal
 import typing
 
-from .models import Portfolio, Transaction
+from .models import Portfolio, Investment
 from apps.stocks.models import Stock
-
-
-class PortfolioCreateForm(forms.ModelForm):
-    class Meta:
-        model = Portfolio
-        fields = ("owner", "name", "cash_amount", "brokerage_percentage", "description")
 
 
 ModelForm = typing.TypeVar("ModelForm", bound=forms.ModelForm)
 
+class PortfolioCreateForm(forms.ModelForm):
+    """Portfolio creation form."""
+    class Meta:
+        model = Portfolio
+        fields = ("owner", "name", "capital", "brokerage_percentage", "description")
 
-def _clean_percentage_to_decimal(fields: typing.List[str]):
+
+class PortfolioUpdateForm(forms.ModelForm):
+    """Portfolio update form."""
+    cash_addition = forms.DecimalField(required=False, max_digits=12, decimal_places=2)
+
+    class Meta:
+        model = Portfolio
+        fields = ("name", "brokerage_percentage", "description", "cash_addition")
+
+    def save(self, commit: bool = True) -> Portfolio:
+        portfolio: Portfolio = super().save(commit=False)
+        cash_addition = self.cleaned_data.get("cash_addition")
+        if cash_addition:
+            portfolio.capital += cash_addition
+        
+        if commit:
+            portfolio.save()
+        return portfolio
+
+
+def _clean_percentage_to_decimal(*fields: str):
+    """
+    Private decorator
+
+    Adds a clean method to the form class for each field in the fields list.
+    The clean method added converts a percentage string to a decimal value,
+    calculated from the rate field of the form.
+
+    Regular integer strings are also converted to their decimal equivalent
+    """
     def make_clean_method_for_field(field: str):
         def _clean_method(form: ModelForm):
             value: str = form.cleaned_data[field]
+            rate = form.cleaned_data["rate"]
             if not value:
                 return decimal.Decimal(0)
+            
             if value.endswith("%"):
-                price = form.cleaned_data["price"]
-                value = (decimal.Decimal(value.removesuffix("%")) / 100) * price
-            # Round to five decimal places
+                value = (decimal.Decimal(value.removesuffix("%")) / 100) * rate
+            else:
+                # Check if the value does not exceed the rate
+                # Normally, it should not exceed the rate
+                if decimal.Decimal(value) > rate:
+                    raise forms.ValidationError(
+                        f"{field} should not exceed the stock rate of {rate}".capitalize()
+                    )
+                
+            # Round to two decimal places
             return decimal.Decimal(value).quantize(
-                decimal.Decimal("0.00001"), rounding=decimal.ROUND_HALF_UP
+                decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
             )
 
         _clean_method.__name__ = f"clean_{field}"
         _clean_method.__qualname__ = f"clean_{field}"
         return _clean_method
 
-    def form_class_decorator(form_class: typing.Type[ModelForm]):
+    def form_decorator(form_class: typing.Type[ModelForm]):
         for field in fields:
             if field not in form_class._meta.fields:
                 continue
             setattr(form_class, f"clean_{field}", make_clean_method_for_field(field))
         return form_class
 
-    return form_class_decorator
+    return form_decorator
 
 
-@_clean_percentage_to_decimal((*Transaction.ADDITIONAL_COST_FIELDS, "brokerage_fee"))
-class TransactionAddForm(forms.ModelForm):
+@_clean_percentage_to_decimal(*Investment.ADDITIONAL_FEES, "brokerage_fee")
+class InvestmentAddForm(forms.ModelForm):
     portfolio = forms.UUIDField()
     stock = forms.CharField()
     brokerage_fee = forms.CharField(required=True, strip=True)
     commission = forms.CharField(required=False, strip=True)
     cdc = forms.CharField(required=False, strip=True)
-    psx_laga = forms.CharField(required=False, strip=True)
-    secp_laga = forms.CharField(required=False, strip=True)
+    psx = forms.CharField(required=False, strip=True)
+    secp = forms.CharField(required=False, strip=True)
     nccpl = forms.CharField(required=False, strip=True)
     cvt = forms.CharField(required=False, strip=True)
-    wht = forms.CharField(required=False, strip=True)
+    whts = forms.CharField(required=False, strip=True)
+    whtc = forms.CharField(required=False, strip=True)
     adv_tax = forms.CharField(required=False, strip=True)
     sst = forms.CharField(required=False, strip=True)
+    laga = forms.CharField(required=False, strip=True)
+    nlaga = forms.CharField(required=False, strip=True)
+    fed = forms.CharField(required=False, strip=True)
+    misc = forms.CharField(required=False, strip=True)
 
     class Meta:
-        model = Transaction
+        model = Investment
         fields = (
             "portfolio",
-            "type",
+            "transaction_type",
             "stock",
-            "date",
-            "price",
+            "transaction_date",
+            "transaction_time",
+            # "settlement_date",
+            "rate",
             "quantity",
             "brokerage_fee",
             "commission",
             "cdc",
-            "psx_laga",
-            "secp_laga",
+            "psx",
+            "secp",
             "nccpl",
             "cvt",
-            "wht",
+            "whts",
+            "whtc",
             "adv_tax",
             "sst",
+            "laga",
+            "nlaga",
+            "fed",
+            "misc"
         )
 
     def clean_portfolio(self):
@@ -94,3 +143,13 @@ class TransactionAddForm(forms.ModelForm):
         except Stock.DoesNotExist as exc:
             raise forms.ValidationError(str(exc))
         return stock
+    
+    def save(self, commit: bool = True) -> Investment:
+        investment: Investment = super().save(commit=False)
+        if investment.portfolio.cash_balance < investment.principal:
+            raise forms.ValidationError(
+                "Insufficient capital in portfolio."
+            )
+        if commit:
+            investment.save()
+        return investment

@@ -1,13 +1,15 @@
 from typing import Dict, Any
 import json
+from django.shortcuts import get_object_or_404, redirect
 from django.views import generic
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .helpers import handle_rates_file, get_stock_latest_price
+from .helpers import handle_rates_file, handle_kse_rates_file
 from helpers.logging import log_exception
 from helpers.exceptions import capture
+from .models import Stock
 
 
 class UploadsView(LoginRequiredMixin, generic.TemplateView):
@@ -16,18 +18,21 @@ class UploadsView(LoginRequiredMixin, generic.TemplateView):
 
     def post(self, request, *args, **kwargs):
         rates_file = request.FILES.get("rates_file", None)
+        kse_rates_file = request.FILES.get("kse_rates_file", None)
         try:
             if rates_file:
-                success = handle_rates_file(rates_file)
-                if success:
-                    messages.success(request, "Rates uploaded successfully.")
-                else:
-                    messages.error(request, "Rate upload failed.")
+                handle_rates_file(rates_file)
+                messages.success(request, "Rates upload successful.")
+            
+            if kse_rates_file:
+                handle_kse_rates_file(kse_rates_file)
+                messages.success(request, "KSE upload successful.")
+
         except Exception as exc:
             log_exception(exc)
             messages.error(request, "Upload failed. Check the file and try again.")
 
-        return super().get(request, *args, **kwargs)
+        return redirect("stocks:uploads")
 
 
 @capture.enable
@@ -38,7 +43,8 @@ class StockLatestPriceView(LoginRequiredMixin, generic.View):
     def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
         data: Dict = json.loads(request.body)
         ticker = data["stock"]
-        latest_price = get_stock_latest_price(ticker)
+        stock = get_object_or_404(Stock, ticker=ticker)
+        latest_price = stock.price
         if latest_price is None:
             return JsonResponse(
                 data={

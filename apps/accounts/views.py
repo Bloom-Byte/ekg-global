@@ -1,12 +1,14 @@
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
 from .forms import UserAccountCreationForm, SignInForm
 from helpers.response.decorators import redirect_authenticated
+from helpers.requests import parse_query_params_from_request
 
 
 @redirect_authenticated("dashboard", method="get")
@@ -26,8 +28,8 @@ class SignInView(generic.TemplateView):
 
             if user_account:
                 login(request, user_account)
-                next_url = request.GET.get("next")
-                return redirect(next_url or "dashboard")
+                query_params = parse_query_params_from_request(request)
+                return redirect(query_params.get("next") or "dashboard")
 
             messages.error(request, "Invalid credentials, please try again")
         else:
@@ -44,13 +46,15 @@ class SignUpView(generic.CreateView):
 
     form_class = UserAccountCreationForm
     template_name = "accounts/signup.html"
-    success_url = "/accounts/sign-in/"
 
     def form_invalid(self, form: UserAccountCreationForm) -> HttpResponse:
         for _, errors in form.errors.items():
             for error in errors:
                 messages.error(self.request, error)
         return super().form_invalid(form)
+    
+    def get_success_url(self) -> str:
+        return reverse("accounts:signin")
 
 
 class SignOutView(LoginRequiredMixin, generic.View):

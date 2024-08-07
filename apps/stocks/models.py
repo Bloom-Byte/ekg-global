@@ -1,13 +1,18 @@
+import decimal
+import typing
+import datetime
 import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from helpers.caching import ttl_cache
 
 class Stock(models.Model):
     """Model definition for Stock."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticker = models.CharField(max_length=120, unique=True)
+    title = models.CharField(max_length=100, blank=True, null=True)
 
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -18,16 +23,39 @@ class Stock(models.Model):
         ordering = ["-added_at"]
 
     def __str__(self) -> str:
-        return self.ticker
+        return self.title or self.ticker
+    
+    @property
+    def price(self) -> typing.Optional[decimal.Decimal]:
+        """Current price of the stock."""
+        latest_rate = self.rates.order_by("-added_at").first()
+        if not latest_rate:
+            return
+        return decimal.Decimal(latest_rate.close).quantize(
+            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
+        )
+    
+    @ttl_cache(ttl=60*5)
+    def get_price_on_date(self, date: datetime.date) -> typing.Optional[decimal.Decimal]:
+        rate_on_date = self.rates.filter(added_at__date=date).order_by("-added_at").first()
+        if not rate_on_date:
+            return
+        return decimal.Decimal(rate_on_date.close).quantize(
+            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
+        )
 
 
 class MarketType(models.TextChoices):
+    """Available market types."""
+
     REGULAR = "REG", _("Regular")
     FUTURE = "FUT", _("Future")
     ODD_LOT = "ODL", _("Odd Lot")
 
 
 class MarketTrend(models.TextChoices):
+    """Available market trends."""
+
     UP = "up", _("Up")
     DOWN = "down", _("Down")
     NEUTRAL = "neutral", _("Neutral")
@@ -37,8 +65,8 @@ class Rate(models.Model):
     """Model definition for a Rate."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    stock = models.OneToOneField(
-        "stocks.Stock", on_delete=models.CASCADE, related_name="rate"
+    stock = models.ForeignKey(
+        "stocks.Stock", on_delete=models.CASCADE, related_name="rates"
     )
     market = models.CharField(max_length=20, choices=MarketType.choices)
     previous_close = models.FloatField()
@@ -59,3 +87,31 @@ class Rate(models.Model):
         verbose_name = _("Rate")
         verbose_name_plural = _("Rates")
         ordering = ["-added_at"]
+
+
+class KSE100Rate(models.Model):
+    """Model definition for KSE100 Rate"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    date = models.DateField()
+    open = models.FloatField()
+    high = models.FloatField()
+    low = models.FloatField()
+    close = models.FloatField()
+    volume = models.FloatField()
+
+    class Meta:
+        verbose_name = _("KSE100 Rate")
+        verbose_name_plural = _("KSE100 Rates")
+        ordering = ["-date"]
+
+    @classmethod
+    def get_close_on_date(cls, date: datetime.date):
+        rate_on_date = cls.objects.filter(date=date).order_by("-date").first()
+        if not rate_on_date:
+            return None
+        return rate_on_date.close
+
+    @classmethod
+    def get_latest_rate(cls):
+        return cls.objects.latest("date")

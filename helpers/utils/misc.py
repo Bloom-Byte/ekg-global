@@ -127,6 +127,10 @@ def merge_dicts(dict1: Dict, dict2: Dict) -> Dict:
     return merged
 
 
+def underscore_dict_keys(_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """Replaces all hyphens in the dictionary keys with underscores"""
+    return {key.replace('-', "_"): value for key, value in _dict.items()}
+
 __all__ = [
     "is_exception_class",
     "str_to_base64",
@@ -136,4 +140,5 @@ __all__ = [
     "compose",
     "get_value_by_traversal_path",
     "get_attr_by_traversal_path",
+    "underscore_dict_keys",
 ]

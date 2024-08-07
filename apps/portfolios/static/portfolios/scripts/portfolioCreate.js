@@ -1,5 +1,4 @@
 const potfolioCreateForm = document.querySelector('#portfolio-create-form');
-const potfolioCreateFormCard = potfolioCreateForm.parentElement;
 const portfolioCreateButton = potfolioCreateForm.querySelector('.submit-btn');
 
 
@@ -38,8 +37,15 @@ potfolioCreateForm.onsubmit = function(e) {
 
                     for (const [fieldName, msg] of Object.entries(errors)){
                         if (fieldName == "__all__"){
-                            pushNotification("error", msg);
-                        }
+                            if (typeof msg === Array){
+                                msg.forEach((m) => {
+                                    pushNotification("error", m);
+                                });
+                            }else{
+                                pushNotification("error", msg);
+                            };
+                        };
+                        
                         let field = this.querySelector(`*[name=${fieldName}]`);
                         if (!field) return;
                         field.scrollIntoView({"block": "center"});

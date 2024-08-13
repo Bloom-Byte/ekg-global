@@ -353,7 +353,7 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
     new_investments = []
     for row in formatted_df.itertuples():
         data: typing.Dict = row._asdict()
-        print(data)
+        # print(data)
         data.pop("Index")  # Remove the index from the data
         unique_id = data["UIN"]
         stock_ticker = data["SYMBOL"]

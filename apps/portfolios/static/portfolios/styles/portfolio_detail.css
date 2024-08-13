@@ -117,8 +117,8 @@
     width: 100%;
     margin: 5px;
     min-width: 180px;
-    max-width: 300px;
-    min-height: 300px;
+    max-width: 350px;
+    /* min-height: 300px; */
 }
 
 table td{

@@ -125,12 +125,14 @@ LOGIN_URL = "accounts:signin"
 
 if DEBUG is False:
     # PRODUCTION SETTINGS ONLY
-    ALLOWED_HOSTS = ["*"]
+    ALLOWED_HOSTS = ["be.doulab.bloombyte.dev"]
 
 else:
     # DEVELOPMENT SETTINGS ONLY
-    ALLOWED_HOSTS = ["*"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "be.doulab.bloombyte.dev"]
 
+
+CSRF_TRUSTED_ORIGINS = ["https://be.doulab.bloombyte.dev"]
 
 ####################
 # HELPERS SETTINGS #

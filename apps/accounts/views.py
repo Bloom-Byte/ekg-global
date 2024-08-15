@@ -11,7 +11,7 @@ from helpers.response.decorators import redirect_authenticated
 from helpers.requests import parse_query_params_from_request
 
 
-@redirect_authenticated("dashboard", method="get")
+@redirect_authenticated("dashboard:index", method="get")
 class SignInView(generic.TemplateView):
     """View for user sign in"""
 
@@ -29,7 +29,7 @@ class SignInView(generic.TemplateView):
             if user_account:
                 login(request, user_account)
                 query_params = parse_query_params_from_request(request)
-                return redirect(query_params.get("next") or "dashboard")
+                return redirect(query_params.get("next") or "dashboard:index")
 
             messages.error(request, "Invalid credentials, please try again")
         else:
@@ -40,7 +40,7 @@ class SignInView(generic.TemplateView):
         return redirect("accounts:signin")
 
 
-@redirect_authenticated("dashboard", method="get")
+@redirect_authenticated("dashboard:index", method="get")
 class SignUpView(generic.CreateView):
     """View for user sign up"""
 

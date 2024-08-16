@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import datetime
 import decimal
 import csv
+import functools
 import io
 import typing
 import asyncio
@@ -25,6 +26,7 @@ from helpers.caching import ttl_cache
 from .data_cleaners import InvestmentDataCleaner
 from helpers.utils.time import timeit
 from helpers.models.db import database_sync_to_async
+from helpers.utils.misc import merge_dicts
 
 
 def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, float]:
@@ -37,7 +39,7 @@ def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, floa
     for investment in portfolio.investments.select_related("stock").all():
         allocation_data[investment.symbol] = allocation_data.get(
             investment.symbol, 0.00
-        ) + float(investment.principal)
+        ) + float(abs(investment.principal))
     return allocation_data
 
 
@@ -62,7 +64,7 @@ def get_investments_allocation_data(
     for investment in investments:
         allocation_data[investment.symbol] = allocation_data.get(
             investment.symbol, 0.00
-        ) + float(investment.principal)
+        ) + float(abs(investment.principal))
     return allocation_data
 
 
@@ -158,12 +160,13 @@ def get_kse_performance_data(
     start_date, end_date = parse_dt_filter(dt_filter, timezone)
     if not start_date:
         # If the start date is None, use the date of the first KSE100Rate
-        start_date = KSE100Rate.objects.earliest("date").date
+        earliest_rate = KSE100Rate.objects.order_by("date").first()
+        if earliest_rate:
+            start_date = earliest_rate.date
 
-    kse_performance_data = {}
     delta = None
 
-    def add_kse_performance_data_for_period(period_start, period_end):
+    def get_kse_performance_data_for_period(period_start, period_end):
         nonlocal kse_performance_data, delta
         if delta is None:
             delta = period_end - period_start
@@ -186,28 +189,26 @@ def get_kse_performance_data(
                 (period_end_price - period_start_price) / period_start_price
             ) * 100
 
-        kse_performance_data[period_start.isoformat()] = (
-            percentage_change_at_period_start
-        )
-        kse_performance_data[period_end.isoformat()] = percentage_change_at_period_end
+        return {
+            period_start.isoformat(): percentage_change_at_period_start,
+            period_end.isoformat(): percentage_change_at_period_end,
+        }
 
     async def main():
-        async_func = database_sync_to_async(
-            add_kse_performance_data_for_period
-        )
+        async_func = database_sync_to_async(get_kse_performance_data_for_period)
         tasks = []
         for periods in split(start_date, end_date, parts=5):
             task = asyncio.create_task(async_func(*periods))
             tasks.append(task)
 
-        await asyncio.gather(*tasks)
-        return
+        return await asyncio.gather(*tasks)
 
-    asyncio.run(main())
+    results = asyncio.run(main())
+    # Merge the results such that the most recent result updates the existing one
+    kse_performance_data = functools.reduce(merge_dicts, results)
     return kse_performance_data
 
 
-@timeit
 def get_portfolio_percentage_return_on_dates(
     portfolio: Portfolio, *dates: datetime.date
 ):
@@ -219,7 +220,6 @@ def get_portfolio_percentage_return_on_dates(
     return list(result)
 
 
-@timeit
 @ttl_cache
 def get_investment_percentage_return_on_dates(
     investment: Investment, *dates: datetime.date
@@ -249,25 +249,22 @@ def get_portfolio_performance_data(
         # If the start date is None, use the date the portfolio was created
         start_date = portfolio.created_at.date()
 
-    percentage_return_values = {}
-
-    @timeit
-    def add_portfolio_percentage_return_values_for_period(period_start, period_end):
+    def get_portfolio_percentage_return_values_for_period(period_start, period_end):
         nonlocal percentage_return_values
         percentage_returns = get_portfolio_percentage_return_on_dates(
             portfolio, period_start, period_end
         )
-        percentage_return_values[period_start.isoformat()] = float(
-            percentage_returns[0]
-        )
-        percentage_return_values[period_end.isoformat()] = float(percentage_returns[1])
+        return {
+            period_start.isoformat(): float(percentage_returns[0]),
+            period_end.isoformat(): float(percentage_returns[1]),
+        }
 
-    @timeit
-    def add_investment_percentage_return_values_for_period(period_start, period_end):
+    def get_investment_percentage_return_values_for_period(period_start, period_end):
         nonlocal percentage_return_values
         nonlocal stocks
         period_start_iso_fmt = period_start.isoformat()
         period_end_iso_fmt = period_end.isoformat()
+        result = {}
 
         for stock in stocks:
             investment: Investment = portfolio_investments.filter(
@@ -278,30 +275,29 @@ def get_portfolio_performance_data(
             percentage_returns = get_investment_percentage_return_on_dates(
                 investment, period_start, period_end
             )
-            percentage_return_values[investment.symbol][period_start_iso_fmt] = float(
-                percentage_returns[0]
-            )
-            percentage_return_values[investment.symbol][period_end_iso_fmt] = float(
-                percentage_returns[1]
-            )
-        return
+            result[stock] = {
+                period_start_iso_fmt: float(percentage_returns[0]),
+                period_end_iso_fmt: float(percentage_returns[1]),
+            }
+        return result
 
     if stocks:
-        execution_func = add_investment_percentage_return_values_for_period
+        func = get_investment_percentage_return_values_for_period
     else:
-        execution_func = add_portfolio_percentage_return_values_for_period
+        func = get_portfolio_percentage_return_values_for_period
 
     async def main():
-        async_execution_func = database_sync_to_async(execution_func)
+        async_func = database_sync_to_async(func)
         tasks = []
         for periods in split(start_date, end_date, parts=5):
-            task = asyncio.create_task(async_execution_func(*periods))
+            task = asyncio.create_task(async_func(*periods))
             tasks.append(task)
 
-        await asyncio.gather(*tasks)
-        return
+        return await asyncio.gather(*tasks)
 
-    asyncio.run(main())
+    results = asyncio.run(main())
+    # Merge the results such that the most recent result updates the existing one
+    percentage_return_values = functools.reduce(merge_dicts, results)
     if stocks:
         return percentage_return_values
     return {"all": percentage_return_values}

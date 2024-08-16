@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+from helpers.caching import ttl_cache
+
 
 class Portfolio(models.Model):
     """Model definition for Portfolio."""
@@ -320,7 +322,11 @@ class Investment(models.Model):
     
     @functools.cached_property
     def principal(self):
-        """Capital invested before any profit or loss. Initial market value of the investment."""
+        """
+        Capital invested before any profit or loss. Initial market value of the investment.
+
+        Can be signed, i.e -ve or +ve.
+        """
         # Calculate the total fees paid on every unit of the stock invested in
         total_fees = (self.additional_fees + self.brokerage_fee) * self.quantity
 

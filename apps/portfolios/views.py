@@ -26,11 +26,12 @@ portfolio_qs = (
     Portfolio.objects.select_related("owner").prefetch_related("investments").all()
 )
 investment_qs = Investment.objects.select_related("portfolio", "stock").all()
+stock_qs = Stock.objects.prefetch_related("rates").all()
 
 
 class PortfolioListView(LoginRequiredMixin, generic.ListView):
     context_object_name = "portfolios"
-    paginate_by = 20
+    paginate_by = 30
     queryset = portfolio_qs
     template_name = "portfolios/portfolio_list.html"
     http_method_names = ["get", "post"]
@@ -103,7 +104,7 @@ class PortfolioCreateView(LoginRequiredMixin, generic.View):
 class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
     template_name = "portfolios/portfolio_detail.html"
     queryset = investment_qs
-    paginate_by = 50
+    paginate_by = 250
     context_object_name = "investments"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -115,7 +116,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         )
 
         context["portfolio"] = portfolio
-        context["all_stocks"] = Stock.objects.all()
+        context["all_stocks"] = stock_qs
         context["invested_stocks"] = get_stocks_invested_from_investments(investments)
         context["pie_chart_data"] = json.dumps(
             get_investments_allocation_piechart_data(investments)
@@ -124,7 +125,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
             get_portfolio_performance_graph_data(portfolio)
         )
         return context
-    
+
     def get_queryset(self) -> QuerySet[Portfolio]:
         user = self.request.user
         qs = super().get_queryset()
@@ -139,7 +140,10 @@ class PortfolioPerformanceDataView(LoginRequiredMixin, generic.View):
     http_method_names = ["post"]
 
     def get_object(self):
-        return get_object_or_404(Portfolio, id=self.kwargs["portfolio_id"])
+        # Note that the portfolio queryset is used not the model.
+        # This is because the queryset has prefetched and selected related data
+        # Making it way more efficient that using the model
+        return get_object_or_404(portfolio_qs, id=self.kwargs["portfolio_id"])
 
     def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
         data: Dict = json.loads(request.body)
@@ -166,11 +170,12 @@ class PortfolioPerformanceDataView(LoginRequiredMixin, generic.View):
 @capture.enable
 @capture.capture(content="Oops! An error occurred")
 class PortfolioUpdateView(LoginRequiredMixin, generic.View):
+
     http_method_names = ["patch"]
     form_class = PortfolioUpdateForm
 
     def get_object(self):
-        return get_object_or_404(Portfolio, id=self.kwargs["portfolio_id"])
+        return get_object_or_404(portfolio_qs, id=self.kwargs["portfolio_id"])
 
     def patch(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
         data: Dict = json.loads(request.body)

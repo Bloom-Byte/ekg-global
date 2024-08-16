@@ -328,6 +328,11 @@ class Investment(models.Model):
         if self.transaction_type == TransactionType.SELL:
             return self.base_principal - total_fees
         return self.base_principal + total_fees
+    
+    @property
+    def current_rate(self):
+        """Returns the current price/rate of the stock invested in"""
+        return self.stock.price
 
     @property
     def value(self) -> typing.Optional[decimal.Decimal]:

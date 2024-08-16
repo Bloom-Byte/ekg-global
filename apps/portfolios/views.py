@@ -23,7 +23,7 @@ from .helpers import (
 
 
 portfolio_qs = Portfolio.objects.select_related("owner").all()
-investment_qs = Investment.objects.all()
+investment_qs = Investment.objects.select_related("portfolio", "stock").all()
 
 
 class PortfolioListView(LoginRequiredMixin, generic.ListView):

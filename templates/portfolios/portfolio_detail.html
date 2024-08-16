@@ -697,7 +697,8 @@
                                 <th><small>Stock</small></th>
                                 <th><small>Transaction Type</small></th>
                                 <th><small>Quantity</small></th>
-                                <th><small>Rate (PKR)</small></th>
+                                <th><small>Initial Rate (PKR)</small></th>
+                                <th><small>Current Rate (PKR)</small></th>
                                 <th><small>Brokerage Fee (PKR)</small></th>
                                 <th><small>Additional Fees (PKR)</small></th>
                                 <th><small>Principal (PKR)</small></th>
@@ -725,6 +726,7 @@
                                 </td>
                                 <td>{{ investment.quantity }}</td>
                                 <td>{{ investment.rate }}</td>
+                                <td>{{ investment.current_rate }}</td>
                                 <td>{{ investment.brokerage_fee }}</td>
                                 <td>{{ investment.additional_fees }}</td>
                                 <td>{{ investment.principal }}</td>

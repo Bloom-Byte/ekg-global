@@ -4,6 +4,7 @@ import decimal
 import csv
 import io
 import typing
+import asyncio
 import pandas as pd
 from django.db import models, transaction
 from django.core.files import File
@@ -22,12 +23,14 @@ from helpers.utils.models import get_objects_within_datetime_range
 from helpers.utils.datetime import split
 from helpers.caching import ttl_cache
 from .data_cleaners import InvestmentDataCleaner
+from helpers.utils.time import timeit
+from helpers.models.db import database_sync_to_async
 
 
 def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, float]:
     """
     Returns a mapping of the ticker symbols of stocks invested in,
-    to the respective principal amounts invested in them.
+    to the respective principal amounts invested in them, in a portfolio
     """
     allocation_data = {}
 
@@ -39,8 +42,35 @@ def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, floa
 
 
 def get_portfolio_allocation_piechart_data(portfolio: Portfolio) -> str:
-    """Returns the portfolio allocation data in a format suitable for Chart.js pie chart."""
+    """Returns the portfolio's stock allocation data in a format suitable for Chart.js pie chart."""
     allocation_data = get_portfolio_allocation_data(portfolio)
+    colors = [next(random_colors()) for _ in range(len(allocation_data))]
+    return {"data": allocation_data, "colors": colors}
+
+
+# The investments based function for fetching allocation
+# data is slightly efficient than the portfolio based function
+def get_investments_allocation_data(
+    investments: models.QuerySet[Investment],
+) -> typing.Dict[str, float]:
+    """
+    Returns a mapping of the ticker symbols of stocks invested in,
+    to the respective principal amounts invested in them, from the investments given.
+    """
+    allocation_data = {}
+
+    for investment in investments:
+        allocation_data[investment.symbol] = allocation_data.get(
+            investment.symbol, 0.00
+        ) + float(investment.principal)
+    return allocation_data
+
+
+def get_investments_allocation_piechart_data(
+    investments: models.QuerySet[Investment],
+) -> str:
+    """Returns the investments' stock allocation data in a format suitable for Chart.js pie chart."""
+    allocation_data = get_investments_allocation_data(investments)
     colors = [next(random_colors()) for _ in range(len(allocation_data))]
     return {"data": allocation_data, "colors": colors}
 
@@ -113,6 +143,7 @@ def parse_dt_filter(
     return start_date, end_date
 
 
+@timeit
 @ttl_cache(ttl=60 * 5)
 def get_kse_performance_data(
     dt_filter: str, timezone: typing.Optional[str] = None
@@ -160,14 +191,23 @@ def get_kse_performance_data(
         )
         kse_performance_data[period_end.isoformat()] = percentage_change_at_period_end
 
-    with ThreadPoolExecutor() as executor:
-        executor.map(
-            lambda periods: add_kse_performance_data_for_period(*periods),
-            split(start_date, end_date, parts=5),
+    async def main():
+        async_func = database_sync_to_async(
+            add_kse_performance_data_for_period
         )
+        tasks = []
+        for periods in split(start_date, end_date, parts=5):
+            task = asyncio.create_task(async_func(*periods))
+            tasks.append(task)
+
+        await asyncio.gather(*tasks)
+        return
+
+    asyncio.run(main())
     return kse_performance_data
 
 
+@timeit
 def get_portfolio_percentage_return_on_dates(
     portfolio: Portfolio, *dates: datetime.date
 ):
@@ -179,6 +219,7 @@ def get_portfolio_percentage_return_on_dates(
     return list(result)
 
 
+@timeit
 @ttl_cache
 def get_investment_percentage_return_on_dates(
     investment: Investment, *dates: datetime.date
@@ -195,12 +236,14 @@ def get_investment_percentage_return_on_dates(
     return list(result)
 
 
+@timeit
 def get_portfolio_performance_data(
     portfolio: Portfolio,
     dt_filter: str,
     timezone: str = None,
     stocks: typing.Optional[typing.List[str]] = None,
 ) -> typing.Dict[str, typing.Dict[str, float]]:
+    portfolio_investments = portfolio.investments.select_related("stock")
     start_date, end_date = parse_dt_filter(dt_filter, timezone)
     if not start_date:
         # If the start date is None, use the date the portfolio was created
@@ -208,6 +251,7 @@ def get_portfolio_performance_data(
 
     percentage_return_values = {}
 
+    @timeit
     def add_portfolio_percentage_return_values_for_period(period_start, period_end):
         nonlocal percentage_return_values
         percentage_returns = get_portfolio_percentage_return_on_dates(
@@ -218,6 +262,7 @@ def get_portfolio_performance_data(
         )
         percentage_return_values[period_end.isoformat()] = float(percentage_returns[1])
 
+    @timeit
     def add_investment_percentage_return_values_for_period(period_start, period_end):
         nonlocal percentage_return_values
         nonlocal stocks
@@ -225,7 +270,7 @@ def get_portfolio_performance_data(
         period_end_iso_fmt = period_end.isoformat()
 
         for stock in stocks:
-            investment: Investment = portfolio.investments.filter(
+            investment: Investment = portfolio_investments.filter(
                 stock__ticker=stock
             ).first()
             if not investment:
@@ -246,17 +291,23 @@ def get_portfolio_performance_data(
     else:
         execution_func = add_portfolio_percentage_return_values_for_period
 
-    with ThreadPoolExecutor() as executor:
-        executor.map(
-            lambda periods: execution_func(*periods),
-            split(start_date, end_date, parts=5),
-        )
+    async def main():
+        async_execution_func = database_sync_to_async(execution_func)
+        tasks = []
+        for periods in split(start_date, end_date, parts=5):
+            task = asyncio.create_task(async_execution_func(*periods))
+            tasks.append(task)
 
+        await asyncio.gather(*tasks)
+        return
+
+    asyncio.run(main())
     if stocks:
         return percentage_return_values
     return {"all": percentage_return_values}
 
 
+@timeit
 def get_portfolio_performance_graph_data(
     portfolio: Portfolio,
     dt_filter: str = "5D",
@@ -296,10 +347,17 @@ def get_portfolio_performance_graph_data(
     }
 
 
-def get_stocks_invested_in(portfolio: Portfolio) -> typing.List[str]:
+def get_stocks_invested_from_portfolio(portfolio: Portfolio) -> typing.List[str]:
     stock_tickers = portfolio.investments.select_related("stock").values_list(
         "stock__ticker", flat=True
     )
+    return list(set(stock_tickers))
+
+
+def get_stocks_invested_from_investments(
+    investments: models.QuerySet[Investment],
+) -> typing.List[str]:
+    stock_tickers = investments.values_list("stock__ticker", flat=True)
     return list(set(stock_tickers))
 
 
@@ -360,15 +418,13 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
         stock_title = data["SYMBOL_TITLE"]
         buy_quantity = data["BUY"]
         sell_quantity = data["SELL"]
-        
+
         if buy_quantity and sell_quantity:
             raise ValueError(
                 "A transaction can either be 'BUY' or 'SELL' type, not both."
             )
         if not (buy_quantity or sell_quantity):
-            raise ValueError(
-                "Either 'BUY' or 'SELL' quantity must be provided."
-            )
+            raise ValueError("Either 'BUY' or 'SELL' quantity must be provided.")
 
         transaction_type = "buy" if buy_quantity else "sell"
         quantity = int(buy_quantity) if buy_quantity else int(sell_quantity)
@@ -394,14 +450,14 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
         ) * investment.base_principal
         new_investments.append(investment)
 
-    Investment.objects.bulk_create(new_investments, batch_size=100)
+    Investment.objects.bulk_create(new_investments, batch_size=998)
     return None
 
 
 def get_transactions_upload_template() -> InMemoryUploadedFile:
     str_io = io.StringIO()
     str_io.seek(0)
-    
+
     writer = csv.writer(str_io)
     writer.writerow(EXPECTED_TRANSACTION_COLUMNS)
 

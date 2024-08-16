@@ -1,5 +1,6 @@
 from typing import Any, Dict
 import json
+from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
@@ -14,15 +15,16 @@ from .forms import PortfolioCreateForm, InvestmentAddForm, PortfolioUpdateForm
 from helpers.exceptions import capture
 from helpers.logging import log_exception
 from .helpers import (
-    get_portfolio_allocation_piechart_data,
+    get_investments_allocation_piechart_data,
     get_portfolio_performance_graph_data,
-    get_stocks_invested_in,
+    get_stocks_invested_from_investments,
     handle_transactions_file,
-    get_transactions_upload_template
+    get_transactions_upload_template,
 )
 
-
-portfolio_qs = Portfolio.objects.select_related("owner").all()
+portfolio_qs = (
+    Portfolio.objects.select_related("owner").prefetch_related("investments").all()
+)
 investment_qs = Investment.objects.select_related("portfolio", "stock").all()
 
 
@@ -37,7 +39,7 @@ class PortfolioListView(LoginRequiredMixin, generic.ListView):
         user = self.request.user
         qs = super().get_queryset()
         return qs.filter(owner=user)
-    
+
     def post(self, request, *args, **kwargs):
         transactions_file = request.FILES.get("transactions_file", None)
         try:
@@ -49,7 +51,7 @@ class PortfolioListView(LoginRequiredMixin, generic.ListView):
             messages.error(request, "Upload failed! Check the file and try again.")
 
         return redirect("portfolios:portfolio_list")
-    
+
 
 class TransactionsUploadTemplateDownloadView(generic.View):
     http_method_names = ["get"]
@@ -96,28 +98,39 @@ class PortfolioCreateView(LoginRequiredMixin, generic.View):
         )
 
 
-class PortfolioDetailView(LoginRequiredMixin, generic.DetailView):
+# Use list view for detail view so Investments can be paginated.
+# Instead, add the portfolio to the context
+class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
     template_name = "portfolios/portfolio_detail.html"
-    queryset = portfolio_qs
-    pk_url_kwarg = "portfolio_id"
-    context_object_name = "portfolio"
+    queryset = investment_qs
+    paginate_by = 50
+    context_object_name = "investments"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
+
+        investments = context["investments"]
+        portfolio = get_object_or_404(
+            portfolio_qs, id=self.kwargs["portfolio_id"], owner=self.request.user
+        )
+
+        context["portfolio"] = portfolio
         context["all_stocks"] = Stock.objects.all()
-        context["invested_stocks"] = get_stocks_invested_in(self.object)
+        context["invested_stocks"] = get_stocks_invested_from_investments(investments)
         context["pie_chart_data"] = json.dumps(
-            get_portfolio_allocation_piechart_data(self.object)
+            get_investments_allocation_piechart_data(investments)
         )
         context["line_chart_data"] = json.dumps(
-            get_portfolio_performance_graph_data(self.object)
+            get_portfolio_performance_graph_data(portfolio)
         )
         return context
-
+    
     def get_queryset(self) -> QuerySet[Portfolio]:
         user = self.request.user
         qs = super().get_queryset()
-        return qs.prefetch_related("investments").filter(owner=user)
+        return qs.filter(
+            portfolio_id=self.kwargs["portfolio_id"], portfolio__owner=user
+        )
 
 
 @capture.enable
@@ -268,7 +281,9 @@ class InvestmentDeleteView(LoginRequiredMixin, generic.View):
 
 
 portfolio_list_view = PortfolioListView.as_view()
-transactions_upload_template_download_view = TransactionsUploadTemplateDownloadView.as_view()
+transactions_upload_template_download_view = (
+    TransactionsUploadTemplateDownloadView.as_view()
+)
 portfolio_create_view = PortfolioCreateView.as_view()
 portfolio_detail_view = PortfolioDetailView.as_view()
 portfolio_performance_data_view = PortfolioPerformanceDataView.as_view()

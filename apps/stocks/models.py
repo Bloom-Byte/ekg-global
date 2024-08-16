@@ -106,6 +106,7 @@ class KSE100Rate(models.Model):
         ordering = ["-date"]
 
     @classmethod
+    @ttl_cache(ttl=60*5)
     def get_close_on_date(cls, date: datetime.date):
         rate_on_date = cls.objects.filter(date=date).order_by("-date").first()
         if not rate_on_date:

@@ -708,7 +708,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for investment in portfolio.investments.all %}
+                            {% for investment in investments %}
                             <tr>
                                 <td><strong>{{ forloop.counter }}</strong></td>
                                 <td>{{ investment.transaction_date }}</td>
@@ -758,6 +758,44 @@
                             {% endfor %}
                         </tbody>
                     </table>
+
+                    <!-- Paginator -->
+                    {% if page_obj.paginator.num_pages > 1 %}
+                    <nav>
+                        <ul class="pagination pagination-gutter">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item page-indicator">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    <i class="la la-angle-left"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {# Display a range of page numbers around the current page #}
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %}
+                                    {% if num == page_obj.number %}
+                                        <li class="page-item active">
+                                            <a class="page-link" href="javascript:void(0)">{{ num }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item page-indicator">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    <i class="la la-angle-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>

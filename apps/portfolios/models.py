@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 
-
 class Portfolio(models.Model):
     """Model definition for Portfolio."""
 
@@ -329,7 +328,7 @@ class Investment(models.Model):
             return self.base_principal - total_fees
         return self.base_principal + total_fees
     
-    @property
+    @functools.cached_property
     def current_rate(self):
         """Returns the current price/rate of the stock invested in"""
         return self.stock.price
@@ -337,11 +336,11 @@ class Investment(models.Model):
     @property
     def value(self) -> typing.Optional[decimal.Decimal]:
         """The current market value of the investment."""
-        current_stock_price = self.stock.price
-        if not current_stock_price:
+        current_rate = self.current_rate
+        if not current_rate:
             return None
         
-        current_value = current_stock_price * self.quantity
+        current_value = current_rate * self.quantity
         return current_value.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )

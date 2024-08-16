@@ -726,7 +726,7 @@
                                 </td>
                                 <td>{{ investment.quantity }}</td>
                                 <td>{{ investment.rate }}</td>
-                                <td>{{ investment.current_rate }}</td>
+                                <td>{{ investment.current_rate | default:"__" }}</td>
                                 <td>{{ investment.brokerage_fee }}</td>
                                 <td>{{ investment.additional_fees }}</td>
                                 <td>{{ investment.principal }}</td>

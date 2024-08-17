@@ -2,6 +2,7 @@
 {% load static %}
 {% load tz %}
 {% load humanize %}
+{% load custom_filters %}
 
 {% block stylesheets %}
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
@@ -710,7 +711,13 @@
                         <tbody>
                             {% for investment in investments %}
                             <tr>
-                                <td><strong>{{ forloop.counter }}</strong></td>
+                                <td>
+                                    <strong>
+                                    {% with offset=page_obj.number|add:-1|multiply_int:page_obj.paginator.per_page %}
+                                        {{ forloop.counter|add:offset }}
+                                    {% endwith %}
+                                    </strong>
+                                </td>
                                 <td>{{ investment.transaction_date }}</td>
                                 <td>{{ investment.symbol }}</td>
                                 <td>

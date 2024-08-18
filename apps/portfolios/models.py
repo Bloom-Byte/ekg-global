@@ -26,7 +26,7 @@ class Portfolio(models.Model):
     capital = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     description = models.TextField(null=True, blank=True)
     brokerage_percentage = models.DecimalField(
-        max_digits=4, decimal_places=2, null=True, blank=True, default=decimal.Decimal(15.00)
+        max_digits=4, decimal_places=2, null=True, blank=True, default=decimal.Decimal(0.15)
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

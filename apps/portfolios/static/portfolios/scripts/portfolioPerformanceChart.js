@@ -90,7 +90,7 @@ if (portfolioPerformanceSection){
                 y: {
                     title: {
                         display: true,
-                        text: 'Change (%)',
+                        text: 'Return (%)',
                         color: "#ddd",
                         font: {
                             size: 13,

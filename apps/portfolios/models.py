@@ -26,7 +26,11 @@ class Portfolio(models.Model):
     capital = models.DecimalField(max_digits=14, decimal_places=2, default=0)
     description = models.TextField(null=True, blank=True)
     brokerage_percentage = models.DecimalField(
-        max_digits=4, decimal_places=2, null=True, blank=True, default=decimal.Decimal(0.15)
+        max_digits=4,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=decimal.Decimal(0.15),
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -50,12 +54,12 @@ class Portfolio(models.Model):
         return (self.capital - self.invested_capital).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
+
     @property
     def value(self) -> decimal.Decimal:
         """
         The current value of the portfolio.
-        
+
         The sum of the value of investments in the portfolio,
         and the remaining cash balance. Or, the initial capital
         plus the total return on investments.
@@ -73,30 +77,40 @@ class Portfolio(models.Model):
         return decimal.Decimal.from_float(total_investments_principal).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
+
     @property
     def total_return_on_investments(self):
         """
         The total return on all investments in the portfolio.
 
-        The current return on the invested capital.
+        The all-time return on the invested capital.
         """
         return self.get_total_return_on_investments()
-    
+
+    @property
+    def todays_return_on_investments(self):
+        """
+        The total return on all investments in the portfolio.
+
+        The current return on the invested capital.
+        """
+        todays_date = timezone.now().date()
+        return self.get_total_return_on_investments(date=todays_date)
+
     @property
     def percentage_return_on_investments(self):
         """The current percentage return on the invested capital."""
         return self.get_percentage_return_on_investments()
-    
+
     @property
     def total_investments_value(self):
         """
         The total of the current value of all investments in the portfolio.
-        
+
         The current value of invested capital.
         """
         return self.get_total_investments_value()
-    
+
     def investments_principals(self):
         """Yields the capital invested (principal) in each investment in the portfolio."""
         for investment in self.investments.all():
@@ -106,7 +120,7 @@ class Portfolio(models.Model):
         """
         Yields the current value of each investment in the portfolio.
 
-        :
+        :param
         """
         for investment in self.investments.all():
             if date:
@@ -121,7 +135,7 @@ class Portfolio(models.Model):
         """
         Yields the return on each investment in the portfolio.
 
-        :param 
+        :param
         """
         for investment in self.investments.all():
             if date:
@@ -138,28 +152,32 @@ class Portfolio(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
-    def get_total_return_on_investments(self, date: typing.Optional[datetime.date] = None):
+    def get_total_return_on_investments(
+        self, date: typing.Optional[datetime.date] = None
+    ):
         total_return_on_investments = math.fsum(self.returns_on_investments(date))
         return decimal.Decimal.from_float(total_return_on_investments).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
-    def get_percentage_return_on_investments(self, date: typing.Optional[datetime.date] = None):
+
+    def get_percentage_return_on_investments(
+        self, date: typing.Optional[datetime.date] = None
+    ):
         invested_capital = self.invested_capital
         if invested_capital == 0:
             return decimal.Decimal(0)
-        
-        percentage_return_on_investments = (self.get_total_return_on_investments(date) / invested_capital) * 100
+
+        percentage_return_on_investments = (
+            self.get_total_return_on_investments(date) / invested_capital
+        ) * 100
         return percentage_return_on_investments.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
+
     def get_value(self, date: typing.Optional[datetime.date] = None):
         value = self.capital + self.get_total_return_on_investments(date)
-        return value.quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
- 
+        return value.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
+
 
 class TransactionType(models.TextChoices):
     """Available investment transaction types."""
@@ -287,7 +305,7 @@ class Investment(models.Model):
         "laga",
         "nlaga",
         "fed",
-        "misc"
+        "misc",
     )
 
     def __str__(self) -> str:
@@ -299,7 +317,7 @@ class Investment(models.Model):
     def symbol(self):
         """The symbol of the stock."""
         return self.stock.ticker
-    
+
     @functools.cached_property
     def base_principal(self):
         """The principal investment amount before any additional costs."""
@@ -307,7 +325,7 @@ class Investment(models.Model):
         return base_principal.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
+
     @functools.cached_property
     def additional_fees(self):
         """The total additional fees paid on each unit of the stock invested in."""
@@ -316,10 +334,8 @@ class Investment(models.Model):
             fee = getattr(self, field, decimal.Decimal(0))
             # Add the value of each additional cost field to the total additional fees
             total += fee
-        return total.quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
-    
+        return total.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
+
     @functools.cached_property
     def principal(self):
         """
@@ -333,7 +349,7 @@ class Investment(models.Model):
         if self.transaction_type == TransactionType.SELL:
             return self.base_principal - total_fees
         return self.base_principal + total_fees
-    
+
     @functools.cached_property
     def current_rate(self):
         """Returns the current price/rate of the stock invested in"""
@@ -345,7 +361,7 @@ class Investment(models.Model):
         current_rate = self.current_rate
         if not current_rate:
             return None
-        
+
         current_value = current_rate * self.quantity
         return current_value.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
@@ -364,7 +380,7 @@ class Investment(models.Model):
         return return_value.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
+
     @property
     def percentage_return(self) -> typing.Optional[decimal.Decimal]:
         """
@@ -378,18 +394,20 @@ class Investment(models.Model):
         return percentage_return.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
-    def get_value_on_date(self, date: datetime.date) -> typing.Optional[decimal.Decimal]:
+
+    def get_value_on_date(
+        self, date: datetime.date
+    ) -> typing.Optional[decimal.Decimal]:
         stock_price_on_date = self.stock.get_price_on_date(date)
         if not stock_price_on_date:
             return None
-        
+
         value = stock_price_on_date * self.quantity
-        return value.quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
-    
-    def get_return_value_on_date(self, date: datetime.date) -> typing.Optional[decimal.Decimal]:
+        return value.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
+
+    def get_return_value_on_date(
+        self, date: datetime.date
+    ) -> typing.Optional[decimal.Decimal]:
         value = self.get_value_on_date(date)
         if not value:
             return None
@@ -398,8 +416,10 @@ class Investment(models.Model):
         return return_value.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-   
-    def get_percentage_return_on_date(self, date: datetime.date) -> typing.Optional[decimal.Decimal]:
+
+    def get_percentage_return_on_date(
+        self, date: datetime.date
+    ) -> typing.Optional[decimal.Decimal]:
         """
         The current percentage return of the investment, either profit or loss.
         """

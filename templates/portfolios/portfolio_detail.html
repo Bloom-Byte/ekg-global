@@ -5,6 +5,8 @@
 {% load custom_filters %}
 
 {% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
+
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
 <link href="{% static 'portfolios/styles/portfolio_detail.css' %}" rel="stylesheet">
 {% endblock stylesheets %}
@@ -482,130 +484,167 @@
         </div>
     </div>
 
-    <section id="portfolio-stats">
-        <div class="widget-stat card">
-            <div class="card-body  p-4">
-                <div class="media ai-icon">
-                    <span class="me-3 bgl-warning text-warning">PKR</span>
-                    <div class="media-body">
-                        <p class="mb-1">Portfolio Capital</p>
-                        <h4 class="mb-0">{{ portfolio.capital|intcomma }}</h4>
+    <div id="portfolio-stats-wp">
+        <section id="portfolio-stats">
+            <div class="widget-stat card">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-warning text-warning">PKR</span>
+                        <div class="media-body">
+                            <p class="mb-1">Core Capital</p>
+                            <h4 class="mb-0">{{ portfolio.capital|intcomma }}</h4>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="widget-stat card">
-            <div class="card-body  p-4">
-                <div class="media ai-icon">
-                    <span class="me-3 bgl-info text-info">PKR</span>
-                    <div class="media-body">
-                        <p class="mb-1">Invested Capital</p>
-                        <h4 class="mb-0">{{ portfolio.invested_capital|intcomma }}</h4>
+            <div class="widget-stat card" id="net-balance-card" style="display: none;">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-success text-success">PKR</span>
+                        <div class="media-body">
+                            <p class="mb-1">Net Balance</p>
+                            <h4 class="mb-0">{{ portfolio.cash_balance|intcomma }}</h4>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="widget-stat card">
-            <div class="card-body  p-4">
-                <div class="media ai-icon">
-                    <span class="me-3 bgl-success text-success">PKR</span>
-                    <div class="media-body">
-                        <p class="mb-1">Cash Balance</p>
-                        <h4 class="mb-0">{{ portfolio.cash_balance|intcomma }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="widget-stat card">
-            <div class="card-body  p-4">
-                <div class="media ai-icon">
-                    <span 
-                        {% if portfolio.current_value %}
-                            {% if portfolio.current_value < portfolio.capital %}
-                                class="me-3 bgl-danger text-danger"
-                            {% else %}
-                                class="me-3 bgl-success text-success"
-                            {% endif %}
-
-                        {% else %}
-                            class="me-3 bgl-info text-info"
-                        {% endif %}
-                    >
-                        PKR
-                    </span>
-                    <div class="media-body">
-                        <p class="mb-1">Portfolio Value</p>
-                        <h4 class="mb-0">{{ portfolio.value|intcomma }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="widget-stat card">
-            <div class="card-body  p-4">
-                <div class="media ai-icon">
-                    <span 
-                        {% if portfolio.total_investments_value %}
-                            {% if portfolio.total_investments_value < portfolio.invested_capital %}
-                                class="me-3 bgl-danger text-danger"
-                            {% else %}
-                                class="me-3 bgl-success text-success"
-                            {% endif %}
-
-                        {% else %}
-                            class="me-3 bgl-info text-info"
-                        {% endif %}
-                    >
-                        PKR
-                    </span>
-                    <div class="media-body">
-                        <p class="mb-1">Investments Value</p>
-                        <h4 class="mb-0">{{ portfolio.total_investments_value|intcomma }}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="widget-stat card">
-            <div class="card-body  p-4">
-                <div class="media ai-icon">
-                    <span 
-                    {% if portfolio.total_return_on_investments %}
-                        {% if portfolio.total_return_on_investments.is_signed %}
-                            class="me-3 bgl-danger text-danger"
-                        {% else %}
-                            class="me-3 bgl-success text-success"
-                        {% endif %}
-
-                    {% else %}
-                        class="me-3 bgl-info text-info"
-                    {% endif %}
-                    >
-                        PKR
-                    </span>
-                    <div class="media-body">
-                        <p class="mb-1">Return on Investments</p>
-                        <h4 class="mb-0">{{ portfolio.total_return_on_investments|intcomma }}</h4>
-
-                        {% if portfolio.total_return_on_investments %}
+    
+            <div class="widget-stat card">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
                         <span 
-                            {% if portfolio.percentage_return_on_investments.is_signed %}
-                                class="badge light badge-danger"
+                            {% if portfolio.current_value %}
+                                {% if portfolio.current_value < portfolio.capital %}
+                                    class="me-3 bgl-danger text-danger"
+                                {% else %}
+                                    class="me-3 bgl-success text-success"
+                                {% endif %}
+    
                             {% else %}
-                                class="badge light badge-success"
+                                class="me-3 bgl-info text-info"
                             {% endif %}
                         >
-                            {{ portfolio.percentage_return_on_investments }}%
+                            PKR
                         </span>
-                        {% endif %}
+                        <div class="media-body">
+                            <p class="mb-1">Net Value</p>
+                            <h4 class="mb-0">{{ portfolio.value|intcomma }}</h4>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+    
+            <div class="widget-stat card">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
+                        <span class="me-3 bgl-info text-info">PKR</span>
+                        <div class="media-body">
+                            <p class="mb-1">Core Investment</p>
+                            <h4 class="mb-0">{{ portfolio.invested_capital|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="widget-stat card">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
+                        <span 
+                            {% if portfolio.total_investments_value %}
+                                {% if portfolio.total_investments_value < portfolio.invested_capital %}
+                                    class="me-3 bgl-danger text-danger"
+                                {% else %}
+                                    class="me-3 bgl-success text-success"
+                                {% endif %}
+    
+                            {% else %}
+                                class="me-3 bgl-info text-info"
+                            {% endif %}
+                        >
+                            PKR
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Investment Value</p>
+                            <h4 class="mb-0">{{ portfolio.total_investments_value|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="widget-stat card">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
+                        <span 
+                        {% if portfolio.total_return_on_investments %}
+                            {% if portfolio.total_return_on_investments.is_signed %}
+                                class="me-3 bgl-danger text-danger"
+                            {% else %}
+                                class="me-3 bgl-success text-success"
+                            {% endif %}
+    
+                        {% else %}
+                            class="me-3 bgl-info text-info"
+                        {% endif %}
+                        >
+                            PKR
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Unrealized Gain or Loss</p>
+                            <h4 class="mb-0">{{ portfolio.total_return_on_investments|intcomma }}</h4>
+    
+                            {% if portfolio.total_return_on_investments %}
+                            <span 
+                                {% if portfolio.percentage_return_on_investments.is_signed %}
+                                    class="badge light badge-danger"
+                                {% else %}
+                                    class="badge light badge-success"
+                                {% endif %}
+                            >
+                                {{ portfolio.percentage_return_on_investments }}%
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget-stat card">
+                <div class="card-body  p-4">
+                    <div class="media ai-icon">
+                        <span 
+                        {% if portfolio.todays_return_on_investments %}
+                            {% if portfolio.todays_return_on_investments.is_signed %}
+                                class="me-3 bgl-danger text-danger"
+                            {% else %}
+                                class="me-3 bgl-success text-success"
+                            {% endif %}
+    
+                        {% else %}
+                            class="me-3 bgl-info text-info"
+                        {% endif %}
+                        >
+                            PKR
+                        </span>
+                        <div class="media-body">
+                            <p class="mb-1">Net Return (1D)</p>
+                            <h4 class="mb-0">{{ portfolio.todays_return_on_investments|intcomma }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <button 
+            type="button" 
+            class="btn btn-primary btn-sm" 
+            style="width: fit-content;" 
+            id="net-balance-card-toggle"
+            data-toggleText="Hide Net Balance"
+        >
+            Show Net Balance
+        </button>
+    </div>
 
     {% if portfolio.investments.exists %}
     <section id="charts-section">
@@ -675,10 +714,11 @@
     </section>
     {% endif %}
 
-    <div class="col-lg-12">
+    <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">All Transactions</h4>
+                <h4 class="card-title">Transactions</h4>
+
                 <button 
                     type="button" 
                     class="btn btn-light btn-sm"
@@ -690,22 +730,22 @@
             </div>
             <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
                 <div class="table-responsive">
-                    <table class="table table-responsive-md">
+                    <table id="portfolio-data-table" class="display" style="min-width: 845px">
                         <thead>
                             <tr>
                                 <th style="width:80px;"><small>#</small></th>
-                                <th><small>Transaction Date</small></th>
-                                <th><small>Stock</small></th>
-                                <th><small>Transaction Type</small></th>
-                                <th><small>Quantity</small></th>
-                                <th><small>Initial Rate (PKR)</small></th>
-                                <th><small>Current Rate (PKR)</small></th>
-                                <th><small>Brokerage Fee (PKR)</small></th>
-                                <th><small>Additional Fees (PKR)</small></th>
-                                <th><small>Principal (PKR)</small></th>
-                                <th><small>Current Value (PKR)</small></th>
+                                <th><small>Scrips</small></th>
+                                <th><small>Date</small></th>
+                                <th><small>Transaction</small></th>
+                                <th><small>No. of Shares</small></th>
+                                <th><small>Cost/Share (PKR)</small></th>
+                                <th><small>Brok. Fee/Share (PKR)</small></th>
+                                <th><small>Addl. Fees/Share (PKR)</small></th>
+                                <th><small>Total Cost (PKR)</small></th>
+                                <th><small>Market Value/Share (PKR)</small></th>
+                                <th><small>Market Value (PKR)</small></th>
                                 <th><small>Unrealized Gain/Loss</small></th>
-                                <th></th>
+                                <th class="no-sort"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -718,8 +758,8 @@
                                     {% endwith %}
                                     </strong>
                                 </td>
-                                <td>{{ investment.transaction_date }}</td>
                                 <td>{{ investment.symbol }}</td>
+                                <td>{{ investment.transaction_date }}</td>
                                 <td>
                                     <span
                                         {% if investment.transaction_type == "buy" %}
@@ -733,12 +773,12 @@
                                 </td>
                                 <td>{{ investment.quantity }}</td>
                                 <td>{{ investment.rate }}</td>
-                                <td>{{ investment.current_rate | default:"__" }}</td>
                                 <td>{{ investment.brokerage_fee }}</td>
                                 <td>{{ investment.additional_fees }}</td>
                                 <td>{{ investment.principal }}</td>
+                                <td>{{ investment.current_rate | default:"__" }}</td>
                                 <td>{{ investment.value | default:"__" }}</td>
-                                <td>
+                                <td style="text-align: right;">
                                     {{ investment.return_value | default:"__" }}
                                     
                                     {% if investment.return_value %}
@@ -812,11 +852,14 @@
 
 
 {% block scripts %}
+<!-- Datatable -->
+<script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
 <script src="{% static 'portfolios//scripts//transactionAdd.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioEdit.js' %}"></script>
+<script src="{% static 'portfolios//scripts//portfolioDetail.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioAllocationChart.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioPerformanceChart.js' %}"></script>
 {% endblock scripts %}

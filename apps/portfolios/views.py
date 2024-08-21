@@ -23,9 +23,15 @@ from .helpers import (
 )
 
 portfolio_qs = (
-    Portfolio.objects.select_related("owner").prefetch_related("investments").all()
+    Portfolio.objects.select_related("owner")
+    .prefetch_related("investments", "investments__stock", "investments__stock__rates")
+    .all()
 )
-investment_qs = Investment.objects.select_related("portfolio", "stock").all()
+investment_qs = (
+    Investment.objects.select_related("portfolio", "stock")
+    .prefetch_related("stock__rates")
+    .all()
+)
 stock_qs = Stock.objects.prefetch_related("rates").all()
 
 
@@ -104,7 +110,7 @@ class PortfolioCreateView(LoginRequiredMixin, generic.View):
 class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
     template_name = "portfolios/portfolio_detail.html"
     queryset = investment_qs
-    paginate_by = 250
+    paginate_by = 200
     context_object_name = "investments"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -170,7 +176,6 @@ class PortfolioPerformanceDataView(LoginRequiredMixin, generic.View):
 @capture.enable
 @capture.capture(content="Oops! An error occurred")
 class PortfolioUpdateView(LoginRequiredMixin, generic.View):
-
     http_method_names = ["patch"]
     form_class = PortfolioUpdateForm
 

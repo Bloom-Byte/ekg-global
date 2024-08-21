@@ -34,8 +34,14 @@
 
 /* Statistics Section */
 
-#portfolio-stats{
+#portfolio-stats-wp{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     margin-block: 16px;
+}
+
+#portfolio-stats{
     width: 100%; 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 

@@ -37,7 +37,7 @@ if (portfolioAllocationChartCanvas) {
         data: getPieChartData(portfolioAllocationChartCanvas.dataset.chartdata),
         options: {
             responsive: true,
-            aspectRatio: 0.5,
+            aspectRatio: 0.55,
             plugins: {
                 legend: {
                     display: true,

@@ -654,7 +654,7 @@
                     <h4>Portfolio Performance</h4>
                     <nav id="portfolio-performance-filters">
                         {% csrf_token %}
-                        <ul class="pagination pagination-sm pagination-gutter pagination-info">
+                        <ul class="pagination pagination-lg pagination-gutter pagination-info">
                             <li class="page-item active">
                                 <button class="page-link portfolio-performance-filter" data-value="5D">5D</button>
                             </li>
@@ -714,6 +714,7 @@
     </section>
     {% endif %}
 
+    <!-- Transactions Table -->
     <div class="col-12">
         <div class="card">
             <div class="card-header">
@@ -775,7 +776,7 @@
                                 <td>{{ investment.rate }}</td>
                                 <td>{{ investment.brokerage_fee }}</td>
                                 <td>{{ investment.additional_fees }}</td>
-                                <td>{{ investment.principal }}</td>
+                                <td>{{ investment.cost }}</td>
                                 <td>{{ investment.current_rate | default:"__" }}</td>
                                 <td>{{ investment.value | default:"__" }}</td>
                                 <td style="text-align: right;">
@@ -844,6 +845,89 @@
                     </ul>
                 </nav>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stocks Profile Table -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Stocks Profile</h4>
+
+                <nav>
+                    {% csrf_token %}
+                    <ul class="pagination pagination-sm pagination-gutter pagination-info">
+                        <li class="page-item active">
+                            <button class="page-link portfolio-performance-filter" data-value="5D">5D</button>
+                        </li>
+                        <li class="page-item">
+                            <button class="page-link portfolio-performance-filter" data-value="1M">1M</button>
+                        </li>
+                        <li class="page-item">
+                            <button class="page-link portfolio-performance-filter" data-value="3M">3M</button>
+                        </li>
+                        <li class="page-item">
+                            <button class="page-link portfolio-performance-filter" data-value="6M">6M</button>
+                        </li>
+                        <li class="page-item">
+                            <button class="page-link portfolio-performance-filter" data-value="1Y">1Y</button>
+                        </li>
+                        <li class="page-item">
+                            <button class="page-link portfolio-performance-filter" data-value="5Y">5Y</button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="stock-profiles-data-table" class="display" style="min-width: 845px">
+                        <thead>
+                            <tr>
+                                <th><small>Scrips</small></th>
+                                <th><small>% of Shares</small></th>
+                                <th><small>No. of Shares</small></th>
+                                <th><small>Cost/Share (PKR)</small></th>
+                                <th><small>Total Cost (PKR)</small></th>
+                                <th><small>Market Value/Share (PKR)</small></th>
+                                <th><small>Market Value (PKR)</small></th>
+                                <th><small>Unrealized Gain/Loss</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock_profile in stock_profiles %}
+                            <tr
+                                {% if forloop.last %}
+                                style="text-transform: uppercase !important; font-weight: 700 !important;"
+                                {% endif %}
+                            >
+                                <td>{{ stock_profile.symbol }}</td>
+                                <td>{{ stock_profile.percentage_allocation | default:"__" }}%</td>
+                                <td>{{ stock_profile.net_quantity }}</td>
+                                <td>{{ stock_profile.average_rate | default:"__" }}</td>
+                                <td>{{ stock_profile.net_average_cost }}</td>
+                                <td>{{ stock_profile.market_rate | default:"__" }}</td>
+                                <td>{{ stock_profile.market_value | default:"__" }}</td>
+                                <td style="text-align: right;">
+                                    {{ stock_profile.net_return_on_investments | default:"__" }}
+                                    
+                                    {% if stock_profile.net_return_on_investments %}
+                                        {% if stock_profile.percentage_return_on_investments.is_signed %}
+                                        <strong class="badge light badge-danger">
+                                            {{ stock_profile.percentage_return_on_investments | default:"__" }}%
+                                        </strong>
+                                        {% else %}
+                                        <strong class="badge light badge-success">
+                                            {{ stock_profile.percentage_return_on_investments | default:"__" }}%
+                                        </strong>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

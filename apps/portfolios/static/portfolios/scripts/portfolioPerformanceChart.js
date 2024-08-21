@@ -83,7 +83,8 @@ if (portfolioPerformanceSection){
 
     const lineChartConfig = {
         type: 'line',
-        data: getLineChartData(portfolioPerformanceChartCanvas.dataset.chartdata),
+        // data: getLineChartData(portfolioPerformanceChartCanvas.dataset.chartdata),
+        data: {datasets: []},
         options: {
             responsive: true,
             scales: {
@@ -312,6 +313,9 @@ if (portfolioPerformanceSection){
             updateStockComparisonCounter();
         }
     });
+
+    // (Force) Click the first performance filter to trigger portfolio performance data fetch
+    portfolioPerformanceFilters[0].forceClick();
 };
 
 

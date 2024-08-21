@@ -16,8 +16,8 @@ try:
 except ImportError:
     from backports import zoneinfo
 
-from .models import Investment, Portfolio
-from apps.stocks.models import KSE100Rate, Stock
+from .models import Investment, Portfolio, TransactionType
+from apps.stocks.models import KSE100Rate, Rate, Stock
 from apps.accounts.models import UserAccount
 from helpers.utils.colors import random_colors
 from helpers.utils.models import get_objects_within_datetime_range
@@ -32,14 +32,14 @@ from helpers.utils.misc import merge_dicts
 def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, float]:
     """
     Returns a mapping of the ticker symbols of stocks invested in,
-    to the respective principal amounts invested in them, in a portfolio
+    to the respective cost amounts invested in them, in a portfolio
     """
     allocation_data = {}
 
     for investment in portfolio.investments.select_related("stock").all():
         allocation_data[investment.symbol] = allocation_data.get(
             investment.symbol, 0.00
-        ) + float(abs(investment.principal))
+        ) + float(abs(investment.cost))
     return allocation_data
 
 
@@ -57,14 +57,14 @@ def get_investments_allocation_data(
 ) -> typing.Dict[str, float]:
     """
     Returns a mapping of the ticker symbols of stocks invested in,
-    to the respective principal amounts invested in them, from the investments given.
+    to the respective cost amounts invested in them, from the investments given.
     """
     allocation_data = {}
 
     for investment in investments:
         allocation_data[investment.symbol] = allocation_data.get(
             investment.symbol, 0.00
-        ) + float(abs(investment.principal))
+        ) + float(abs(investment.cost))
     return allocation_data
 
 
@@ -243,7 +243,10 @@ def get_portfolio_performance_data(
     timezone: str = None,
     stocks: typing.Optional[typing.List[str]] = None,
 ) -> typing.Dict[str, typing.Dict[str, float]]:
-    portfolio_investments = portfolio.investments.select_related("stock")
+    portfolio_investments = portfolio.investments.select_related(
+        "stock"
+    ).prefetch_related("stock__rates")
+
     start_date, end_date = parse_dt_filter(dt_filter, timezone)
     if not start_date:
         # If the start date is None, use the date the portfolio was created
@@ -289,8 +292,8 @@ def get_portfolio_performance_data(
     async def main():
         async_func = database_sync_to_async(func)
         tasks = []
-        for periods in split(start_date, end_date, parts=5):
-            task = asyncio.create_task(async_func(*periods))
+        for period in split(start_date, end_date, parts=5):
+            task = asyncio.create_task(async_func(*period))
             tasks.append(task)
 
         return await asyncio.gather(*tasks)
@@ -443,7 +446,7 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
         )
         investment.brokerage_fee = (
             portfolio.brokerage_percentage / 100
-        ) * investment.base_principal
+        ) * investment.base_cost
         new_investments.append(investment)
 
     Investment.objects.bulk_create(new_investments, batch_size=998)
@@ -466,3 +469,140 @@ def get_transactions_upload_template() -> InMemoryUploadedFile:
         charset=None,
     )
     return in_memory_file
+
+
+def get_stock_profile_from_investments(
+    stock: str, investments: models.QuerySet[Investment]
+):
+    investments_for_stock = investments.filter(stock__ticker=stock)
+    annotated_qs = investments_for_stock.annotate(
+        signed_quantity=models.Case(
+            models.When(
+                transaction_type=TransactionType.SELL, then=-models.F("quantity")
+            ),
+            default=models.F("quantity"),
+            output_field=models.IntegerField(),
+        )
+    )
+    aggregation = annotated_qs.aggregate(
+        net_quantity=models.Sum("signed_quantity"),
+        average_rate=models.Avg("rate"),
+    )
+
+    net_quantity: int = aggregation["net_quantity"]
+    average_rate = aggregation["average_rate"].quantize(
+        decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
+    )
+    net_average_cost = float(net_quantity * average_rate)
+    latest_rate_record = (
+        Rate.objects.filter(stock__ticker=stock).order_by("-added_at").first()
+    )
+
+    market_rate = None
+    market_value = None
+    net_return_on_investments = None
+    percentage_return_on_investments = None
+    if latest_rate_record:
+        # Get the current/latest (market) rate
+        market_rate = latest_rate_record.close
+
+    if market_rate and net_average_cost:
+        market_value = abs(net_quantity) * market_rate
+        net_return_on_investments = market_value - net_average_cost
+        percentage_return_on_investments = (
+            net_return_on_investments / abs(net_average_cost)
+        ) * 100
+
+        # Convert integer values to decimal.Decimal
+        net_return_on_investments = decimal.Decimal(net_return_on_investments).quantize(
+            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
+        )
+        percentage_return_on_investments = decimal.Decimal(
+            percentage_return_on_investments
+        ).quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
+
+    # Convert integer values to decimal.Decimal
+    net_average_cost = decimal.Decimal(net_average_cost).quantize(
+        decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
+    )
+    return {
+        "symbol": stock,
+        "net_quantity": net_quantity,
+        "average_rate": average_rate,
+        "net_average_cost": net_average_cost,
+        "market_rate": market_rate,
+        "market_value": market_value,
+        "net_return_on_investments": net_return_on_investments,
+        "percentage_return_on_investments": percentage_return_on_investments,
+    }
+
+
+def _update_stock_profile_with_percentage_allocation(
+    stock_profile: typing.Dict[str, typing.Union[int, float, decimal.Decimal]],
+    total_quantity_of_stocks_invested_in: int,
+):
+    if not total_quantity_of_stocks_invested_in:
+        stock_profile["percentage_allocation"] = None
+        return stock_profile
+
+    net_quantity = stock_profile["net_quantity"]
+    percentage_allocation = (net_quantity / total_quantity_of_stocks_invested_in) * 100
+    stock_profile["percentage_allocation"] = decimal.Decimal(
+        percentage_allocation
+    ).quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
+    return stock_profile
+
+
+@timeit
+def generate_portfolio_stock_profiles(
+    portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
+):
+    start_date, _ = parse_dt_filter(dt_filter, timezone)
+    portfolio_investments = (
+        portfolio.investments.select_related("stock")
+        .prefetch_related("stock__rates")
+        .filter(added_at__date__gte=start_date)
+    )
+
+    stocks_invested_in = get_stocks_invested_from_investments(portfolio_investments)
+    with ThreadPoolExecutor() as executor:
+        stock_profiles = list(executor.map(
+            lambda stock: get_stock_profile_from_investments(
+                stock, portfolio_investments
+            ),
+            stocks_invested_in,
+        ))
+
+    net_total_quantity_of_stocks_invested_in = sum(
+        profile["net_quantity"] for profile in stock_profiles
+    )
+    net_total_average_cost = sum(profile["net_quantity"] for profile in stock_profiles)
+    total_market_value = sum(
+        profile["market_value"] for profile in stock_profiles if profile["market_value"]
+    )
+    net_total_return_on_investments = sum(
+        profile["net_return_on_investments"]
+        for profile in stock_profiles
+        if profile["net_return_on_investments"]
+    )
+
+    for profile in stock_profiles:
+        profile = _update_stock_profile_with_percentage_allocation(
+            profile, net_total_quantity_of_stocks_invested_in
+        )
+
+    total_profile = {
+        "symbol": "TOTAL",
+        "net_quantity": net_total_quantity_of_stocks_invested_in,
+        "average_rate": None,
+        "net_average_cost": net_total_average_cost,
+        "market_rate": None,
+        "market_value": total_market_value,
+        "net_return_on_investments": net_total_return_on_investments,
+        "percentage_return_on_investments": None,
+        "percentage_allocation": 100.00
+        if net_total_quantity_of_stocks_invested_in
+        else None,
+    }
+    stock_profiles.append(total_profile)
+    return stock_profiles

@@ -71,10 +71,10 @@ class Portfolio(models.Model):
         """
         The total capital invested in the portfolio.
 
-        the total capital used as investment principal
+        the total capital used as investment cost
         """
-        total_investments_principal = math.fsum(self.investments_principals())
-        return decimal.Decimal.from_float(total_investments_principal).quantize(
+        total_investments_cost = math.fsum(self.investments_costs())
+        return decimal.Decimal.from_float(total_investments_cost).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
@@ -111,10 +111,10 @@ class Portfolio(models.Model):
         """
         return self.get_total_investments_value()
 
-    def investments_principals(self):
-        """Yields the capital invested (principal) in each investment in the portfolio."""
+    def investments_costs(self):
+        """Yields the capital invested (cost) of each investment in the portfolio."""
         for investment in self.investments.all():
-            yield investment.principal
+            yield investment.cost
 
     def investments_values(self, date: typing.Optional[datetime.date] = None):
         """
@@ -309,7 +309,7 @@ class Investment(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"{self.transaction_type.upper()} {self.quantity} {self.symbol} @ {self.price}"
+        return f"{self.transaction_type.upper()} {self.quantity} {self.symbol} @ {self.rate}"
 
     # These properties are cached to avoid recalculating them every time they are accessed
     # Since they are not expected to change once the object is created
@@ -319,10 +319,10 @@ class Investment(models.Model):
         return self.stock.ticker
 
     @functools.cached_property
-    def base_principal(self):
-        """The principal investment amount before any additional costs."""
-        base_principal = self.rate * self.quantity
-        return base_principal.quantize(
+    def base_cost(self):
+        """The cost of an investment before any additional costs."""
+        base_cost = self.rate * self.quantity
+        return base_cost.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
@@ -337,9 +337,9 @@ class Investment(models.Model):
         return total.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
 
     @functools.cached_property
-    def principal(self):
+    def cost(self):
         """
-        Capital invested before any profit or loss. Initial market value of the investment.
+        Capital invested before any profit or loss. Initial market value/cost of the investment.
 
         Can be signed, i.e -ve or +ve.
         """
@@ -347,8 +347,8 @@ class Investment(models.Model):
         total_fees = (self.additional_fees + self.brokerage_fee) * self.quantity
 
         if self.transaction_type == TransactionType.SELL:
-            return self.base_principal - total_fees
-        return self.base_principal + total_fees
+            return self.base_cost - total_fees
+        return self.base_cost + total_fees
 
     @functools.cached_property
     def current_rate(self):
@@ -376,7 +376,7 @@ class Investment(models.Model):
         if not value:
             return None
 
-        return_value = value - self.principal
+        return_value = value - self.cost
         return return_value.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -390,7 +390,7 @@ class Investment(models.Model):
         if not return_value:
             return None
 
-        percentage_return = (return_value / abs(self.principal)) * 100
+        percentage_return = (return_value / abs(self.cost)) * 100
         return percentage_return.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -412,7 +412,7 @@ class Investment(models.Model):
         if not value:
             return None
 
-        return_value = value - self.principal
+        return_value = value - self.cost
         return return_value.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -427,7 +427,7 @@ class Investment(models.Model):
         if not return_value:
             return None
 
-        percentage_return = (return_value / abs(self.principal)) * 100
+        percentage_return = (return_value / abs(self.cost)) * 100
         return percentage_return.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )

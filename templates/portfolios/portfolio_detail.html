@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
 
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
+<link href="{% static 'core/styles/tabs.css' %}" rel="stylesheet">
 <link href="{% static 'portfolios/styles/portfolio_detail.css' %}" rel="stylesheet">
 {% endblock stylesheets %}
 
@@ -654,7 +655,7 @@
                     <h4>Portfolio Performance</h4>
                     <nav id="portfolio-performance-filters">
                         {% csrf_token %}
-                        <ul class="pagination pagination-lg pagination-gutter pagination-info">
+                        <ul class="pagination pagination-lg pagination-gutter pagination-warning">
                             <li class="page-item active">
                                 <button class="page-link portfolio-performance-filter" data-value="5D">5D</button>
                             </li>
@@ -714,223 +715,238 @@
     </section>
     {% endif %}
 
-    <!-- Transactions Table -->
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">Transactions</h4>
+    <section class="tabs-section" id="portfolio-data-tabs-section" data-urlparam="tab">
+        <nav class="tab-toggles-wp">
+            <ul class="pagination pagination-lg pagination-gutter pagination-success tab-toggles-wp-inner">
+                <li class="page-item active tab-toggle" data-tabtarget="transactions-tab">
+                    <button class="page-link" style="border-radius: 4px !important;">Transactions</button>
+                </li>
+                <li class="page-item tab-toggle" data-tabtarget="stock-profile-tab">
+                    <button class="page-link" style="border-radius: 4px !important;">Stock Profiles</button>
+                </li>
+            </ul>
+        </nav> 
+        
+        <div class="tabs">
+            <!-- Transactions Tab -->
+            <div class="col-12 tab" id="transactions-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Transactions</h4>
 
-                <button 
-                    type="button" 
-                    class="btn btn-light btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#transactionAddModal"
-                >
-                    Add Transaction
-                </button>
-            </div>
-            <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
-                <div class="table-responsive">
-                    <table id="portfolio-data-table" class="display" style="min-width: 845px">
-                        <thead>
-                            <tr>
-                                <th style="width:80px;"><small>#</small></th>
-                                <th><small>Scrips</small></th>
-                                <th><small>Date</small></th>
-                                <th><small>Transaction</small></th>
-                                <th><small>No. of Shares</small></th>
-                                <th><small>Cost/Share (PKR)</small></th>
-                                <th><small>Brok. Fee/Share (PKR)</small></th>
-                                <th><small>Addl. Fees/Share (PKR)</small></th>
-                                <th><small>Total Cost (PKR)</small></th>
-                                <th><small>Market Value/Share (PKR)</small></th>
-                                <th><small>Market Value (PKR)</small></th>
-                                <th><small>Unrealized Gain/Loss</small></th>
-                                <th class="no-sort"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for investment in investments %}
-                            <tr>
-                                <td>
-                                    <strong>
-                                    {% with offset=page_obj.number|add:-1|multiply_int:page_obj.paginator.per_page %}
-                                        {{ forloop.counter|add:offset }}
-                                    {% endwith %}
-                                    </strong>
-                                </td>
-                                <td>{{ investment.symbol }}</td>
-                                <td>{{ investment.transaction_date }}</td>
-                                <td>
-                                    <span
-                                        {% if investment.transaction_type == "buy" %}
-                                        class="badge light badge-success"
-                                        {% else %}
-                                        class="badge light badge-danger"
-                                        {% endif %}
-                                    >
-                                        {{ investment.transaction_type | title }}
-                                    </span>
-                                </td>
-                                <td>{{ investment.quantity }}</td>
-                                <td>{{ investment.rate }}</td>
-                                <td>{{ investment.brokerage_fee }}</td>
-                                <td>{{ investment.additional_fees }}</td>
-                                <td>{{ investment.cost }}</td>
-                                <td>{{ investment.current_rate | default:"__" }}</td>
-                                <td>{{ investment.value | default:"__" }}</td>
-                                <td style="text-align: right;">
-                                    {{ investment.return_value | default:"__" }}
-                                    
-                                    {% if investment.return_value %}
-                                        {% if investment.percentage_return.is_signed %}
-                                        <strong class="badge light badge-danger">
-                                            {{ investment.percentage_return | default:"__" }}%
-                                        </strong>
-                                        {% else %}
-                                        <strong class="badge light badge-success">
-                                            {{ investment.percentage_return | default:"__" }}%
-                                        </strong>
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a 
-                                        href="{% url 'portfolios:investment_delete' portfolio.id investment.id %}" 
-                                        class="btn btn-danger shadow btn-xs sharp"
-                                    >
-                                        <i class="fa fa-trash"></i>
+                        <button 
+                            type="button" 
+                            class="btn btn-light btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#transactionAddModal"
+                        >
+                            Add Transaction
+                        </button>
+                    </div>
+                    <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="table-responsive">
+                            <table id="portfolio-data-table" class="display" style="min-width: 845px">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80px;"><small>#</small></th>
+                                        <th><small>Scrips</small></th>
+                                        <th><small>Date</small></th>
+                                        <th><small>Transaction</small></th>
+                                        <th><small>No. of Shares</small></th>
+                                        <th><small>Cost/Share (PKR)</small></th>
+                                        <th><small>Brok. Fee/Share (PKR)</small></th>
+                                        <th><small>Addl. Fees/Share (PKR)</small></th>
+                                        <th><small>Total Cost (PKR)</small></th>
+                                        <th><small>Market Value/Share (PKR)</small></th>
+                                        <th><small>Market Value (PKR)</small></th>
+                                        <th><small>Unrealized Gain/Loss</small></th>
+                                        <th class="no-sort"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for investment in investments %}
+                                    <tr>
+                                        <td>
+                                            <strong>
+                                            {% with offset=page_obj.number|add:-1|multiply_int:page_obj.paginator.per_page %}
+                                                {{ forloop.counter|add:offset }}
+                                            {% endwith %}
+                                            </strong>
+                                        </td>
+                                        <td>{{ investment.symbol }}</td>
+                                        <td>{{ investment.transaction_date }}</td>
+                                        <td>
+                                            <span
+                                                {% if investment.transaction_type == "buy" %}
+                                                class="badge light badge-success"
+                                                {% else %}
+                                                class="badge light badge-danger"
+                                                {% endif %}
+                                            >
+                                                {{ investment.transaction_type | title }}
+                                            </span>
+                                        </td>
+                                        <td>{{ investment.quantity }}</td>
+                                        <td>{{ investment.rate }}</td>
+                                        <td>{{ investment.brokerage_fee }}</td>
+                                        <td>{{ investment.additional_fees }}</td>
+                                        <td>{{ investment.cost }}</td>
+                                        <td>{{ investment.current_rate | default:"__" }}</td>
+                                        <td>{{ investment.value | default:"__" }}</td>
+                                        <td style="text-align: right;">
+                                            {{ investment.return_value | default:"__" }}
+                                            
+                                            {% if investment.return_value %}
+                                                {% if investment.percentage_return.is_signed %}
+                                                <strong class="badge light badge-danger">
+                                                    {{ investment.percentage_return | default:"__" }}%
+                                                </strong>
+                                                {% else %}
+                                                <strong class="badge light badge-success">
+                                                    {{ investment.percentage_return | default:"__" }}%
+                                                </strong>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a 
+                                                href="{% url 'portfolios:investment_delete' portfolio.id investment.id %}" 
+                                                class="btn btn-danger shadow btn-xs sharp"
+                                            >
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginator -->
+                        {% if page_obj.paginator.num_pages > 1 %}
+                        <nav style="align-self: flex-end;">
+                            <ul class="pagination pagination-gutter">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item page-indicator">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                        <i class="la la-angle-left"></i>
                                     </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginator -->
-                {% if page_obj.paginator.num_pages > 1 %}
-                <nav style="align-self: flex-end;">
-                    <ul class="pagination pagination-gutter">
-                        {% if page_obj.has_previous %}
-                        <li class="page-item page-indicator">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
-                                <i class="la la-angle-left"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-
-                        {# Display a range of page numbers around the current page #}
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %}
-                                {% if num == page_obj.number %}
-                                    <li class="page-item active">
-                                        <a class="page-link" href="javascript:void(0)">{{ num }}</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                    </li>
+                                </li>
                                 {% endif %}
-                            {% endif %}
-                        {% endfor %}
 
-                        {% if page_obj.has_next %}
-                        <li class="page-item page-indicator">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
-                                <i class="la la-angle-right"></i>
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Stocks Profile Table -->
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="card-title">Stocks Profile</h4>
-
-                <nav>
-                    {% csrf_token %}
-                    <ul class="pagination pagination-sm pagination-gutter pagination-info">
-                        <li class="page-item active">
-                            <button class="page-link portfolio-performance-filter" data-value="5D">5D</button>
-                        </li>
-                        <li class="page-item">
-                            <button class="page-link portfolio-performance-filter" data-value="1M">1M</button>
-                        </li>
-                        <li class="page-item">
-                            <button class="page-link portfolio-performance-filter" data-value="3M">3M</button>
-                        </li>
-                        <li class="page-item">
-                            <button class="page-link portfolio-performance-filter" data-value="6M">6M</button>
-                        </li>
-                        <li class="page-item">
-                            <button class="page-link portfolio-performance-filter" data-value="1Y">1Y</button>
-                        </li>
-                        <li class="page-item">
-                            <button class="page-link portfolio-performance-filter" data-value="5Y">5Y</button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table id="stock-profiles-data-table" class="display" style="min-width: 845px">
-                        <thead>
-                            <tr>
-                                <th><small>Scrips</small></th>
-                                <th><small>% of Shares</small></th>
-                                <th><small>No. of Shares</small></th>
-                                <th><small>Cost/Share (PKR)</small></th>
-                                <th><small>Total Cost (PKR)</small></th>
-                                <th><small>Market Value/Share (PKR)</small></th>
-                                <th><small>Market Value (PKR)</small></th>
-                                <th><small>Unrealized Gain/Loss</small></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for stock_profile in stock_profiles %}
-                            <tr
-                                {% if forloop.last %}
-                                style="text-transform: uppercase !important; font-weight: 700 !important;"
-                                {% endif %}
-                            >
-                                <td>{{ stock_profile.symbol }}</td>
-                                <td>{{ stock_profile.percentage_allocation | default:"__" }}%</td>
-                                <td>{{ stock_profile.net_quantity }}</td>
-                                <td>{{ stock_profile.average_rate | default:"__" }}</td>
-                                <td>{{ stock_profile.net_average_cost }}</td>
-                                <td>{{ stock_profile.market_rate | default:"__" }}</td>
-                                <td>{{ stock_profile.market_value | default:"__" }}</td>
-                                <td style="text-align: right;">
-                                    {{ stock_profile.net_return_on_investments | default:"__" }}
-                                    
-                                    {% if stock_profile.net_return_on_investments %}
-                                        {% if stock_profile.percentage_return_on_investments.is_signed %}
-                                        <strong class="badge light badge-danger">
-                                            {{ stock_profile.percentage_return_on_investments | default:"__" }}%
-                                        </strong>
+                                {# Display a range of page numbers around the current page #}
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if num > page_obj.number|add:'-2' and num < page_obj.number|add:'2' %}
+                                        {% if num == page_obj.number %}
+                                            <li class="page-item active">
+                                                <a class="page-link" href="javascript:void(0)">{{ num }}</a>
+                                            </li>
                                         {% else %}
-                                        <strong class="badge light badge-success">
-                                            {{ stock_profile.percentage_return_on_investments | default:"__" }}%
-                                        </strong>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                            </li>
                                         {% endif %}
                                     {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                <li class="page-item page-indicator">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                        <i class="la la-angle-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stocks Profile Tab -->
+            <div class="col-12 tab" id="stock-profile-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Stocks Profile [{{ stock_profiles_dt_filter | upper }}]</h4>
+
+                        <nav id="stock-profiles-filters-wp" data-activefilter="{{ stock_profiles_dt_filter | upper }}">
+                            {% csrf_token %}
+                            <ul class="pagination pagination-sm pagination-gutter pagination-warning">
+                                <li class="page-item active stock-profiles-filter">
+                                    <button class="page-link" data-value="5D">5D</button>
+                                </li>
+                                <li class="page-item stock-profiles-filter">
+                                    <button class="page-link" data-value="1M">1M</button>
+                                </li>
+                                <li class="page-item stock-profiles-filter">
+                                    <button class="page-link" data-value="3M">3M</button>
+                                </li>
+                                <li class="page-item stock-profiles-filter">
+                                    <button class="page-link" data-value="6M">6M</button>
+                                </li>
+                                <li class="page-item stock-profiles-filter">
+                                    <button class="page-link" data-value="1Y">1Y</button>
+                                </li>
+                                <li class="page-item stock-profiles-filter">
+                                    <button class="page-link" data-value="5Y">5Y</button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table id="stock-profiles-data-table" class="display" style="min-width: 845px">
+                                <thead>
+                                    <tr>
+                                        <th class="no-sort"><small>Scrips</small></th>
+                                        <th><small>% of Shares</small></th>
+                                        <th><small>No. of Shares</small></th>
+                                        <th><small>Cost/Share (PKR)</small></th>
+                                        <th><small>Total Cost (PKR)</small></th>
+                                        <th><small>Market Value/Share (PKR)</small></th>
+                                        <th><small>Market Value (PKR)</small></th>
+                                        <th><small>Unrealized Gain/Loss</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stock_profile in stock_profiles %}
+                                    <tr
+                                        {% if forloop.last %}
+                                        style="text-transform: uppercase !important; background: #888 !important;"
+                                        {% endif %}
+                                    >
+                                        <td>{{ stock_profile.symbol }}</td>
+                                        <td>{{ stock_profile.percentage_allocation | default:"__" }}%</td>
+                                        <td>{{ stock_profile.net_quantity }}</td>
+                                        <td>{{ stock_profile.average_rate | default:"__" }}</td>
+                                        <td>{{ stock_profile.net_average_cost }}</td>
+                                        <td>{{ stock_profile.market_rate | default:"__" }}</td>
+                                        <td>{{ stock_profile.market_value | default:"__" }}</td>
+                                        <td style="text-align: right;">
+                                            {{ stock_profile.net_return_on_investments | default:"__" }}
+                                            
+                                            {% if stock_profile.net_return_on_investments %}
+                                                {% if stock_profile.percentage_return_on_investments.is_signed %}
+                                                <strong class="badge light badge-danger">
+                                                    {{ stock_profile.percentage_return_on_investments | default:"__" }}%
+                                                </strong>
+                                                {% else %}
+                                                <strong class="badge light badge-success">
+                                                    {{ stock_profile.percentage_return_on_investments | default:"__" }}%
+                                                </strong>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 </div>
 {% endblock %}
 
@@ -941,9 +957,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
+<script src="{% static 'core//scripts//tabs.js' %}"></script>
 <script src="{% static 'portfolios//scripts//transactionAdd.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioEdit.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioDetail.js' %}"></script>
+<script src="{% static 'portfolios//scripts//portfolioDataTables.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioAllocationChart.js' %}"></script>
 <script src="{% static 'portfolios//scripts//portfolioPerformanceChart.js' %}"></script>
 {% endblock scripts %}

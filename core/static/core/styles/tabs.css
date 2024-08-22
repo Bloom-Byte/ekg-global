@@ -1,0 +1,21 @@
+
+.tabs-section{
+    display: flex;
+    flex-direction: column;
+    gap: 16px 0;
+    margin-block: 20px;
+}
+
+.tabs-section > .tab-toggles-wp{
+    padding: 4px;
+}
+
+.tab-toggles-wp > .tab-toggles-wp-inner{
+    display: flex;
+    gap: 0 4px;
+    align-items: center;
+}
+
+.tabs .tab:not(:first-of-type){
+    display: none;
+}

@@ -7,6 +7,28 @@ const URLParams = new Proxy(new URLSearchParams(window.location.search), {
 
 
 /**
+ * Updates or adds a query parameter to the current URL without triggering a page refresh.
+ * 
+ * This function modifies the URL in the browser's address bar by adding or updating 
+ * the specified query parameter. The page content remains unchanged, and the browser 
+ * history is updated so that users can navigate back to the previous state if needed.
+ * 
+ * @param {string} key - The name of the query parameter to add or update.
+ * @param {string} value - The value of the query parameter to set.
+ */
+function updateURLParams(key, value) {
+    // Get the current URL
+    const url = new URL(window.location);
+
+    // Update or set the query parameter
+    url.searchParams.set(key, value);
+
+    // Update the browser history without a page refresh
+    history.pushState(null, '', url.toString());
+}
+
+
+/**
  * Waits for the given element to be available in the DOM
  * @param {String} selector The CSS selector of the element to wait for
  * @returns {Promise<Element>} The element that was waited for

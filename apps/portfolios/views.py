@@ -20,7 +20,7 @@ from .helpers import (
     get_stocks_invested_from_investments,
     handle_transactions_file,
     get_transactions_upload_template,
-    generate_portfolio_stock_profiles
+    generate_portfolio_stock_profiles,
 )
 
 portfolio_qs = (
@@ -121,6 +121,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         portfolio = get_object_or_404(
             portfolio_qs, id=self.kwargs["portfolio_id"], owner=self.request.user
         )
+        stock_profile_dt_filter = self.request.GET.get("filter_sp_by", "5D")
 
         context["portfolio"] = portfolio
         context["all_stocks"] = stock_qs
@@ -128,14 +129,17 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         context["pie_chart_data"] = json.dumps(
             get_investments_allocation_piechart_data(investments)
         )
-        
+
         # Performance data is no longer calculated and sent pre-page load
         # as it is it very costly and increases page load time (even with query optimizations)
         # Hence, client should fetch performance data via the `PortfolioPerformanceDataView` after the page loads
         # context["line_chart_data"] = json.dumps(
         #     get_portfolio_performance_graph_data(portfolio)
         # )
-        context["stock_profiles"] = generate_portfolio_stock_profiles(portfolio)
+        context["stock_profiles"] = generate_portfolio_stock_profiles(
+            portfolio, dt_filter=stock_profile_dt_filter
+        )
+        context["stock_profiles_dt_filter"] = stock_profile_dt_filter
         return context
 
     def get_queryset(self) -> QuerySet[Portfolio]:

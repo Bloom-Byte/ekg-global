@@ -9,8 +9,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
-from helpers.caching import ttl_cache
-
 
 class Portfolio(models.Model):
     """Model definition for Portfolio."""

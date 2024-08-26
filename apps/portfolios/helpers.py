@@ -1,32 +1,33 @@
 from concurrent.futures import ThreadPoolExecutor
 import datetime
 import decimal
-import csv
 import functools
-import io
 import typing
 import asyncio
-import pandas as pd
-from django.db import models, transaction
-from django.core.files import File
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.db import models
 
 try:
     import zoneinfo
 except ImportError:
     from backports import zoneinfo
 
-from .models import Investment, Portfolio, TransactionType
-from apps.stocks.models import KSE100Rate, Rate, Stock
-from apps.accounts.models import UserAccount
+from .models import Investment, Portfolio
+from apps.stocks.models import KSE100Rate, Stock
 from helpers.utils.colors import random_colors
 from helpers.utils.models import get_objects_within_datetime_range
 from helpers.utils.datetime import split
 from helpers.caching import ttl_cache
-from .data_cleaners import InvestmentDataCleaner
 from helpers.utils.time import timeit
 from helpers.models.db import database_sync_to_async
 from helpers.utils.misc import merge_dicts
+
+
+def get_portfolio_stocks(portfolio: Portfolio):
+    """Returns the stocks invested in a portfolio"""
+    stock_ids = portfolio.investments.select_related("stock").values_list(
+        "stock_id", flat=True
+    )
+    return Stock.objects.prefetch_related("rates").filter(id__in=stock_ids)
 
 
 def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, float]:
@@ -68,6 +69,7 @@ def get_investments_allocation_data(
     return allocation_data
 
 
+@timeit
 def get_investments_allocation_piechart_data(
     investments: models.QuerySet[Investment],
 ) -> str:
@@ -359,250 +361,3 @@ def get_stocks_invested_from_investments(
     stock_tickers = investments.values_list("stock__ticker", flat=True)
     return list(set(stock_tickers))
 
-
-EXPECTED_TRANSACTION_COLUMNS = [
-    "TRDATE",
-    "STDATE",
-    "TIME",
-    "LOC",
-    "DEALER",
-    "CLIENT",
-    "OCCUPATION",
-    "RESIDENCE",
-    "UIN",
-    "CLIENT_CAT",
-    "CDCID",
-    "CLIENT_TITLE",
-    "SYMBOL",
-    "SYMBOL_TITLE",
-    "BUY",
-    "SELL",
-    "RATE",
-    "FLAG",
-    "BOOK",
-    "TR_TYPE",
-    "COT_ST",
-    "KORDER",
-    "TICKET",
-    "TERMINAL",
-    "BILL",
-    "COMM",
-    "CDC",
-    "CVT",
-    "WHTS",
-    "WHTC",
-    "LAGA",
-    "SECP",
-    "NLAGA",
-    "FED",
-    "MISC",
-]
-
-
-@transaction.atomic
-def handle_transactions_file(transactions_file: File, user: UserAccount) -> None:
-    """
-    Process the uploaded transactions file.
-    """
-    df = pd.read_csv(transactions_file, skip_blank_lines=True, keep_default_na=False)
-    formatted_df = df[EXPECTED_TRANSACTION_COLUMNS]
-
-    new_investments = []
-    for row in formatted_df.itertuples():
-        data: typing.Dict = row._asdict()
-        # print(data)
-        data.pop("Index")  # Remove the index from the data
-        unique_id = data["UIN"]
-        stock_ticker = data["SYMBOL"]
-        stock_title = data["SYMBOL_TITLE"]
-        buy_quantity = data["BUY"]
-        sell_quantity = data["SELL"]
-
-        if buy_quantity and sell_quantity:
-            raise ValueError(
-                "A transaction can either be 'BUY' or 'SELL' type, not both."
-            )
-        if not (buy_quantity or sell_quantity):
-            raise ValueError("Either 'BUY' or 'SELL' quantity must be provided.")
-
-        transaction_type = "buy" if buy_quantity else "sell"
-        quantity = int(buy_quantity) if buy_quantity else int(sell_quantity)
-        data_cleaner = InvestmentDataCleaner(data)
-        data_cleaner.clean()
-
-        # Get or create the stock with the symbol/ticker
-        stock, created = Stock.objects.get_or_create(ticker=stock_ticker)
-        if created or not stock.title:
-            stock.title = stock_title
-            stock.save()
-
-        # Create portfolio with unique ID
-        portfolio, _ = Portfolio.objects.get_or_create(name=unique_id, owner=user)
-        investment = data_cleaner.new_instance(
-            portfolio=portfolio,
-            stock=stock,
-            quantity=quantity,
-            transaction_type=transaction_type,
-        )
-        investment.brokerage_fee = (
-            portfolio.brokerage_percentage / 100
-        ) * investment.base_cost
-        new_investments.append(investment)
-
-    Investment.objects.bulk_create(new_investments, batch_size=998)
-    return None
-
-
-def get_transactions_upload_template() -> InMemoryUploadedFile:
-    str_io = io.StringIO()
-    str_io.seek(0)
-
-    writer = csv.writer(str_io)
-    writer.writerow(EXPECTED_TRANSACTION_COLUMNS)
-
-    in_memory_file = InMemoryUploadedFile(
-        file=str_io,
-        field_name=None,
-        name="transactions.csv",
-        content_type="application/csv",
-        size=len(str_io.getvalue().encode()),
-        charset=None,
-    )
-    return in_memory_file
-
-
-def get_stock_profile_from_investments(
-    stock: str, investments: models.QuerySet[Investment]
-):
-    investments_for_stock = investments.filter(stock__ticker=stock)
-    annotated_qs = investments_for_stock.annotate(
-        signed_quantity=models.Case(
-            models.When(
-                transaction_type=TransactionType.SELL, then=-models.F("quantity")
-            ),
-            default=models.F("quantity"),
-            output_field=models.IntegerField(),
-        )
-    )
-    aggregation = annotated_qs.aggregate(
-        net_quantity=models.Sum("signed_quantity"),
-        average_rate=models.Avg("rate"),
-    )
-
-    net_quantity: int = aggregation["net_quantity"]
-    average_rate = aggregation["average_rate"].quantize(
-        decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-    )
-    net_average_cost = float(net_quantity * average_rate)
-    latest_rate_record = (
-        Rate.objects.filter(stock__ticker=stock).order_by("-added_at").first()
-    )
-
-    market_rate = None
-    market_value = None
-    net_return_on_investments = None
-    percentage_return_on_investments = None
-    if latest_rate_record:
-        # Get the current/latest (market) rate
-        market_rate = latest_rate_record.close
-
-    if market_rate and net_average_cost:
-        market_value = abs(net_quantity) * market_rate
-        net_return_on_investments = market_value - net_average_cost
-        percentage_return_on_investments = (
-            net_return_on_investments / abs(net_average_cost)
-        ) * 100
-
-        # Convert integer values to decimal.Decimal
-        net_return_on_investments = decimal.Decimal(net_return_on_investments).quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
-        percentage_return_on_investments = decimal.Decimal(
-            percentage_return_on_investments
-        ).quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
-
-    # Convert integer values to decimal.Decimal
-    net_average_cost = decimal.Decimal(net_average_cost).quantize(
-        decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-    )
-    return {
-        "symbol": stock,
-        "net_quantity": net_quantity,
-        "average_rate": average_rate,
-        "net_average_cost": net_average_cost,
-        "market_rate": market_rate,
-        "market_value": market_value,
-        "net_return_on_investments": net_return_on_investments,
-        "percentage_return_on_investments": percentage_return_on_investments,
-    }
-
-
-def _update_stock_profile_with_percentage_allocation(
-    stock_profile: typing.Dict[str, typing.Union[int, float, decimal.Decimal]],
-    total_quantity_of_stocks_invested_in: int,
-):
-    if not total_quantity_of_stocks_invested_in:
-        stock_profile["percentage_allocation"] = None
-        return stock_profile
-
-    net_quantity = stock_profile["net_quantity"]
-    percentage_allocation = (net_quantity / total_quantity_of_stocks_invested_in) * 100
-    stock_profile["percentage_allocation"] = decimal.Decimal(
-        percentage_allocation
-    ).quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
-    return stock_profile
-
-
-@timeit
-def generate_portfolio_stock_profiles(
-    portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
-):
-    start_date, _ = parse_dt_filter(dt_filter, timezone)
-    portfolio_investments = (
-        portfolio.investments.select_related("stock")
-        .prefetch_related("stock__rates")
-        .filter(added_at__date__gte=start_date)
-    )
-
-    stocks_invested_in = get_stocks_invested_from_investments(portfolio_investments)
-    with ThreadPoolExecutor() as executor:
-        stock_profiles = list(executor.map(
-            lambda stock: get_stock_profile_from_investments(
-                stock, portfolio_investments
-            ),
-            stocks_invested_in,
-        ))
-
-    net_total_quantity_of_stocks_invested_in = sum(
-        profile["net_quantity"] for profile in stock_profiles
-    )
-    net_total_average_cost = sum(profile["net_quantity"] for profile in stock_profiles)
-    total_market_value = sum(
-        profile["market_value"] for profile in stock_profiles if profile["market_value"]
-    )
-    net_total_return_on_investments = sum(
-        profile["net_return_on_investments"]
-        for profile in stock_profiles
-        if profile["net_return_on_investments"]
-    )
-
-    for profile in stock_profiles:
-        profile = _update_stock_profile_with_percentage_allocation(
-            profile, net_total_quantity_of_stocks_invested_in
-        )
-
-    total_profile = {
-        "symbol": "TOTAL",
-        "net_quantity": net_total_quantity_of_stocks_invested_in,
-        "average_rate": None,
-        "net_average_cost": net_total_average_cost,
-        "market_rate": None,
-        "market_value": total_market_value,
-        "net_return_on_investments": net_total_return_on_investments,
-        "percentage_return_on_investments": None,
-        "percentage_allocation": 100.00
-        if net_total_quantity_of_stocks_invested_in
-        else None,
-    }
-    stock_profiles.append(total_profile)
-    return stock_profiles

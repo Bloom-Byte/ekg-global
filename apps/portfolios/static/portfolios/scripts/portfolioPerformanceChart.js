@@ -1,23 +1,24 @@
 const portfolioPerformanceSection = document.querySelector("#portfolio-performance");
+const performanceDataRefreshInterval = 1 * 60 * 1000; // 1 minute
 
 
-function getLineChartData(rawData){
-    if (typeof rawData === "string"){
+function getLineChartData(rawData) {
+    if (typeof rawData === "string") {
         chartData = JSON.parse(rawData);
-    }else{
+    } else {
         chartData = rawData;
     };
     const KSE100Data = chartData["KSE100"];
     const portfolioData = chartData["portfolio"];
     const colors = chartData["colors"];
-    let datasets = []; 
+    let datasets = [];
 
     // Function to parse server data into coordinates
     // for chart.js line chart
-    function dataToCoordinates(data){
+    function dataToCoordinates(data) {
         let parsedData = [];
-        for (const [date, value] of Object.entries(data)){
-            parsedData.push({x: date, y: value});
+        for (const [date, value] of Object.entries(data)) {
+            parsedData.push({ x: date, y: value });
         };
         // Sort data by date
         parsedData.sort(
@@ -28,7 +29,7 @@ function getLineChartData(rawData){
 
     // Loop through portfolio data 
     // Create and add datasets and get date labels
-    for (const[symbol, data] of Object.entries(portfolioData)){
+    for (const [symbol, data] of Object.entries(portfolioData)) {
         let dataset = {
             label: symbol.toUpperCase(),
             data: dataToCoordinates(data),
@@ -70,7 +71,7 @@ function getLineChartData(rawData){
 };
 
 
-if (portfolioPerformanceSection){
+if (portfolioPerformanceSection) {
     const portfolioPerformanceChartCanvas = portfolioPerformanceSection.querySelector("#portfolio-performance-chart");
     const portfolioPerformanceFiltersWrapper = portfolioPerformanceSection.querySelector("#portfolio-performance-filters");
     const portfolioPerformanceFilters = portfolioPerformanceSection.querySelectorAll(".portfolio-performance-filter");
@@ -84,7 +85,7 @@ if (portfolioPerformanceSection){
     const lineChartConfig = {
         type: 'line',
         // data: getLineChartData(portfolioPerformanceChartCanvas.dataset.chartdata),
-        data: {datasets: []},
+        data: { datasets: [] },
         options: {
             responsive: true,
             scales: {
@@ -130,12 +131,12 @@ if (portfolioPerformanceSection){
                         display: false
                     }
                 }
-              },
+            },
             hover: {
                 mode: 'nearest',
                 intersect: true
             },
-            plugins:{
+            plugins: {
                 legend: {
                     display: true,
                     position: 'bottom',
@@ -152,7 +153,7 @@ if (portfolioPerformanceSection){
                 },
                 tooltip: {
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             const value = context.dataset.data[context.dataIndex].y;
                             const label = context.dataset.label;
                             return `${label}: ${value.toFixed(2)}%`;
@@ -169,15 +170,15 @@ if (portfolioPerformanceSection){
     };
 
     // Function to update chart with new data
-    function updateChart(chart, rawData){
+    function updateLineChart(chart, rawData) {
         chart.data.datasets = getLineChartData(rawData).datasets;
         chart.update();
     };
 
-    function updateStockComparisonCounter(){
+    function updateStockComparisonCounter() {
         const stocksSelected = filterData.stocks ?? [];
         const count = stocksSelected.length;
-        if (!count){
+        if (!count) {
             stockComparisonCounter.innerHTML = count;
             stockComparisonCounter.style.display = "none";
             return;
@@ -187,23 +188,23 @@ if (portfolioPerformanceSection){
         stockComparisonCounter.style.display = "block";
     };
 
-    function moveStockChoiceToContainer(stockChoice, container){
+    function moveStockChoiceToContainer(stockChoice, container) {
         const parentContainer = stockChoice.parentElement;
-        if (container === parentContainer){
+        if (container === parentContainer) {
             return;
         }
         _removeStockChoiceFromContainer(stockChoice, parentContainer);
         container.appendChild(stockChoice);
     };
 
-    function _removeStockChoiceFromContainer(stockChoice, container){
+    function _removeStockChoiceFromContainer(stockChoice, container) {
         container.removeChild(stockChoice);
     };
 
-    function getActivePortofolioPerformanceFilter(){
-        for (let i = 0; i < portfolioPerformanceFilters.length; i++){
+    function getActivePortofolioPerformanceFilter() {
+        for (let i = 0; i < portfolioPerformanceFilters.length; i++) {
             const filter = portfolioPerformanceFilters[i];
-            if (!filter.isActive()){
+            if (!filter.isActive()) {
                 continue
             }
             return filter;
@@ -211,111 +212,148 @@ if (portfolioPerformanceSection){
         return;
     };
 
-    function clickActivePortfolioPerformanceFilter(){
+    function clickActivePortfolioPerformanceFilter() {
         const activeFilter = getActivePortofolioPerformanceFilter();
-        
-        if (activeFilter){
+
+        if (activeFilter) {
             activeFilter.forceClick();
         };
+    };
+
+    function updatePortfolioPerformanceChartForFilter(filterValue, callbackFn = null) {
+        filterData["dt_filter"] = filterValue;
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            mode: 'same-origin',
+            body: JSON.stringify(filterData),
+        }
+
+        fetch(filterURL, options).then((response) => {
+            if (!response.ok) {
+                response.json().then((data) => {
+                    pushNotification("error", data.detail ?? data.message ?? 'An error occurred!');
+                });
+
+            } else {
+                response.json().then((data) => {
+                    const rawData = data.data;
+                    console.log(rawData)
+                    updateLineChart(portfolioPerformanceChart, rawData);
+
+                    if (callbackFn) {
+                        callbackFn();
+                    };
+                });
+            }
+        });
     };
 
     portfolioPerformanceFilters.forEach(filter => {
         filter.forceFetch = false;
 
-        filter.isActive = function (){
-            return this.parentElement.classList.contains("active");
+        filter.isActive = () => {
+            return filter.parentElement.classList.contains("active");
         };
 
-        filter.setAsActive = function (){
+        filter.setAsActive = () => {
             const activeFilterParentElement = portfolioPerformanceFiltersWrapper.querySelector("li.active");
             activeFilterParentElement.classList.remove("active");
-            this.parentElement.classList.add("active");
+            filter.parentElement.classList.add("active");
         };
 
-        filter.forceClick = function (){
-            this.forceFetch = true;
-            this.click();
-            this.forceFetch = false;
+        filter.forceClick = () => {
+            filter.forceFetch = true;
+            filter.click();
+            filter.forceFetch = false;
         };
 
-        filter.onclick = (e) => {
+        filter.addEventListener("click", (e) => {
             e.preventDefault();
             if (filter.isActive() && !filter.forceFetch) return;
 
             const filterValue = filter.dataset.value;
-            filterData["dt_filter"] = filterValue;
-
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-                mode: 'same-origin',
-                body: JSON.stringify(filterData),
-            }
-
-            fetch(filterURL, options).then((response) => {
-                if (!response.ok) {
-                    response.json().then((data) => {
-                        pushNotification("error", data.detail ?? data.message ?? 'An error occurred!');
-                    });
-        
-                }else{        
-                    response.json().then((data) => {
-                        const rawData  = data.data;
-                        console.log(rawData)
-                        updateChart(portfolioPerformanceChart, rawData);
-                        filter.setAsActive();
-                    });
-                }
-            });
-        }
+            updatePortfolioPerformanceChartForFilter(filterValue, filter.setAsActive);
+        });
     });
 
     stockChoices.forEach((stockChoice) => {
-
-        stockChoice.changeIcon = function (){
+        stockChoice.changeIcon = () => {
             const innerIcon = stockChoice.querySelector("i");
-            if (innerIcon.classList.contains("fa-times")){
+            if (innerIcon.classList.contains("fa-times")) {
                 innerIcon.classList.remove("fa-times");
                 innerIcon.classList.add("fa-plus");
-            }else{
+            } else {
                 innerIcon.classList.remove("fa-plus");
                 innerIcon.classList.add("fa-times");
             }
         };
 
-        stockChoice.onclick = function () {
+        stockChoice.addEventListener("click", () => {
             const choice = stockChoice.dataset.value;
-            const parentContainer = this.parentElement;
+            const parentContainer = stockChoice.parentElement;
 
-            if (parentContainer === stockChoicesContainer){
-                moveStockChoiceToContainer(this, selectedStocksContainer);
-                this.changeIcon();
+            if (parentContainer === stockChoicesContainer) {
+                moveStockChoiceToContainer(stockChoice, selectedStocksContainer);
+                stockChoice.changeIcon();
 
                 const alreadySelectedStocks = filterData.stocks ?? []
                 filterData["stocks"] = [...alreadySelectedStocks, choice];
                 clickActivePortfolioPerformanceFilter();
             }
 
-            else if (parentContainer === selectedStocksContainer){
-                moveStockChoiceToContainer(this, stockChoicesContainer);
-                this.changeIcon();
+            else if (parentContainer === selectedStocksContainer) {
+                moveStockChoiceToContainer(stockChoice, stockChoicesContainer);
+                stockChoice.changeIcon();
 
                 const alreadySelectedStocks = filterData.stocks ?? []
-                if (alreadySelectedStocks){
+                if (alreadySelectedStocks) {
                     filterData["stocks"] = alreadySelectedStocks.filter(item => item !== choice);
                     clickActivePortfolioPerformanceFilter();
                 };
-            }
+            };
 
             updateStockComparisonCounter();
-        }
+        });
     });
 
     // (Force) Click the first performance filter to trigger portfolio performance data fetch
     portfolioPerformanceFilters[0].forceClick();
+
+    let refreshIntervalID;
+    /**
+     * Start refreshing performance data at a given interval
+     */
+    function startPerformanceDataRefresh() {
+        refreshIntervalID = setInterval(
+            clickActivePortfolioPerformanceFilter, performanceDataRefreshInterval
+        );
+    }
+
+    /**
+     * Stop refreshing performance data
+     */
+    function stopPerformanceDataRefresh() {
+        clearInterval(refreshIntervalID);
+    }
+
+    // Visibility change event handler
+    const visibilityHandler = createVisibilityHandler(
+        startPerformanceDataRefresh, stopPerformanceDataRefresh
+    );
+    // Add visibility change event listener
+    document.addEventListener("visibilitychange", visibilityHandler);
+    // Stop performance data refresh when the window is closed or refreshed
+    window.addEventListener("beforeunload", function (e) {
+        stopPerformanceDataRefresh();
+    });
+
+    // Initial start of performance data refresh
+    startPerformanceDataRefresh();
 };
 
 

@@ -4,6 +4,10 @@
 {% load humanize %}
 {% load custom_filters %}
 
+{% block title %}
+<title>{{ portfolio.name }} Portfolio</title>
+{% endblock title %}
+
 {% block stylesheets %}
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
 
@@ -952,7 +956,6 @@
 
 
 {% block scripts %}
-<!-- Datatable -->
 <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js" integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 

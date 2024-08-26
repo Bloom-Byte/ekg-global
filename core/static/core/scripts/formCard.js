@@ -97,14 +97,14 @@ function validatePassword(passwordInput1, passwordInput2) {
  */
 function addOnPostAndOnResponseFuncAttr(formCardButton, onClickText){
     let initialText = formCardButton.innerHTML;
-    formCardButton.onPost = function(){
-        this.disabled = true;
-        this.innerHTML = onClickText;
+    formCardButton.onPost = () => {
+        formCardButton.disabled = true;
+        formCardButton.innerHTML = onClickText;
     };
 
-    formCardButton.onResponse = function(){
-        this.disabled = false;
-        this.innerHTML = initialText;
+    formCardButton.onResponse = () => {
+        formCardButton.disabled = false;
+        formCardButton.innerHTML = initialText;
     };
 };
 

@@ -33,7 +33,9 @@ if (portfolioDataTabsSection) {
     if (portfolioDataTableEl) {
         // Portfolio datatable configuration
         const portfolioDataTable = new DataTable(portfolioDataTableEl, {
-            dom: "Bfrtip",
+            dom: "frtip",
+            searchable: true,
+            sortable: true,
             scrollX: false,
             paging: false,
             info: false,
@@ -44,7 +46,9 @@ if (portfolioDataTabsSection) {
     if (stockProfilesDataTableEl) {
         // Stock profiles datatable configuration
         const stockProfilesDataTable = new DataTable(stockProfilesDataTableEl, {
-            dom: "Bfrtip",
+            dom: "frtip",
+            searchable: true,
+            sortable: true,
             scrollX: false,
             paging: false,
             info: false,

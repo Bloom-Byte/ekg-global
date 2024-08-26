@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Risk Management</title>
+{% endblock title %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">Risk Profile</h4>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+                <div class="table-responsive">
+                    <table id="risk-profile-table" class="display" style="min-width: 845px">
+                        <thead>
+                            <tr>
+                                <th><small>Symbol</small></th>
+                                <th><small>Avg. Cost</small></th>
+                                <th><small>Current Rate</small></th>
+                                <th><small>Stop Loss Level</small></th>
+                                <th><small>Target Price</small></th>
+                                <th><small>Gain/Loss %</small></th>
+                                <th><small>Distance for SL</small></th>
+                                <th><small>Fall from Peak</small></th>
+                                <th><small>Lower Lows</small></th>
+                                <th><small>Higher Highs</small></th>
+                                <th><small>200DMA</small></th>
+                                <th><small>% Allocation</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for investment in investments %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+
+<script src="{% static 'risk_management//scripts//riskProfile.js' %}"></script>
+{% endblock %}

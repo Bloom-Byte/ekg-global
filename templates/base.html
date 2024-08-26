@@ -231,9 +231,9 @@
 		</div>
         
 		<div class="dlabnav">
-			<div class="dlabnav-scroll mm-active ps ps--active-y">
+			<div class="dlabnav-scroll">
 				
-				<ul class="metismenu mm-show" id="menu">
+				<ul class="metismenu" id="menu">
 					<li><a href="/" class="" aria-expanded="false">
 						<div class="menu-icon">
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -244,6 +244,19 @@
 							<span class="nav-text">Dashboard</span>
 						</a>
 					</li>
+
+					<!-- <li><a href="{% url 'risk_management:risk_management' %}" class="" aria-expanded="false">
+						<div class="menu-icon">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<g id="IconlyActivity">
+								<g id="Activity">
+								<path id="Activity_2" fill-rule="evenodd" clip-rule="evenodd" d="M17.1799 4.41C17.1799 3.08 18.2599 2 19.5899 2C20.9199 2 21.9999 3.08 21.9999 4.41C21.9999 5.74 20.9199 6.82 19.5899 6.82C18.2599 6.82 17.1799 5.74 17.1799 4.41ZM13.3298 14.7593L16.2198 11.0303L16.1798 11.0503C16.3398 10.8303 16.3698 10.5503 16.2598 10.3003C16.1508 10.0503 15.9098 9.8803 15.6508 9.8603C15.3798 9.8303 15.1108 9.9503 14.9498 10.1703L12.5308 13.3003L9.75976 11.1203C9.58976 10.9903 9.38976 10.9393 9.18976 10.9603C8.99076 10.9903 8.81076 11.0993 8.68976 11.2593L5.73076 15.1103L5.66976 15.2003C5.49976 15.5193 5.57976 15.9293 5.87976 16.1503C6.01976 16.2403 6.16976 16.3003 6.33976 16.3003C6.57076 16.3103 6.78976 16.1893 6.92976 16.0003L9.43976 12.7693L12.2898 14.9103L12.3798 14.9693C12.6998 15.1393 13.0998 15.0603 13.3298 14.7593ZM15.4498 3.7803C15.4098 4.0303 15.3898 4.2803 15.3898 4.5303C15.3898 6.7803 17.2098 8.5993 19.4498 8.5993C19.6998 8.5993 19.9398 8.5703 20.1898 8.5303V16.5993C20.1898 19.9903 18.1898 22.0003 14.7898 22.0003H7.40076C3.99976 22.0003 1.99976 19.9903 1.99976 16.5993V9.2003C1.99976 5.8003 3.99976 3.7803 7.40076 3.7803H15.4498Z" fill="#130F26"/>
+								</g></g>
+							</svg>	
+						</div>	
+							<span class="nav-text">Risk Management</span>
+						</a>
+					</li> -->
 
 					<li><a href="{% url 'portfolios:portfolio_list' %}" class aria-expanded="false">
 						<div class="menu-icon">
@@ -312,20 +325,6 @@
         <!--**********************************
             Content body end
         ***********************************-->
-		
-		
-        
-
-		<!--**********************************
-           Support ticket button start
-        ***********************************-->
-
-        <!--**********************************
-           Support ticket button end
-        ***********************************-->
-			
-
-
 	</div>
     <!--**********************************
         Main wrapper end
@@ -335,45 +334,14 @@
         Scripts
     ***********************************-->
     <!-- Required vendors -->
-    <script src="{% static 'vendor/global/global.min.js' %}"></script>
-	<script src="{% static 'vendor/jquery-nice-select/js/jquery.nice-select.min.js' %}"></script>
-	<script src="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}"></script> 
-    <script src="{% static 'js/custom.min.js' %}"></script>
-	<script src="{% static 'js/dlabnav-init.js' %}"></script>
 	<script src="{% static 'vendor/global/global.min.js' %}"></script>
 	<script src="{% static 'vendor/jquery-nice-select/js/jquery.nice-select.min.js' %}"></script>
 	<script src="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}"></script> 
-    <script src="{% static 'js/custom.min.js' %}"></script>
-	<script src="{% static 'js/dlabnav-init.js' %}"></script>
-
-	<script src="{% static 'vendor/chart.js/Chart.bundle.min.js' %}"></script>
-	<script src="{% static 'vendor/jquery-nice-select/js/jquery.nice-select.min.js' %}"></script> 
-	<!-- Apex Chart -->
-	<script src="{% static 'vendor/apexchart/apexchart.js' %}"></script>
-	<!-- Chart piety plugin files -->
-    <script src="{% static 'vendor/peity/jquery.peity.min.js' %}"></script> 
-	<!-- Chartist -->
-   <script src="{% static 'vendor/chartist/js/chartist.min.js' %}"></script> 
-   <script src="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}"></script> 
-	<!-- <script src="./js/dashboard/dashboard-2.js' %}"></script> -->
-	<!-- Dashboard 1 -->
-	<!-- <script src="{% static 'js/dashboard/dashboard-1.js' %}"></script> -->
-
-	<script src="{% static 'vendor/global/global.min.js' %}"></script>
-	<script src="{% static 'vendor/chart.js/Chart.bundle.min.js' %}"></script>
-	<script src="{% static 'vendor/jquery-nice-select/js/jquery.nice-select.min.js' %}"></script> 
-	<!-- Apex Chart -->
-	<script src="{% static 'vendor/apexchart/apexchart.js' %}"></script>
-	<!-- Chart piety plugin files -->
-    <script src="{% static 'vendor/peity/jquery.peity.min.js' %}"></script> 
-	<!-- Chartist -->
-   <script src="{% static 'vendor/chartist/js/chartist.min.js' %}"></script> 
-   <script src="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}"></script> 
-	<!-- <script src="./js/dashboard/dashboard-2.js' %}"></script> -->
-	<!-- Dashboard 1 -->
 	<script src="{% static 'js/custom.min.js' %}"></script>
 	<script src="{% static 'js/dlabnav-init.js' %}"></script>
-
+	<script src="{% static 'vendor/jquery-nice-select/js/jquery.nice-select.min.js' %}"></script>
+	<script src="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}"></script> 
+	
 	<!-- Noty.js -->
 	<script src="https://cdn.jsdelivr.net/npm/noty/lib/noty.min.js"></script>
 	<!-- Custom Scripts -->

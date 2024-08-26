@@ -1,10 +1,10 @@
 const tabsSections = document.querySelectorAll(".tabs-section");
 
 
-tabsSections.forEach((tabSection) => {
+tabsSections.forEach((tabSection, index) => {
     const tagToggles = tabSection.querySelectorAll(".tab-toggle");
     const tabs = tabSection.querySelectorAll(".tab");
-    const tabURLParam = tabSection.dataset.urlparam ?? "tab";
+    const tabURLParam = tabSection.dataset.urlparam ?? `tab_${index}`;
 
     tagToggles.forEach((tabToggle) => {
         tabToggle.clicked = function(){
@@ -14,7 +14,7 @@ tabsSections.forEach((tabSection) => {
             this.classList.add("active");
         }
 
-        tabToggle.onclick = function() {
+        tabToggle.addEventListener("click", function() {
             // Get the target tab's ID and display it (hiding other tabs)
             const targetTabID = this.dataset.tabtarget ?? null;
             if (!targetTabID) return;
@@ -31,7 +31,7 @@ tabsSections.forEach((tabSection) => {
                     tab.style.display = "none"; 
                 }
             });
-        }
+        });
     });
 
     // Get the first tab to show as defined in the page's url params

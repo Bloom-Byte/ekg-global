@@ -9,11 +9,11 @@ addOnPostAndOnResponseFuncAttr(transactionAddButton, 'Processing...');
 addOnPostAndOnResponseFuncAttr(rateFetchButton, 'Fetching Price...');
 
 
-rateFetchButton.onclick = function(e){
+rateFetchButton.addEventListener("click", (e) => {
     e.stopImmediatePropagation();
     e.preventDefault();
 
-    const url = this.dataset.url;
+    const url = rateFetchButton.dataset.url;
     const data = {
         "stock": stockInputField.value
     }
@@ -47,14 +47,14 @@ rateFetchButton.onclick = function(e){
             });
         }
     });
-}
+});
 
 
-transactionAddForm.onsubmit = function(e) {
+transactionAddForm.addEventListener("submit", function(e) {
     e.stopImmediatePropagation();
     e.preventDefault();
 
-    const formData = new FormData(this);
+    const formData = new FormData(transactionAddForm);
     const data = {};
     for (const [key, value] of formData.entries()) {
         data[key] = value;
@@ -71,7 +71,7 @@ transactionAddForm.onsubmit = function(e) {
         body: JSON.stringify(data),
     }
 
-    fetch(this.action, options).then((response) => {
+    fetch(transactionAddForm.action, options).then((response) => {
         if (!response.ok) {
             transactionAddButton.onResponse();
             response.json().then((data) => {
@@ -91,7 +91,7 @@ transactionAddForm.onsubmit = function(e) {
                             };
                         };
                         
-                        let field = this.querySelector(`*[name=${fieldName}]`);
+                        let field = transactionAddForm.querySelector(`*[name=${fieldName}]`);
                         if (!field) return;
                         field.scrollIntoView({"block": "center"});
                         formFieldHasError(field.parentElement, msg);
@@ -118,5 +118,5 @@ transactionAddForm.onsubmit = function(e) {
             });
         }
     });
-};
+});
 

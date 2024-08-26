@@ -29,6 +29,34 @@ function updateURLParams(key, value) {
 
 
 /**
+ * Creates a handler function for the visibility change event that controls
+ * the execution of start and stop functions based on the visibility state
+ * of the document.
+ *
+ * @param {Function} startFn - The function to be called when the document becomes visible.
+ *                             This function should start or resume the desired process (e.g., setInterval).
+ * @param {Function} stopFn - The function to be called when the document becomes hidden.
+ *                            This function should stop or pause the desired process (e.g., clearInterval).
+ * @returns {Function} A handler function that can be attached to the visibilitychange event.
+ *
+ * @example
+ * const startLogging = () => console.log("Starting process...");
+ * const stopLogging = () => console.log("Stopping process...");
+ * const visibilityHandler = createVisibilityHandler(startLogging, stopLogging);
+ * document.addEventListener("visibilitychange", visibilityHandler);
+ */
+function createVisibilityHandler(startFn, stopFn) {
+    return function handleVisibilityChange() {
+        if (document.hidden) {
+            stopFn(); // Call the custom stop function when the tab is inactive
+        } else {
+            startFn(); // Call the custom start function when the tab is active
+        }
+    };
+}
+
+
+/**
  * Waits for the given element to be available in the DOM
  * @param {String} selector The CSS selector of the element to wait for
  * @returns {Promise<Element>} The element that was waited for

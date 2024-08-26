@@ -18,10 +18,10 @@ from .helpers import (
     get_investments_allocation_piechart_data,
     get_portfolio_performance_graph_data,
     get_stocks_invested_from_investments,
-    handle_transactions_file,
-    get_transactions_upload_template,
-    generate_portfolio_stock_profiles,
 )
+from .transactions_upload import handle_transactions_file, get_transactions_upload_template
+from .profiling import generate_portfolio_stock_profiles
+
 
 portfolio_qs = (
     Portfolio.objects.select_related("owner")

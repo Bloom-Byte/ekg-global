@@ -1,6 +1,7 @@
 const portfolioAllocationChartCanvas = document.querySelector("#portfolio-allocation-chart");
 
-function getPieChartData(rawData) {
+
+function getDoughnutChartData(rawData) {
     if (typeof rawData === "string") {
         chartData = JSON.parse(rawData);
     } else {
@@ -34,7 +35,7 @@ if (portfolioAllocationChartCanvas) {
 
     const doughnutChartConfig = {
         type: 'doughnut',
-        data: getPieChartData(portfolioAllocationChartCanvas.dataset.chartdata),
+        data: getDoughnutChartData(portfolioAllocationChartCanvas.dataset.chartdata),
         options: {
             responsive: true,
             aspectRatio: 0.55,
@@ -99,4 +100,10 @@ if (portfolioAllocationChartCanvas) {
     };
 
     const portfolioAllocationChart = new Chart(portfolioAllocationChartCanvas, doughnutChartConfig);
+
+    // Function to update chart with new data
+    function updateLineChart(chart, rawData) {
+        chart.data.datasets = getLineChartData(rawData).datasets;
+        chart.update();
+    };
 };

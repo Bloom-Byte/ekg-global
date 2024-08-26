@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.portfolios",
     "apps.stocks",
+    "apps.risk_management",
 ]
 
 MIDDLEWARE = [

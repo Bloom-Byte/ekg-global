@@ -108,7 +108,7 @@ class InvestmentAddForm(forms.ModelForm):
             "stock",
             "transaction_date",
             "transaction_time",
-            # "settlement_date",
+            "settlement_date",
             "rate",
             "quantity",
             "brokerage_fee",
@@ -146,7 +146,7 @@ class InvestmentAddForm(forms.ModelForm):
     
     def save(self, commit: bool = True) -> Investment:
         investment: Investment = super().save(commit=False)
-        if investment.portfolio.cash_balance < investment.principal:
+        if investment.portfolio.cash_balance < investment.cost:
             raise forms.ValidationError(
                 "Insufficient capital in portfolio."
             )

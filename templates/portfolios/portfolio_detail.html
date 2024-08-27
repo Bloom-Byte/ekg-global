@@ -18,6 +18,7 @@
 
 
 {% block content %}
+<!-- Transaction Add Modal -->
 <div class="modal fade" id="transactionAddModal" style="display: none;" aria-hidden="true">
     <div class="modal-dialog" role="document" style="width: 90%; max-width: 600px;">
         <div class="modal-content">
@@ -80,7 +81,7 @@
                         </div>
 
                         <div class="form-field">
-                            <label for="transaction_time">Transaction Time</label>
+                            <label for="transaction_time">Transaction Time (Optional)</label>
                             <input 
                                 type="time"
                                 class=" form-input form-control input-rounded" 
@@ -112,6 +113,17 @@
                                 step="0.00001"
                                 value="{{ portfolio.brokerage_percentage }}%"
                                 required
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="settlement_date">Settlement Date (Optional)</label>
+                            <input 
+                                type="date" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="Brokerage Fee"
+                                name="settlement_date" 
                             >
                             <small class="field-message"></small>
                         </div>
@@ -722,18 +734,18 @@
     <section class="tabs-section" id="portfolio-data-tabs-section" data-urlparam="tab">
         <nav class="tab-toggles-wp">
             <ul class="pagination pagination-lg pagination-gutter pagination-success tab-toggles-wp-inner">
-                <li class="page-item active tab-toggle" data-tabtarget="transactions-tab">
-                    <button class="page-link" style="border-radius: 4px !important;">Transactions</button>
+                <li class="page-item active tab-toggle" data-tabtarget="transaction-history">
+                    <button class="page-link" style="border-radius: 4px !important;">Transaction History</button>
                 </li>
-                <li class="page-item tab-toggle" data-tabtarget="stock-profile-tab">
-                    <button class="page-link" style="border-radius: 4px !important;">Stock Profiles</button>
+                <li class="page-item tab-toggle" data-tabtarget="stocks-summary">
+                    <button class="page-link" style="border-radius: 4px !important;">Stocks Summary</button>
                 </li>
             </ul>
         </nav> 
         
         <div class="tabs">
             <!-- Transactions Tab -->
-            <div class="col-12 tab" id="transactions-tab">
+            <div class="col-12 tab" id="transaction-history">
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title">Transactions</h4>
@@ -778,7 +790,7 @@
                                             </strong>
                                         </td>
                                         <td>{{ investment.symbol }}</td>
-                                        <td>{{ investment.transaction_date }}</td>
+                                        <td>{{ investment.transaction_date | default:"__" }}</td>
                                         <td>
                                             <span
                                                 {% if investment.transaction_type == "buy" %}
@@ -867,31 +879,31 @@
                 </div>
             </div>
 
-            <!-- Stocks Profile Tab -->
-            <div class="col-12 tab" id="stock-profile-tab">
+            <!-- Stocks Summary Tab -->
+            <div class="col-12 tab" id="stocks-summary">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="card-title">Stocks Profile [{{ stock_profiles_dt_filter | upper }}]</h4>
+                        <h4 class="card-title">Summary ({{ stocks_summary_dt_filter | upper }})</h4>
 
-                        <nav id="stock-profiles-filters-wp" data-activefilter="{{ stock_profiles_dt_filter | upper }}">
+                        <nav id="stocks-summary-filters-wp" data-activefilter="{{ stocks_summary_dt_filter | upper }}">
                             {% csrf_token %}
                             <ul class="pagination pagination-sm pagination-gutter pagination-warning">
-                                <li class="page-item active stock-profiles-filter">
+                                <li class="page-item active stocks-summary-filter">
                                     <button class="page-link" data-value="5D">5D</button>
                                 </li>
-                                <li class="page-item stock-profiles-filter">
+                                <li class="page-item stocks-summary-filter">
                                     <button class="page-link" data-value="1M">1M</button>
                                 </li>
-                                <li class="page-item stock-profiles-filter">
+                                <li class="page-item stocks-summary-filter">
                                     <button class="page-link" data-value="3M">3M</button>
                                 </li>
-                                <li class="page-item stock-profiles-filter">
+                                <li class="page-item stocks-summary-filter">
                                     <button class="page-link" data-value="6M">6M</button>
                                 </li>
-                                <li class="page-item stock-profiles-filter">
+                                <li class="page-item stocks-summary-filter">
                                     <button class="page-link" data-value="1Y">1Y</button>
                                 </li>
-                                <li class="page-item stock-profiles-filter">
+                                <li class="page-item stocks-summary-filter">
                                     <button class="page-link" data-value="5Y">5Y</button>
                                 </li>
                             </ul>
@@ -899,7 +911,7 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table id="stock-profiles-data-table" class="display" style="min-width: 845px">
+                            <table id="stocks-summary-data-table" class="display" style="min-width: 845px">
                                 <thead>
                                     <tr>
                                         <th class="no-sort"><small>Scrips</small></th>
@@ -913,30 +925,30 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for stock_profile in stock_profiles %}
+                                    {% for stock_summary in stocks_summary %}
                                     <tr
                                         {% if forloop.last %}
                                         style="text-transform: uppercase !important; background: #888 !important;"
                                         {% endif %}
                                     >
-                                        <td>{{ stock_profile.symbol }}</td>
-                                        <td>{{ stock_profile.percentage_allocation | default:"__" }}%</td>
-                                        <td>{{ stock_profile.net_quantity }}</td>
-                                        <td>{{ stock_profile.average_rate | default:"__" }}</td>
-                                        <td>{{ stock_profile.net_average_cost }}</td>
-                                        <td>{{ stock_profile.market_rate | default:"__" }}</td>
-                                        <td>{{ stock_profile.market_value | default:"__" }}</td>
+                                        <td>{{ stock_summary.symbol }}</td>
+                                        <td>{{ stock_summary.percentage_allocation | default:"__" }}%</td>
+                                        <td>{{ stock_summary.net_quantity }}</td>
+                                        <td>{{ stock_summary.average_rate | default:"__" }}</td>
+                                        <td>{{ stock_summary.net_average_cost }}</td>
+                                        <td>{{ stock_summary.market_rate | default:"__" }}</td>
+                                        <td>{{ stock_summary.market_value | default:"__" }}</td>
                                         <td style="text-align: right;">
-                                            {{ stock_profile.net_return_on_investments | default:"__" }}
+                                            {{ stock_summary.net_return_on_investments | default:"__" }}
                                             
-                                            {% if stock_profile.net_return_on_investments %}
-                                                {% if stock_profile.percentage_return_on_investments.is_signed %}
+                                            {% if stock_summary.net_return_on_investments %}
+                                                {% if stock_summary.percentage_return_on_investments.is_signed %}
                                                 <strong class="badge light badge-danger">
-                                                    {{ stock_profile.percentage_return_on_investments | default:"__" }}%
+                                                    {{ stock_summary.percentage_return_on_investments | default:"__" }}%
                                                 </strong>
                                                 {% else %}
                                                 <strong class="badge light badge-success">
-                                                    {{ stock_profile.percentage_return_on_investments | default:"__" }}%
+                                                    {{ stock_summary.percentage_return_on_investments | default:"__" }}%
                                                 </strong>
                                                 {% endif %}
                                             {% endif %}

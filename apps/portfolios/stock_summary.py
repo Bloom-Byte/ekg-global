@@ -16,8 +16,8 @@ convert_to_2dp_decimal = functools.partial(to_n_decimal_places, n=2)
 
 
 @attrs.define(auto_attribs=True, kw_only=True)
-class StockProfile:
-    """Model to represent a stock's profile in a portfolio"""
+class StockSummary:
+    """Model to represent a stock's summary in a portfolio"""
 
     symbol: str
     net_quantity: int = 0
@@ -44,13 +44,13 @@ class StockProfile:
     )
 
 
-def get_stock_profile_from_investments(
+def get_stock_summary_from_investments(
     stock: str, investments: models.QuerySet[Investment]
-) -> StockProfile:
+) -> StockSummary:
     investments_for_stock = investments.filter(stock__ticker=stock)
-    # If no investments exists, return a stock profile with the default attributes
+    # If no investments exists, return a stock summary with the default attributes
     if not investments_for_stock.exists():
-        return StockProfile(symbol=stock)
+        return StockSummary(symbol=stock)
 
     annotated_qs = investments_for_stock.annotate(
         signed_quantity=models.Case(
@@ -88,7 +88,7 @@ def get_stock_profile_from_investments(
             net_return_on_investments / abs(net_average_cost)
         ) * 100
 
-    return StockProfile(
+    return StockSummary(
         **{
             "symbol": stock,
             "net_quantity": net_quantity,
@@ -102,24 +102,24 @@ def get_stock_profile_from_investments(
     )
 
 
-def _update_stock_profile_with_percentage_allocation(
-    stock_profile: StockProfile,
+def _update_stock_summary_with_percentage_allocation(
+    stock_summary: StockSummary,
     total_quantity_of_stocks_invested_in: int,
 ):
     if not total_quantity_of_stocks_invested_in:
-        stock_profile.percentage_allocation = None
-        return stock_profile
+        stock_summary.percentage_allocation = None
+        return stock_summary
 
-    net_quantity = stock_profile.net_quantity
+    net_quantity = stock_summary.net_quantity
     percentage_allocation = (net_quantity / total_quantity_of_stocks_invested_in) * 100
-    stock_profile.percentage_allocation = percentage_allocation
-    return stock_profile
+    stock_summary.percentage_allocation = percentage_allocation
+    return stock_summary
 
 
 @timeit
-def generate_portfolio_stock_profiles(
+def generate_portfolio_stocks_summary(
     portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
-) -> typing.List[StockProfile]:
+) -> typing.List[StockSummary]:
     start_date, _ = parse_dt_filter(dt_filter, timezone)
     portfolio_investments = (
         portfolio.investments.select_related("stock")
@@ -127,15 +127,15 @@ def generate_portfolio_stock_profiles(
         .filter(added_at__date__gte=start_date)
     )
 
-    # If no investments exists, return a profile for the total only
+    # If no investments exists, return a summary for the total only
     if not portfolio_investments.exists():
-        return [StockProfile(symbol="TOTAL")]
+        return [StockSummary(symbol="TOTAL")]
 
     stocks_invested_in = get_stocks_invested_from_investments(portfolio_investments)
     with ThreadPoolExecutor() as executor:
-        stock_profiles = list(
+        stocks_summary = list(
             executor.map(
-                lambda stock: get_stock_profile_from_investments(
+                lambda stock: get_stock_summary_from_investments(
                     stock, portfolio_investments
                 ),
                 stocks_invested_in,
@@ -143,24 +143,29 @@ def generate_portfolio_stock_profiles(
         )
 
     net_total_quantity_of_stocks_invested_in = sum(
-        profile.net_quantity for profile in stock_profiles
+        summary.net_quantity for summary in stocks_summary
     )
-    net_total_average_cost = sum(profile.net_quantity for profile in stock_profiles)
+    net_total_average_cost = sum(summary.net_quantity for summary in stocks_summary)
     total_market_value = sum(
-        profile.market_value for profile in stock_profiles if profile.market_value
+        summary.market_value for summary in stocks_summary if summary.market_value
     )
     net_total_return_on_investments = sum(
-        profile.net_return_on_investments
-        for profile in stock_profiles
-        if profile.net_return_on_investments
+        summary.net_return_on_investments
+        for summary in stocks_summary
+        if summary.net_return_on_investments
+    )
+    net_percentage_return_on_investments = sum(
+        summary.percentage_return_on_investments
+        for summary in stocks_summary
+        if summary.percentage_return_on_investments
     )
 
-    for profile in stock_profiles:
-        profile = _update_stock_profile_with_percentage_allocation(
-            profile, net_total_quantity_of_stocks_invested_in
+    for summary in stocks_summary:
+        summary = _update_stock_summary_with_percentage_allocation(
+            summary, net_total_quantity_of_stocks_invested_in
         )
 
-    total_profile = StockProfile(
+    total_summary = StockSummary(
         **{
             "symbol": "TOTAL",
             "net_quantity": net_total_quantity_of_stocks_invested_in,
@@ -169,11 +174,11 @@ def generate_portfolio_stock_profiles(
             "market_rate": None,
             "market_value": total_market_value,
             "net_return_on_investments": net_total_return_on_investments,
-            "percentage_return_on_investments": None,
+            "percentage_return_on_investments": net_percentage_return_on_investments,
             "percentage_allocation": 100.00
             if net_total_quantity_of_stocks_invested_in
             else None,
         }
     )
-    stock_profiles.append(total_profile)
-    return stock_profiles
+    stocks_summary.append(total_summary)
+    return stocks_summary

@@ -7,7 +7,7 @@ from django.db import models
 
 from apps.portfolios.helpers import get_stocks_invested_from_investments
 from apps.portfolios.models import Portfolio, Investment
-from apps.portfolios.profiling import (
+from apps.portfolios.stock_summary import (
     get_stock_profile_from_investments,
     convert_to_2dp_decimal,
 )

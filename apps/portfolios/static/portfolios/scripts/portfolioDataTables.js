@@ -2,19 +2,19 @@ const portfolioDataTabsSection = document.querySelector("#portfolio-data-tabs-se
 
 if (portfolioDataTabsSection) {
     const portfolioDataTableEl = portfolioDataTabsSection.querySelector("#portfolio-data-table");
-    const stockProfilesDataTableEl = portfolioDataTabsSection.querySelector("#stock-profiles-data-table");
-    const stockProfilesFilterURLParamName = "filter_sp_by";
-    const stockProfilesFiltersWrapper = portfolioDataTabsSection.querySelector("#stock-profiles-filters-wp");
+    const stocksSummaryDataTableEl = portfolioDataTabsSection.querySelector("#stocks-summary-data-table");
+    const stocksSummaryFilterURLParamName = "filter_summary_by";
+    const stocksSummaryFiltersWrapper = portfolioDataTabsSection.querySelector("#stocks-summary-filters-wp");
 
 
-    if (stockProfilesFiltersWrapper) {
-        const stockProfilesFilters = stockProfilesFiltersWrapper.querySelectorAll('.stock-profiles-filter');
-        const activeFilterValue = stockProfilesFiltersWrapper.dataset.activefilter ?? "";
+    if (stocksSummaryFiltersWrapper) {
+        const stocksSummaryFilters = stocksSummaryFiltersWrapper.querySelectorAll('.stocks-summary-filter');
+        const activeFilterValue = stocksSummaryFiltersWrapper.dataset.activefilter ?? "";
 
-        stockProfilesFilters.forEach((filter) => {
+        stocksSummaryFilters.forEach((filter) => {
             filter.onclick = function () {
                 const filterValue = this.children[0].dataset.value;
-                updateURLParams(stockProfilesFilterURLParamName, filterValue);
+                updateURLParams(stocksSummaryFilterURLParamName, filterValue);
                 window.location.reload();
             }
 
@@ -43,9 +43,9 @@ if (portfolioDataTabsSection) {
         });
     }
 
-    if (stockProfilesDataTableEl) {
-        // Stock profiles datatable configuration
-        const stockProfilesDataTable = new DataTable(stockProfilesDataTableEl, {
+    if (stocksSummaryDataTableEl) {
+        // Stocks summary datatable configuration
+        const stocksSummaryDataTable = new DataTable(stocksSummaryDataTableEl, {
             dom: "frtip",
             searchable: true,
             sortable: true,

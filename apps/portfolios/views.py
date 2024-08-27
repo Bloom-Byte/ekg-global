@@ -20,7 +20,7 @@ from .helpers import (
     get_stocks_invested_from_investments,
 )
 from .transactions_upload import handle_transactions_file, get_transactions_upload_template
-from .profiling import generate_portfolio_stock_profiles
+from .stock_summary import generate_portfolio_stocks_summary
 
 
 portfolio_qs = (
@@ -121,7 +121,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         portfolio = get_object_or_404(
             portfolio_qs, id=self.kwargs["portfolio_id"], owner=self.request.user
         )
-        stock_profile_dt_filter = self.request.GET.get("filter_sp_by", "5D")
+        stocks_summary_dt_filter = self.request.GET.get("filter_summary_by", "5D")
 
         context["portfolio"] = portfolio
         context["all_stocks"] = stock_qs
@@ -136,10 +136,10 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         # context["line_chart_data"] = json.dumps(
         #     get_portfolio_performance_graph_data(portfolio)
         # )
-        context["stock_profiles"] = generate_portfolio_stock_profiles(
-            portfolio, dt_filter=stock_profile_dt_filter
+        context["stocks_summary"] = generate_portfolio_stocks_summary(
+            portfolio, dt_filter=stocks_summary_dt_filter
         )
-        context["stock_profiles_dt_filter"] = stock_profile_dt_filter
+        context["stocks_summary_dt_filter"] = stocks_summary_dt_filter
         return context
 
     def get_queryset(self) -> QuerySet[Portfolio]:

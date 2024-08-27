@@ -97,12 +97,11 @@
             Nav header start
         ***********************************-->
 		<div class="nav-header">
-            <a href="index.html" class="brand-logo">
-				<div class="logo">
-					<h3>{{ app_alias }}</h3>
-				</div>
-
+            <a href="/" class="nav-brand-logo">
+				<img src="{% static 'core/images/site-logo.png' %}" alt="{{ app_name }} Logo">
+				<h3>{{ app_alias }}</h3>
             </a>
+
             <div class="nav-control">
                 <div class="hamburger">
                     <span class="line"></span>
@@ -130,7 +129,7 @@
                     <div class="collapse navbar-collapse justify-content-between">
                         <div class="header-left">
 							<div class="dashboard_bar">
-                                {{ app_name }}
+                                {{ app_alias }}
                             </div>
                         </div>
                         <ul class="navbar-nav header-right">

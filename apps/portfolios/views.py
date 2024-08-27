@@ -19,7 +19,10 @@ from .helpers import (
     get_portfolio_performance_graph_data,
     get_stocks_invested_from_investments,
 )
-from .transactions_upload import handle_transactions_file, get_transactions_upload_template
+from .transactions_upload import (
+    handle_transactions_file,
+    get_transactions_upload_template,
+)
 from .stock_summary import generate_portfolio_stocks_summary
 
 
@@ -238,6 +241,46 @@ class PortfolioDeleteView(LoginRequiredMixin, generic.View):
 
 
 @capture.enable
+class PortfolioDividendsUpdateView(LoginRequiredMixin, generic.View):
+    http_method_names = ["post"]
+    form_class = PortfolioUpdateForm
+
+    def get_object(self):
+        return get_object_or_404(
+            portfolio_qs, id=self.kwargs["portfolio_id"], owner=self.request.user
+        )
+
+    @capture.capture(content="Oops! An error occurred")
+    def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
+        data: Dict = json.loads(request.body)
+        portfolio = self.get_object()
+        form = self.form_class(
+            data={"dividends": data["dividends"]}, instance=portfolio
+        )
+
+        if not form.is_valid():
+            return JsonResponse(
+                data={
+                    "status": "error",
+                    "detail": "An error occurred",
+                    "errors": form.errors,
+                },
+                status=400,
+            )
+        form.save()
+        return JsonResponse(
+            data={
+                "status": "success",
+                "detail": "Dividend receipt was recorded successfully",
+                "redirect_url": reverse(
+                    "portfolios:portfolio_detail", kwargs={"portfolio_id": portfolio.id}
+                ),
+            },
+            status=200,
+        )
+
+
+@capture.enable
 class InvestmentAddView(LoginRequiredMixin, generic.View):
     http_method_names = ["post"]
     form_class = InvestmentAddForm
@@ -309,6 +352,6 @@ portfolio_detail_view = PortfolioDetailView.as_view()
 portfolio_performance_data_view = PortfolioPerformanceDataView.as_view()
 portfolio_update_view = PortfolioUpdateView.as_view()
 portfolio_delete_view = PortfolioDeleteView.as_view()
-
+portfolio_dividends_update_view = PortfolioDividendsUpdateView.as_view()
 investment_add_view = InvestmentAddView.as_view()
 investment_delete_view = InvestmentDeleteView.as_view()

@@ -30,6 +30,11 @@ urlpatterns = [
         name="portfolio_delete",
     ),
     path(
+        "<uuid:portfolio_id>/dividends-update",
+        views.portfolio_dividends_update_view,
+        name="portfolio_dividends_update",
+    ),
+    path(
         "<uuid:portfolio_id>/investments/new",
         views.investment_add_view,
         name="investment_add",

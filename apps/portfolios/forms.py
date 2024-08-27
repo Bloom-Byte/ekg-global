@@ -6,10 +6,9 @@ from .models import Portfolio, Investment
 from apps.stocks.models import Stock
 
 
-ModelForm = typing.TypeVar("ModelForm", bound=forms.ModelForm)
-
 class PortfolioCreateForm(forms.ModelForm):
     """Portfolio creation form."""
+
     class Meta:
         model = Portfolio
         fields = ("owner", "name", "capital", "brokerage_percentage", "description")
@@ -17,21 +16,38 @@ class PortfolioCreateForm(forms.ModelForm):
 
 class PortfolioUpdateForm(forms.ModelForm):
     """Portfolio update form."""
+
+    name = forms.CharField(required=False)
     cash_addition = forms.DecimalField(required=False, max_digits=12, decimal_places=2)
 
     class Meta:
         model = Portfolio
-        fields = ("name", "brokerage_percentage", "description", "cash_addition")
+        fields = (
+            "name",
+            "brokerage_percentage",
+            "description",
+            "cash_addition",
+            "dividends",
+        )
 
+    def clean_dividends(self):
+        dividends = self.cleaned_data["dividends"]
+        if self.instance:
+            dividends += self.instance.dividends
+        return dividends
+    
     def save(self, commit: bool = True) -> Portfolio:
         portfolio: Portfolio = super().save(commit=False)
         cash_addition = self.cleaned_data.get("cash_addition")
         if cash_addition:
             portfolio.capital += cash_addition
-        
+
         if commit:
             portfolio.save()
         return portfolio
+
+
+ModelForm = typing.TypeVar("ModelForm", bound=forms.ModelForm)
 
 
 def _clean_percentage_to_decimal(*fields: str):
@@ -44,13 +60,14 @@ def _clean_percentage_to_decimal(*fields: str):
 
     Regular integer strings are also converted to their decimal equivalent
     """
+
     def make_clean_method_for_field(field: str):
         def _clean_method(form: ModelForm):
             value: str = form.cleaned_data[field]
             rate = form.cleaned_data["rate"]
             if not value:
                 return decimal.Decimal(0)
-            
+
             if value.endswith("%"):
                 value = (decimal.Decimal(value.removesuffix("%")) / 100) * rate
             else:
@@ -60,7 +77,7 @@ def _clean_percentage_to_decimal(*fields: str):
                     raise forms.ValidationError(
                         f"{field} should not exceed the stock rate of {rate}".capitalize()
                     )
-                
+
             # Round to two decimal places
             return decimal.Decimal(value).quantize(
                 decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
@@ -125,7 +142,7 @@ class InvestmentAddForm(forms.ModelForm):
             "laga",
             "nlaga",
             "fed",
-            "misc"
+            "misc",
         )
 
     def clean_portfolio(self):
@@ -143,13 +160,11 @@ class InvestmentAddForm(forms.ModelForm):
         except Stock.DoesNotExist as exc:
             raise forms.ValidationError(str(exc))
         return stock
-    
+
     def save(self, commit: bool = True) -> Investment:
         investment: Investment = super().save(commit=False)
         if investment.portfolio.cash_balance < investment.cost:
-            raise forms.ValidationError(
-                "Insufficient capital in portfolio."
-            )
+            raise forms.ValidationError("Insufficient capital in portfolio.")
         if commit:
             investment.save()
         return investment

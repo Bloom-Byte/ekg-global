@@ -255,7 +255,8 @@ class PortfolioDividendsUpdateView(LoginRequiredMixin, generic.View):
         data: Dict = json.loads(request.body)
         portfolio = self.get_object()
         form = self.form_class(
-            data={"dividends": data["dividends"]}, instance=portfolio
+            data={"dividends": data["dividends"], "name": portfolio.name},
+            instance=portfolio,
         )
 
         if not form.is_valid():

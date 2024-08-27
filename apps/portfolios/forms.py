@@ -17,7 +17,6 @@ class PortfolioCreateForm(forms.ModelForm):
 class PortfolioUpdateForm(forms.ModelForm):
     """Portfolio update form."""
 
-    name = forms.CharField(required=False)
     cash_addition = forms.DecimalField(required=False, max_digits=12, decimal_places=2)
 
     class Meta:

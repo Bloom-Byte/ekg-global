@@ -4,6 +4,7 @@ from django.core.files import File
 from dateutil.parser import parse
 
 from .models import Rate, Stock, KSE100Rate
+from helpers.utils.misc import comma_separated_to_int_float
 
 
 def get_trend(previous_close: float, close: float) -> str:
@@ -53,13 +54,17 @@ def handle_rates_file(rates_file: File) -> None:
     """
     Process the uploaded rates file.
     """
-    df = pd.read_csv(rates_file, skip_blank_lines=True, keep_default_na=False)
+    NUMBER_COLUMNS = ("open", "high", "low", "close", "volume")
+    converters = {column: comma_separated_to_int_float for column in NUMBER_COLUMNS}
+    df = pd.read_csv(
+        rates_file, skip_blank_lines=True, keep_default_na=False, converters=converters
+    )
 
     # Ensure all expected columns are present in the DataFrame
     missing_columns = set(EXPECTED_RATE_COLUMNS.keys()) - set(df.columns)
     if missing_columns:
         raise ValueError(f"Missing columns in rates file: {missing_columns}")
-    
+
     new_rates = []
     existing_rates = []
     for row in df.itertuples(index=False):
@@ -89,7 +94,14 @@ def handle_kse_rates_file(kse_rates_file: File) -> None:
     """
     Process the uploaded KSE100 rates file.
     """
-    df = pd.read_csv(kse_rates_file, skip_blank_lines=True, keep_default_na=False)
+    NUMBER_COLUMNS = ("open", "high", "low", "close", "volume")
+    converters = {column: comma_separated_to_int_float for column in NUMBER_COLUMNS}
+    df = pd.read_csv(
+        kse_rates_file,
+        skip_blank_lines=True,
+        keep_default_na=False,
+        converters=converters,
+    )
 
     # Ensure all expected columns are present in the DataFrame
     missing_columns = set(EXPECTED_KSE_COLUMNS.keys()) - set(df.columns)

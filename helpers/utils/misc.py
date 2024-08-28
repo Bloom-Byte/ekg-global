@@ -131,6 +131,23 @@ def underscore_dict_keys(_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Replaces all hyphens in the dictionary keys with underscores"""
     return {key.replace('-', "_"): value for key, value in _dict.items()}
 
+
+def comma_separated_to_int_float(value: str) -> Union[int, float]:
+    """Convert a comma-separated string into a single integer or float by concatenating the numbers."""
+    if not isinstance(value, str):
+        return value
+    if not value:
+        return value
+
+    try:
+        stripped_value = "".join(value.split(","))
+        if "." in stripped_value:
+            return float(stripped_value)
+        return int(stripped_value)
+    except ValueError:
+        return value
+
+
 __all__ = [
     "is_exception_class",
     "str_to_base64",

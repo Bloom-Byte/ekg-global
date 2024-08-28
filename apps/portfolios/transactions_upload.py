@@ -10,6 +10,7 @@ from apps.portfolios.models import Investment, Portfolio
 from apps.stocks.models import Stock
 from apps.accounts.models import UserAccount
 from .data_cleaners import InvestmentDataCleaner
+from helpers.utils.misc import comma_separated_to_int_float
 
 EXPECTED_TRANSACTION_COLUMNS = [
     "TRDATE",
@@ -55,7 +56,28 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
     """
     Process the uploaded transactions file.
     """
-    df = pd.read_csv(transactions_file, skip_blank_lines=True, keep_default_na=False)
+    NUMBER_COLUMNS = (
+        "BUY",
+        "SELL",
+        "RATE",
+        "COMM",
+        "CDC",
+        "CVT",
+        "WHTS",
+        "WHTC",
+        "LAGA",
+        "SECP",
+        "NLAGA",
+        "FED",
+        "MISC",
+    )
+    converters = {column: comma_separated_to_int_float for column in NUMBER_COLUMNS}
+    df = pd.read_csv(
+        transactions_file,
+        skip_blank_lines=True,
+        keep_default_na=False,
+        converters=converters,
+    )
 
     # Ensure all expected columns are present in the DataFrame
     missing_columns = set(EXPECTED_TRANSACTION_COLUMNS) - set(df.columns)

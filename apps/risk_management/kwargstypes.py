@@ -1,6 +1,8 @@
+"""Collection of custom keyword argument types for TA-LIB functions"""
+
 import attrs
 
-from .criteria.functions import KwargsType
+from .criteria.kwargtypes import KwargsType
 
 
 TimePeriod = KwargsType("TimePeriod", {"timeperiod": attrs.field(type=int, default=14)})
@@ -102,3 +104,4 @@ SlowD_MAType = KwargsType(
         "slowd_matype": attrs.field(type=int, default=0),
     },
 )
+

@@ -1,7 +1,9 @@
+"""A collection of argument evaluators"""
+
 import typing
 
 from apps.stocks.models import Stock
-from criteria.functions import FunctionSpec, ArgEvaluator
+from .criteria.functions import FunctionSpec, ArgEvaluator
 
 
 def OPEN_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:

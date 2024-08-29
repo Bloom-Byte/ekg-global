@@ -11,7 +11,7 @@ class RiskProfile(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     stocks = models.ManyToManyField("stocks.Stock", related_name="+", blank=True)
-    criteria = models.JSONField(blank=True, null=True, default=list)
+    criteria = models.JSONField(default=list)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -20,3 +20,4 @@ class RiskProfile(models.Model):
         verbose_name = _("Risk Profile")
         verbose_name_plural = _("Risk Profiles")
         ordering = ["-created_at"]
+

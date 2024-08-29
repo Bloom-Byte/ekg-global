@@ -7,11 +7,11 @@ class ValidationError(CriteriaException):
     pass
 
 
-class FunctionValidationError(ValidationError):
+class FunctionSpecValidationError(ValidationError):
     pass
 
 
-class UnsupportedFunction(FunctionValidationError):
+class UnsupportedFunction(FunctionSpecValidationError):
     pass
 
 

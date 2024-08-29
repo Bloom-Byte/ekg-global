@@ -3,19 +3,20 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class CustomRiskProfile(models.Model):
-
+class RiskProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    stocks = models.ManyToManyField(
-        "stocks.Stock", related_name="+", blank=True
+    owner = models.ForeignKey(
+        "accounts.UserAccount", related_name="risk_profiles", on_delete=models.CASCADE
     )
-    metadata = models.JSONField(blank=True, null=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    stocks = models.ManyToManyField("stocks.Stock", related_name="+", blank=True)
+    criteria = models.JSONField(blank=True, null=True, default=list)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = _("Custom Risk Profile")
-        verbose_name_plural = _("Custom Risk Profiles")
+        verbose_name = _("Risk Profile")
+        verbose_name_plural = _("Risk Profiles")
         ordering = ["-created_at"]

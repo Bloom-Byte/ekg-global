@@ -15,5 +15,10 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 COPY . .
 
-RUN chmod +x entrypoint.sh
+RUN chmod +x install_talib.sh entrypoint.sh
+
+RUN ./install_talib.sh
+
 ENTRYPOINT ["./entrypoint.sh"]
+
+

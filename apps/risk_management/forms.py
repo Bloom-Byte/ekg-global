@@ -1,30 +1,10 @@
 import typing
+import cattrs
 from django import forms
 from django.utils.itercompat import is_iterable
 
 from .models import RiskProfile
 from .criteria.criteria import Criteria, make_criterion
-from .criteria.functions import make_function_spec
-
-
-def function_from_data(data: typing.Dict):
-    """
-    Makes a function object from function data
-
-    :param data: A dictionary containing function data
-    """
-    if not isinstance(data, dict):
-        raise ValueError("data must be a dictionary")
-
-    name = data.get("name", None)
-    if not name:
-        raise ValueError("Function name is required")
-
-    options = data.get("options", {})
-    if not isinstance(options, dict):
-        raise ValueError("Function options must be a dictionary")
-    
-    return make_function_spec(name, **options)
 
 
 def criterion_data(data: typing.Iterable[typing.Dict]):
@@ -46,8 +26,6 @@ def criterion_data(data: typing.Iterable[typing.Dict]):
         if not all((func1, func2, op)):
             raise ValueError("Criterion data must have func1, func2, and op")
 
-        func1 = function_from_data(func1)
-        func2 = function_from_data(func2)
         yield make_criterion(func1, func2, op, ignore_unsupported_func=False)
 
 
@@ -63,4 +41,4 @@ class RiskProfileCreateForm(forms.ModelForm):
         
         criterion_list = list(set(criterion_data(criteria)))
         criteria = Criteria(criterion_list)
-        return criteria.to_json()
+        return cattrs.unstructure(criteria)

@@ -1,9 +1,9 @@
 import asyncio
 import typing
-from dataclasses import asdict, dataclass, field
 import uuid
 import enum
-from dataclasses_json import dataclass_json
+import attrs
+import cattrs
 
 from helpers.models.db import database_sync_to_async
 from .functions import FunctionSpec, evaluate as evaluate_function, make_function_spec
@@ -21,12 +21,11 @@ class CriterionStatus(enum.IntEnum):
     FAILED = 0
 
 
-@dataclass_json
-@dataclass(slots=True, frozen=True, repr=False)
+@attrs.define(slots=True, frozen=True, repr=False)
 class Criterion:
     """A criterion for evaluating a condition"""
 
-    id: uuid.UUID = field(default=uuid.uuid4, kw_only=True)
+    id: uuid.UUID = attrs.field(default=uuid.uuid4, kw_only=True)
     """A unique identifier for the criterion"""
     func1: FunctionSpec
     """The first function to evaluate"""
@@ -45,12 +44,11 @@ class Criterion:
         return hash(self.id)
 
 
-@dataclass_json
-@dataclass(slots=True)
+@attrs.define(slots=True)
 class Criteria:
     """A collection of criterion"""
 
-    criterion_list: typing.List[Criterion] = field(default=list)
+    criterion_list: typing.List[Criterion] = attrs.field(default=list)
 
     def get(self, id: uuid.UUID) -> typing.Optional[Criterion]:
         """Get a criterion by its id"""
@@ -155,7 +153,7 @@ def make_criterion(
     ignore_unsupported_func: bool = False,
 ) -> Criterion:
     """
-    Helper function to create a criterion from functions and an operator
+    Helper function to create a criterion from function specification data and an operator
 
     Performs validation on the functions and raises an exception if the functions are not supported
 
@@ -168,7 +166,7 @@ def make_criterion(
     :raises UnsupportedFunction: If the functions are not supported and ignore_unsupported_func is False
     """
     try:
-        func1 = make_function_spec(func1["name"], **func1["kwargs"])
+        func1 = make_function_spec(func1["name"], **func1.get("kwargs"))
         func2 = make_function_spec(func2["name"], **func2["kwargs"])
     except UnsupportedFunction:
         if not ignore_unsupported_func:
@@ -196,7 +194,7 @@ def update_criterion(criterion: Criterion, **kwds) -> Criterion:
     kwds.setdefault("ignore_unsupported_func", True)
     kwds.pop("id", None)
 
-    old_attrs = asdict(criterion)
+    old_attrs = cattrs.unstructure(criterion)
     kwargs = {**old_attrs, **kwds}
     return make_criterion(**kwargs)
 

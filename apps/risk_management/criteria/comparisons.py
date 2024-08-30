@@ -7,6 +7,7 @@ from .exceptions import ComparisonExecutorNotFound
 
 class ComparisonOperator(enum.Enum):
     """An enumeration of comparison operators"""
+
     GREATER_THAN = ">"
     LESS_THAN = "<"
     EQUALS = "="
@@ -14,24 +15,24 @@ class ComparisonOperator(enum.Enum):
     LESS_OR_EQUALS = "<="
 
 
-ComparisonExecutor = typing.Callable[
+_ComparisonExecutor = typing.Callable[
     [SupportsRichComparison, SupportsRichComparison], bool
 ]
-"""A function that takes two objects, A and B, and returns a boolean result of a comparison of A against B"""
+"""Takes two objects, A and B. Returns a boolean result of a comparison of A against B"""
 
-COMPARISON_EXECUTORS: typing.Dict[ComparisonOperator, ComparisonExecutor] = {}
+COMPARISON_EXECUTORS: typing.Dict[ComparisonOperator, _ComparisonExecutor] = {}
 """A mapping of comparison operators to their executors"""
 
 
 def comparison_executor(op: ComparisonOperator):
     """
     Decorator to register a comparison executor for a comparison operator
-    
+
     :param op: The comparison operator to register the executor for
     """
     op = ComparisonOperator(op)
 
-    def _decorator(executor: ComparisonExecutor):
+    def _decorator(executor: _ComparisonExecutor):
         global COMPARISON_EXECUTORS
 
         COMPARISON_EXECUTORS[op] = executor
@@ -42,7 +43,7 @@ def comparison_executor(op: ComparisonOperator):
 
 def get_comparison_executor(
     op: typing.Union[ComparisonOperator, str], *, raise_not_found: bool = True
-) -> typing.Optional[ComparisonExecutor]:
+) -> typing.Optional[_ComparisonExecutor]:
     """
     Get a comparison executor for a comparison operator
 
@@ -64,29 +65,29 @@ def get_comparison_executor(
 
 @comparison_executor(ComparisonOperator.GREATER_THAN)
 def greater_than(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
-    """Check if A is greater than B"""
+    """Checks if A is greater than B"""
     return a > b
 
 
 @comparison_executor(ComparisonOperator.LESS_THAN)
 def less_than(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
-    """Check if A is less than B"""
+    """Checks if A is less than B"""
     return a < b
 
 
 @comparison_executor(ComparisonOperator.EQUALS)
 def equals(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
-    """Check if A is equal to B"""
+    """Checks if A is equal to B"""
     return a == b
 
 
 @comparison_executor(ComparisonOperator.GREATER_OR_EQUALS)
 def greater_or_equals(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
-    """Check if A is greater than or equal to B"""
+    """Checks if A is greater than or equal to B"""
     return a >= b
 
 
 @comparison_executor(ComparisonOperator.LESS_OR_EQUALS)
 def less_or_equals(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
-    """Check if A is less than or equal to B"""
+    """Checks if A is less than or equal to B"""
     return a <= b

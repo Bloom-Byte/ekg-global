@@ -1,15 +1,18 @@
+import functools
 import typing
 import attrs
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from talib import abstract as talib_abstract_api, get_functions as get_talib_functions
 
 from helpers.typing_utils import SupportsRichComparison
 from .exceptions import UnsupportedFunction, FunctionSpecValidationError
-from .kwargtypes import BaseKwargsType
+from .kwargs_schemas import BaseKwargsSchema
 
 
 T = typing.TypeVar("T")
 R = typing.TypeVar("R")
+
 
 TALIB_FUNCTIONS = get_talib_functions()
 
@@ -30,32 +33,7 @@ class FunctionSpec:
         return self.name
 
 
-class ArgEvaluator(typing.Generic[T, R]):
-    """
-    Wraps a function that will later be used to evaluate an argument
-    to be passed to a talib function.
-    """
-
-    def __init__(
-        self,
-        eval_func: typing.Callable[[T, FunctionSpec], typing.Any],
-        name: str = None,
-    ):
-        """
-        Create a new argument evaluator
-
-        :param eval_func: The function that will be used to evaluate the argument
-            This function should take an object and a `FunctionSpec` and return a value
-        :param name: The name of the argument evaluator
-        """
-        self.eval_func = eval_func
-        self.name = name
-
-    def __call__(self, o: T, /, function: FunctionSpec) -> R:
-        return self.eval_func(o, function)
-
-
-FunctionAlias = str
+_FunctionAlias = str
 """The name or alias of the TA-LIB function in the functions registry"""
 FunctionEvaluator = typing.Callable[[T, FunctionSpec], SupportsRichComparison]
 """
@@ -67,18 +45,22 @@ any external state**.
 """
 
 
-class FunctionData(typing.TypedDict):
+class _FunctionData(typing.TypedDict):
     evaluator: FunctionEvaluator
     """The function that will be used to evaluate the TA-LIB function"""
-    kwargstype: typing.Optional[typing.Type[BaseKwargsType]]
+    kwargs_schema: typing.Optional[typing.Type[BaseKwargsSchema]]
     """
     The schema for the keyword arguments that the TA-LIB function accepts.
 
     Setting this to None means the function does not accept any keyword arguments
     """
+    description: typing.Optional[str]
+    """Short description of the (TA-LIB) function"""
+    group: typing.Optional[str]
+    """Function group of the (TA-LIB) function"""
 
 
-FUNCTIONS_REGISTRY: typing.Dict[FunctionAlias, FunctionData] = {}
+FUNCTIONS_REGISTRY: typing.Dict[_FunctionAlias, _FunctionData] = {}
 
 
 def make_function_spec(name: str, **kwargs) -> FunctionSpec:
@@ -87,7 +69,7 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
 
     :param name: The name or alias of the function
     :param kwargs: Keyword arguments for the TA-LIB function.
-        These should match the schema of the function's `kwargstype`
+        These should match the schema of the function's `kwargs_schema`
         in the functions registry
     :return: A new function specification
     """
@@ -95,14 +77,14 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
         raise UnsupportedFunction(f"Unsupported function: {name}")
 
     if kwargs:
-        kwargstype = FUNCTIONS_REGISTRY[name].get("kwargstype", None)
-        if not kwargstype:
+        kwargs_schema = FUNCTIONS_REGISTRY[name].get("kwargs_schema", None)
+        if not kwargs_schema:
             raise FunctionSpecValidationError(
-                f"Function {name} does not have a kwargstype defined"
+                f"Function {name} does not have a kwargs_schema defined"
                 " and cannot accept keyword arguments"
             )
 
-        kwargs = attrs.asdict(kwargstype(**kwargs))
+        kwargs = attrs.asdict(kwargs_schema(**kwargs))
     return FunctionSpec(name, kwargs)
 
 
@@ -111,24 +93,32 @@ def evaluator(
     /,
     *,
     alias: typing.Optional[str] = None,
-    kwargstype: typing.Optional[typing.Type[BaseKwargsType]] = None,
+    kwargs_schema: typing.Optional[typing.Type[BaseKwargsSchema]] = None,
+    description: typing.Optional[str] = None,
+    group: typing.Optional[str] = None,
 ):
     """
     Register a TA-LIB function evaluator
 
     :param func: The function that will be used to evaluate the TA-LIB function
     :param alias: The alias to use for the TA-LIB function in the functions registry
-    :param kwargstype: The schema for the keyword arguments that the TA-LIB function accepts.
+    :param kwargs_schema: The schema for the keyword arguments that the TA-LIB function accepts.
         Setting this to None means the function does not accept any keyword arguments.
+    :param description: Short description of the (TA-LIB) function the evaluator is for.
+    :param group: Function group of the (TA-LIB) function the evaluator is for.
     :return: The TA-LIB function evaluator
     """
-    if kwargstype and not issubclass(kwargstype, BaseKwargsType):
-        raise ValueError("kwargstype must be a subclass of BaseKwargsType")
+    if kwargs_schema and not issubclass(kwargs_schema, BaseKwargsSchema):
+        raise ValueError("kwargs_schema must be a subclass of BaseKwargsSchema")
 
     def _decorator(func: FunctionEvaluator):
+        func.__doc__ = func.__doc__ or description
+
         FUNCTIONS_REGISTRY[alias or func.__name__] = {
             "evaluator": func,
-            "kwargstype": kwargstype,
+            "kwargs_schema": kwargs_schema,
+            "description": description,
+            "group": group,
         }
         return func
 
@@ -137,9 +127,26 @@ def evaluator(
     return _decorator(func)
 
 
+_ArgEvaluator = typing.Callable[[T, FunctionSpec], typing.Any]
+"""
+Takes an object and a `FunctionSpec`. 
+Evaluates and returns an argument to be passed to a TA-LIB function, using the
+given object and/or `FunctionSpec`
+
+**This function should be thread-safe and stateless.
+It should not modify the object, or any external state.**
+"""
+_EvaluatorBuilder = typing.Callable[
+    [str, typing.List[_ArgEvaluator]], FunctionEvaluator
+]
+"""Builds a TA-LIB function evaluator"""
+
+
 def build_evaluator(
     talib_target: str,
-    arg_evaluators: typing.List[ArgEvaluator],
+    arg_evaluators: typing.List[_ArgEvaluator],
+    *,
+    use_multithreading: bool = False,
 ) -> FunctionEvaluator:
     """
     Builds a generic TA-LIB function evaluator, assuming that the target TA-LIB function
@@ -153,6 +160,9 @@ def build_evaluator(
         the arguments to that will be passed to the TA-LIB function.
         The order of the evaluators in the list should match the order in which
         the arguments are expected by the TA-LIB function.
+    :param use_multithreading: If True, the evaluator will run it argument evaluator concurrently.
+        Else, they will be run sequentially. You can change this behaviour directly on the evaluator returned,
+        by modifying th `use_multithreading` attribute of the evaluator.
     :return: A new TA-LIB function evaluator
     """
     if talib_target not in TALIB_FUNCTIONS:
@@ -161,22 +171,38 @@ def build_evaluator(
         raise ValueError("At least one argument evaluator is required")
 
     def _evaluator(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
-        args = [evaluator(o, spec) for evaluator in arg_evaluators]
+        if len(arg_evaluators) == 1:
+            args = [arg_evaluators[0](o, spec)]
+
+        else:
+            if getattr(_evaluator, "use_multithreading", False):
+                with ThreadPoolExecutor() as executor:
+                    args = executor.map(
+                        lambda arg_evaluator: arg_evaluator(o, spec), arg_evaluators
+                    )
+            else:
+                args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
         return talib_abstract_api.Function(talib_target)(*args, **spec.kwargs)
 
+    _evaluator.__name__ = talib_target
+    _evaluator.use_multithreading = use_multithreading
     return _evaluator
 
 
-EvaluatorBuilder = typing.Callable[[str, typing.List[ArgEvaluator]], FunctionEvaluator]
+build_multithreaded_evaluator = functools.partial(
+    build_evaluator, use_multithreading=True
+)
 
 
 def new_evaluator(
     talib_target: str,
     *,
-    arg_evaluators: typing.List[ArgEvaluator],
-    kwargstype: typing.Optional[typing.Type[BaseKwargsType]] = None,
+    arg_evaluators: typing.List[_ArgEvaluator],
+    kwargs_schema: typing.Optional[typing.Type[BaseKwargsSchema]] = None,
     alias: typing.Optional[str] = None,
-    evaluator_builder: EvaluatorBuilder = build_evaluator,
+    description: typing.Optional[str] = None,
+    group: typing.Optional[str] = None,
+    evaluator_builder: _EvaluatorBuilder = build_multithreaded_evaluator,
 ) -> FunctionEvaluator:
     """
     Builds and registers a new (generic) TA-LIB function evaluator,
@@ -191,15 +217,21 @@ def new_evaluator(
         the arguments to that will be passed to the TA-LIB function.
         The order of the evaluators in the list should match the order in which
         the arguments are expected by the TA-LIB function.
-    :param kwargstype: The schema for the keyword arguments that the TA-LIB function accepts.
+    :param kwargs_schema: The schema for the keyword arguments that the TA-LIB function accepts.
         Setting this to None means the function does not accept any keyword arguments.
     :param alias: The alias to use for the TA-LIB function in the functions registry
+    :param description: Short description of the (TA-LIB) function the evaluator is for.
+    :param group: Function group of the (TA-LIB) function the evaluator is for.
+    :param evaluator_builder: Callable to be used to build the new evaluator.
+        Uses the generic builder by default. You can pass your custom builder to this.
     :return: The TA-LIB function evaluator
     """
     return evaluator(
         evaluator_builder(talib_target, arg_evaluators),
         alias=alias,
-        kwargstype=kwargstype,
+        kwargs_schema=kwargs_schema,
+        description=description,
+        group=group,
     )
 
 

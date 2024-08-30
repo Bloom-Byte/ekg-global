@@ -7,5 +7,7 @@ class RiskManagementConfig(AppConfig):
 
     def ready(self) -> None:
         import apps.risk_management.function_evaluators # noqa
+        # import rich
         # from apps.risk_management.criteria.functions import FUNCTIONS_REGISTRY
-        # print(FUNCTIONS_REGISTRY)
+        # rich.print(FUNCTIONS_REGISTRY)
+        # print(len(FUNCTIONS_REGISTRY))

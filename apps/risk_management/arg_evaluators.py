@@ -1,40 +1,58 @@
-"""A collection of argument evaluators"""
+"""
+A collection of argument evaluators for TA-LIB functions
+"""
 
 import typing
 
-from apps.stocks.models import Stock
-from .criteria.functions import FunctionSpec, ArgEvaluator
+from apps.stocks.models import Stock, KSE100Rate
+from .criteria.functions import FunctionSpec
 
 
 def OPEN_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
-    """Returns the open values of a stock"""
+    """Returns a list containing `open` values of a stock rate"""
     return stock.rates.values_list("open", flat=True)
 
 
 def HIGH_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
-    """Returns the high values of a stock"""
+    """Returns a list containing `high` values of a stock rate"""
     return stock.rates.values_list("high", flat=True)
 
 
 def LOW_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
-    """Returns the low values of a stock"""
+    """Returns a list containing `low` values of a stock rate"""
     return stock.rates.values_list("low", flat=True)
 
 
 def CLOSE_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
-    """Returns the close values of a stock"""
+    """Returns a list containing `close` values of a stock rate"""
     return stock.rates.values_list("close", flat=True)
 
 
 def VOLUME_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
-    """Returns the volume values of a stock"""
+    """Returns a list containing `volume` values of a stock rate"""
     return stock.rates.values_list("volume", flat=True)
 
 
-Open = ArgEvaluator[Stock, typing.List[float]](OPEN_VALUES)
-High = ArgEvaluator[Stock, typing.List[float]](HIGH_VALUES)
-Low = ArgEvaluator[Stock, typing.List[float]](LOW_VALUES)
-Close = ArgEvaluator[Stock, typing.List[float]](CLOSE_VALUES)
-Volume = ArgEvaluator[Stock, typing.List[float]](VOLUME_VALUES)
+def KSE100_CLOSE_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
+    """Returns a list containing `close` values of the KSE100 rates"""
+    return KSE100Rate.objects.values_list("close", flat=True)
 
+def PERIODS(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
+    """Returns a list containing `periods` values of a stock rate"""
+    ...
 
+###########
+# ALIASES #
+###########
+
+Open = OPEN_VALUES
+High = HIGH_VALUES
+Low = LOW_VALUES
+Close = CLOSE_VALUES
+Volume = VOLUME_VALUES
+KSE100Close = KSE100_CLOSE_VALUES
+Periods = PERIODS
+
+Real = Close
+Real0 = KSE100Close
+Real1 = Close

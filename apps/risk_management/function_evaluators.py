@@ -1,5 +1,7 @@
 """Collection of TA-LIB function evaluators for use in criteria"""
 
+import typing
+import functools
 import attrs
 
 from .criteria import functions
@@ -15,11 +17,31 @@ EVALUATOR_GROUPS = (
     "Math Operators",
 )
 
+
+def _return_first_value(result: typing.Iterable):
+    """
+    Returns only the first value of the result set.
+
+    Since based on the stock rates data ordering,
+    the latest rate data is always the first element of the result set.
+    """
+    return result[0]
+
+
+# TA-LIB function evaluators built by this builder return only the first result in a result set
+build_evaluator = functools.partial(
+    functions.build_multithreaded_evaluator, result_handler=_return_first_value
+)
+# `functions.new_evaluator` with custom evaluator builder predefined
+new_evaluator = functools.partial(
+    functions.new_evaluator, evaluator_builder=build_evaluator
+)
+
 #########################
 # VOLATILITY INDICATORS #
 #########################
 
-ATR = functions.new_evaluator(
+ATR = new_evaluator(
     "ATR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -28,7 +50,7 @@ ATR = functions.new_evaluator(
     group="Volatility Indicators",
 )
 
-NATR = functions.new_evaluator(
+NATR = new_evaluator(
     "NATR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -37,7 +59,7 @@ NATR = functions.new_evaluator(
     group="Volatility Indicators",
 )
 
-TRANGE = functions.new_evaluator(
+TRANGE = new_evaluator(
     "TRANGE",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,  # Takes no keyword arguments
@@ -51,7 +73,7 @@ TRANGE = functions.new_evaluator(
 # CANDLESTICK PATTERN RECOGNITION #
 ###################################
 
-CDL2CROWS = functions.new_evaluator(
+CDL2CROWS = new_evaluator(
     "CDL2CROWS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,  # Takes no keyword arguments
@@ -60,7 +82,7 @@ CDL2CROWS = functions.new_evaluator(
     description="Two Crows: A bearish reversal pattern consisting of two black candlesticks after a long white one.",
 )
 
-CDL3BLACKCROWS = functions.new_evaluator(
+CDL3BLACKCROWS = new_evaluator(
     "CDL3BLACKCROWS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -69,7 +91,7 @@ CDL3BLACKCROWS = functions.new_evaluator(
     description="Three Black Crows: A bearish reversal pattern consisting of three consecutive black candlesticks.",
 )
 
-CDL3INSIDE = functions.new_evaluator(
+CDL3INSIDE = new_evaluator(
     "CDL3INSIDE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -78,7 +100,7 @@ CDL3INSIDE = functions.new_evaluator(
     description="Three Inside Up/Down: A three-candlestick pattern signaling a potential reversal.",
 )
 
-CDL3LINESTRIKE = functions.new_evaluator(
+CDL3LINESTRIKE = new_evaluator(
     "CDL3LINESTRIKE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -87,7 +109,7 @@ CDL3LINESTRIKE = functions.new_evaluator(
     description="Three-Line Strike: A four-candlestick reversal pattern consisting of three candles in the direction of the trend followed by a counter candle.",
 )
 
-CDL3OUTSIDE = functions.new_evaluator(
+CDL3OUTSIDE = new_evaluator(
     "CDL3OUTSIDE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -96,7 +118,7 @@ CDL3OUTSIDE = functions.new_evaluator(
     description="Three Outside Up/Down: A bullish or bearish reversal pattern with three candlesticks.",
 )
 
-CDL3STARSINSOUTH = functions.new_evaluator(
+CDL3STARSINSOUTH = new_evaluator(
     "CDL3STARSINSOUTH",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -105,7 +127,7 @@ CDL3STARSINSOUTH = functions.new_evaluator(
     description="Three Stars in the South: A rare bullish reversal pattern consisting of three candlesticks.",
 )
 
-CDL3WHITESOLDIERS = functions.new_evaluator(
+CDL3WHITESOLDIERS = new_evaluator(
     "CDL3WHITESOLDIERS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -114,7 +136,7 @@ CDL3WHITESOLDIERS = functions.new_evaluator(
     description="Three White Soldiers: A bullish reversal pattern with three consecutive long white candles.",
 )
 
-CDLABANDONEDBABY = functions.new_evaluator(
+CDLABANDONEDBABY = new_evaluator(
     "CDLABANDONEDBABY",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -123,7 +145,7 @@ CDLABANDONEDBABY = functions.new_evaluator(
     description="Abandoned Baby: A reversal pattern characterized by a gap between the three candles.",
 )
 
-CDLADVANCEBLOCK = functions.new_evaluator(
+CDLADVANCEBLOCK = new_evaluator(
     "CDLADVANCEBLOCK",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -132,7 +154,7 @@ CDLADVANCEBLOCK = functions.new_evaluator(
     description="Advance Block: A bearish reversal pattern consisting of three candlesticks.",
 )
 
-CDLBELTHOLD = functions.new_evaluator(
+CDLBELTHOLD = new_evaluator(
     "CDLBELTHOLD",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -141,7 +163,7 @@ CDLBELTHOLD = functions.new_evaluator(
     description="Belt-hold: A pattern with one long candlestick with no shadow in the direction of the trend.",
 )
 
-CDLBREAKAWAY = functions.new_evaluator(
+CDLBREAKAWAY = new_evaluator(
     "CDLBREAKAWAY",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -150,7 +172,7 @@ CDLBREAKAWAY = functions.new_evaluator(
     description="Breakaway: A pattern consisting of five candlesticks that indicates a potential trend reversal.",
 )
 
-CDLCLOSINGMARUBOZU = functions.new_evaluator(
+CDLCLOSINGMARUBOZU = new_evaluator(
     "CDLCLOSINGMARUBOZU",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -159,7 +181,7 @@ CDLCLOSINGMARUBOZU = functions.new_evaluator(
     description="Closing Marubozu: A candlestick with no shadows and the close is at the high or low.",
 )
 
-CDLCONCEALBABYSWALL = functions.new_evaluator(
+CDLCONCEALBABYSWALL = new_evaluator(
     "CDLCONCEALBABYSWALL",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -168,7 +190,7 @@ CDLCONCEALBABYSWALL = functions.new_evaluator(
     description="Concealing Baby Swallow: A bullish reversal pattern formed by four black candlesticks.",
 )
 
-CDLCOUNTERATTACK = functions.new_evaluator(
+CDLCOUNTERATTACK = new_evaluator(
     "CDLCOUNTERATTACK",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -177,7 +199,7 @@ CDLCOUNTERATTACK = functions.new_evaluator(
     description="Counterattack: A two-candlestick pattern indicating a possible trend reversal.",
 )
 
-CDLDARKCLOUDCOVER = functions.new_evaluator(
+CDLDARKCLOUDCOVER = new_evaluator(
     "CDLDARKCLOUDCOVER",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -186,7 +208,7 @@ CDLDARKCLOUDCOVER = functions.new_evaluator(
     description="Dark Cloud Cover: A bearish reversal pattern with a black candlestick closing below the midpoint of the previous white candlestick.",
 )
 
-CDLDOJI = functions.new_evaluator(
+CDLDOJI = new_evaluator(
     "CDLDOJI",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -195,7 +217,7 @@ CDLDOJI = functions.new_evaluator(
     description="Doji: A candlestick where the open and close are almost the same, signaling indecision.",
 )
 
-CDLDOJISTAR = functions.new_evaluator(
+CDLDOJISTAR = new_evaluator(
     "CDLDOJISTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -204,7 +226,7 @@ CDLDOJISTAR = functions.new_evaluator(
     description="Doji Star: A pattern where a Doji follows a long candlestick, indicating a potential reversal.",
 )
 
-CDLDRAGONFLYDOJI = functions.new_evaluator(
+CDLDRAGONFLYDOJI = new_evaluator(
     "CDLDRAGONFLYDOJI",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -213,7 +235,7 @@ CDLDRAGONFLYDOJI = functions.new_evaluator(
     description="Dragonfly Doji: A Doji with a long lower shadow and no upper shadow, often indicating a bullish reversal.",
 )
 
-CDLENGULFING = functions.new_evaluator(
+CDLENGULFING = new_evaluator(
     "CDLENGULFING",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -222,7 +244,7 @@ CDLENGULFING = functions.new_evaluator(
     description="Engulfing Pattern: A reversal pattern where a larger candlestick engulfs the previous one.",
 )
 
-CDLEVENINGDOJISTAR = functions.new_evaluator(
+CDLEVENINGDOJISTAR = new_evaluator(
     "CDLEVENINGDOJISTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -231,7 +253,7 @@ CDLEVENINGDOJISTAR = functions.new_evaluator(
     description="Evening Doji Star: A bearish reversal pattern with a Doji in the middle of a three-candlestick formation.",
 )
 
-CDLEVENINGSTAR = functions.new_evaluator(
+CDLEVENINGSTAR = new_evaluator(
     "CDLEVENINGSTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -240,7 +262,7 @@ CDLEVENINGSTAR = functions.new_evaluator(
     description="Evening Star: A bearish reversal pattern with three candlesticks, indicating the end of an uptrend.",
 )
 
-CDLGAPSIDESIDEWHITE = functions.new_evaluator(
+CDLGAPSIDESIDEWHITE = new_evaluator(
     "CDLGAPSIDESIDEWHITE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -249,7 +271,7 @@ CDLGAPSIDESIDEWHITE = functions.new_evaluator(
     description="Up/Down-gap side-by-side white lines: A continuation pattern with two white candlesticks forming after a gap.",
 )
 
-CDLGRAVESTONEDOJI = functions.new_evaluator(
+CDLGRAVESTONEDOJI = new_evaluator(
     "CDLGRAVESTONEDOJI",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -258,7 +280,7 @@ CDLGRAVESTONEDOJI = functions.new_evaluator(
     description="Gravestone Doji: A Doji with a long upper shadow and no lower shadow, often indicating a bearish reversal.",
 )
 
-CDLHAMMER = functions.new_evaluator(
+CDLHAMMER = new_evaluator(
     "CDLHAMMER",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -267,7 +289,7 @@ CDLHAMMER = functions.new_evaluator(
     description="Hammer: A bullish reversal pattern with a small body and a long lower shadow, indicating potential buying pressure.",
 )
 
-CDLHANGINGMAN = functions.new_evaluator(
+CDLHANGINGMAN = new_evaluator(
     "CDLHANGINGMAN",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -276,7 +298,7 @@ CDLHANGINGMAN = functions.new_evaluator(
     description="Hanging Man: A bearish reversal pattern with a small body and a long lower shadow, indicating potential selling pressure.",
 )
 
-CDLHARAMI = functions.new_evaluator(
+CDLHARAMI = new_evaluator(
     "CDLHARAMI",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -285,7 +307,7 @@ CDLHARAMI = functions.new_evaluator(
     description="Harami: A two-candlestick pattern indicating a potential reversal, where the second candle is contained within the body of the first.",
 )
 
-CDLHARAMICROSS = functions.new_evaluator(
+CDLHARAMICROSS = new_evaluator(
     "CDLHARAMICROSS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -294,7 +316,7 @@ CDLHARAMICROSS = functions.new_evaluator(
     description="Harami Cross: A variation of the Harami pattern where the second candlestick is a Doji.",
 )
 
-CDLHIGHWAVE = functions.new_evaluator(
+CDLHIGHWAVE = new_evaluator(
     "CDLHIGHWAVE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -303,7 +325,7 @@ CDLHIGHWAVE = functions.new_evaluator(
     description="High-Wave: A candlestick with long upper and lower shadows, indicating market indecision.",
 )
 
-CDLHIKKAKE = functions.new_evaluator(
+CDLHIKKAKE = new_evaluator(
     "CDLHIKKAKE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -312,7 +334,7 @@ CDLHIKKAKE = functions.new_evaluator(
     description="Hikkake Pattern: A continuation or reversal pattern that follows a failed pattern breakout.",
 )
 
-CDLHIKKAKEMOD = functions.new_evaluator(
+CDLHIKKAKEMOD = new_evaluator(
     "CDLHIKKAKEMOD",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -321,7 +343,7 @@ CDLHIKKAKEMOD = functions.new_evaluator(
     description="Modified Hikkake Pattern: A variation of the Hikkake pattern with a different configuration of candlesticks.",
 )
 
-CDLHOMINGPIGEON = functions.new_evaluator(
+CDLHOMINGPIGEON = new_evaluator(
     "CDLHOMINGPIGEON",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -330,7 +352,7 @@ CDLHOMINGPIGEON = functions.new_evaluator(
     description="Homing Pigeon: A bullish reversal pattern where the second candlestick is contained within the body of the first.",
 )
 
-CDLIDENTICAL3CROWS = functions.new_evaluator(
+CDLIDENTICAL3CROWS = new_evaluator(
     "CDLIDENTICAL3CROWS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -339,7 +361,7 @@ CDLIDENTICAL3CROWS = functions.new_evaluator(
     description="Identical Three Crows: A bearish reversal pattern consisting of three black candlesticks with identical open and close prices.",
 )
 
-CDLINNECK = functions.new_evaluator(
+CDLINNECK = new_evaluator(
     "CDLINNECK",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -348,7 +370,7 @@ CDLINNECK = functions.new_evaluator(
     description="In-Neck: A bearish continuation pattern with a black candlestick followed by a small white candlestick.",
 )
 
-CDLINVERTEDHAMMER = functions.new_evaluator(
+CDLINVERTEDHAMMER = new_evaluator(
     "CDLINVERTEDHAMMER",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -357,7 +379,7 @@ CDLINVERTEDHAMMER = functions.new_evaluator(
     description="Inverted Hammer: A bullish reversal pattern with a long upper shadow and a small body, indicating potential buying pressure.",
 )
 
-CDLKICKING = functions.new_evaluator(
+CDLKICKING = new_evaluator(
     "CDLKICKING",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -366,7 +388,7 @@ CDLKICKING = functions.new_evaluator(
     description="Kicking: A two-candlestick pattern with a gap between a white and black candlestick, signaling a strong reversal.",
 )
 
-CDLKICKINGBYLENGTH = functions.new_evaluator(
+CDLKICKINGBYLENGTH = new_evaluator(
     "CDLKICKINGBYLENGTH",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -375,7 +397,7 @@ CDLKICKINGBYLENGTH = functions.new_evaluator(
     description="Kicking by Length: A variation of the Kicking pattern that considers the length of the candlesticks.",
 )
 
-CDLLADDERBOTTOM = functions.new_evaluator(
+CDLLADDERBOTTOM = new_evaluator(
     "CDLLADDERBOTTOM",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -384,7 +406,7 @@ CDLLADDERBOTTOM = functions.new_evaluator(
     description="Ladder Bottom: A five-candlestick bullish reversal pattern with consecutive lower closes followed by a gap up.",
 )
 
-CDLLONGLEGGEDDOJI = functions.new_evaluator(
+CDLLONGLEGGEDDOJI = new_evaluator(
     "CDLLONGLEGGEDDOJI",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -393,7 +415,7 @@ CDLLONGLEGGEDDOJI = functions.new_evaluator(
     description="Long-Legged Doji: A Doji with long upper and lower shadows, indicating high market volatility and indecision.",
 )
 
-CDLLONGLINE = functions.new_evaluator(
+CDLLONGLINE = new_evaluator(
     "CDLLONGLINE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -402,7 +424,7 @@ CDLLONGLINE = functions.new_evaluator(
     description="Long Line Candle: A long candlestick with a significant body, indicating strong market momentum.",
 )
 
-CDLMARUBOZU = functions.new_evaluator(
+CDLMARUBOZU = new_evaluator(
     "CDLMARUBOZU",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -411,7 +433,7 @@ CDLMARUBOZU = functions.new_evaluator(
     description="Marubozu: A candlestick with no shadows, indicating a strong trend in the direction of the body.",
 )
 
-CDLMATCHINGLOW = functions.new_evaluator(
+CDLMATCHINGLOW = new_evaluator(
     "CDLMATCHINGLOW",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -420,7 +442,7 @@ CDLMATCHINGLOW = functions.new_evaluator(
     description="Matching Low: A bullish reversal pattern with two consecutive candlesticks having the same low.",
 )
 
-CDLMATHOLD = functions.new_evaluator(
+CDLMATHOLD = new_evaluator(
     "CDLMATHOLD",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -429,7 +451,7 @@ CDLMATHOLD = functions.new_evaluator(
     description="Mat Hold: A continuation pattern with a gap up, three small candlesticks, and a gap down, indicating strong trend momentum.",
 )
 
-CDLMORNINGDOJISTAR = functions.new_evaluator(
+CDLMORNINGDOJISTAR = new_evaluator(
     "CDLMORNINGDOJISTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -438,7 +460,7 @@ CDLMORNINGDOJISTAR = functions.new_evaluator(
     description="Morning Doji Star: A bullish reversal pattern with a Doji in the middle of a three-candlestick formation.",
 )
 
-CDLMORNINGSTAR = functions.new_evaluator(
+CDLMORNINGSTAR = new_evaluator(
     "CDLMORNINGSTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.Penetration,
@@ -447,7 +469,7 @@ CDLMORNINGSTAR = functions.new_evaluator(
     description="Morning Star: A bullish reversal pattern with three candlesticks, indicating the end of a downtrend.",
 )
 
-CDLONNECK = functions.new_evaluator(
+CDLONNECK = new_evaluator(
     "CDLONNECK",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -456,7 +478,7 @@ CDLONNECK = functions.new_evaluator(
     description="On-Neck: A bearish continuation pattern with a black candlestick followed by a small white candlestick.",
 )
 
-CDLPIERCING = functions.new_evaluator(
+CDLPIERCING = new_evaluator(
     "CDLPIERCING",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -465,7 +487,7 @@ CDLPIERCING = functions.new_evaluator(
     description="Piercing Pattern: A bullish reversal pattern with a white candlestick that opens below the previous black candlestick and closes above its midpoint.",
 )
 
-CDLRICKSHAWMAN = functions.new_evaluator(
+CDLRICKSHAWMAN = new_evaluator(
     "CDLRICKSHAWMAN",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -474,7 +496,7 @@ CDLRICKSHAWMAN = functions.new_evaluator(
     description="Rickshaw Man: A Doji with long upper and lower shadows, indicating market indecision and high volatility.",
 )
 
-CDLRISEFALL3METHODS = functions.new_evaluator(
+CDLRISEFALL3METHODS = new_evaluator(
     "CDLRISEFALL3METHODS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -483,7 +505,7 @@ CDLRISEFALL3METHODS = functions.new_evaluator(
     description="Rising/Falling Three Methods: A continuation pattern with a series of small candlesticks within a trend, indicating a pause before the trend resumes.",
 )
 
-CDLSEPARATINGLINES = functions.new_evaluator(
+CDLSEPARATINGLINES = new_evaluator(
     "CDLSEPARATINGLINES",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -492,7 +514,7 @@ CDLSEPARATINGLINES = functions.new_evaluator(
     description="Separating Lines: A continuation pattern with two opposite-colored candlesticks that share the same opening price.",
 )
 
-CDLSHOOTINGSTAR = functions.new_evaluator(
+CDLSHOOTINGSTAR = new_evaluator(
     "CDLSHOOTINGSTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -501,7 +523,7 @@ CDLSHOOTINGSTAR = functions.new_evaluator(
     description="Shooting Star: A bearish reversal pattern with a long upper shadow and a small body, indicating potential selling pressure.",
 )
 
-CDLSHORTLINE = functions.new_evaluator(
+CDLSHORTLINE = new_evaluator(
     "CDLSHORTLINE",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -510,7 +532,7 @@ CDLSHORTLINE = functions.new_evaluator(
     description="Short Line Candle: A short candlestick with a small body, indicating a lack of strong market momentum.",
 )
 
-CDLSPINNINGTOP = functions.new_evaluator(
+CDLSPINNINGTOP = new_evaluator(
     "CDLSPINNINGTOP",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -519,7 +541,7 @@ CDLSPINNINGTOP = functions.new_evaluator(
     description="Spinning Top: A candlestick with a small body and long upper and lower shadows, indicating market indecision.",
 )
 
-CDLSTALLEDPATTERN = functions.new_evaluator(
+CDLSTALLEDPATTERN = new_evaluator(
     "CDLSTALLEDPATTERN",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -528,7 +550,7 @@ CDLSTALLEDPATTERN = functions.new_evaluator(
     description="Stalled Pattern: A bearish reversal pattern with three candlesticks, indicating the potential end of an uptrend.",
 )
 
-CDLSTICKSANDWICH = functions.new_evaluator(
+CDLSTICKSANDWICH = new_evaluator(
     "CDLSTICKSANDWICH",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -537,7 +559,7 @@ CDLSTICKSANDWICH = functions.new_evaluator(
     description="Stick Sandwich: A bullish reversal pattern with three candlesticks, where the middle candlestick is opposite in color to the surrounding candlesticks.",
 )
 
-CDLTAKURI = functions.new_evaluator(
+CDLTAKURI = new_evaluator(
     "CDLTAKURI",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -546,7 +568,7 @@ CDLTAKURI = functions.new_evaluator(
     description="Takuri (Dragonfly Doji): A bullish reversal pattern with a long lower shadow and a small body, indicating potential buying pressure.",
 )
 
-CDLTASUKIGAP = functions.new_evaluator(
+CDLTASUKIGAP = new_evaluator(
     "CDLTASUKIGAP",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -555,7 +577,7 @@ CDLTASUKIGAP = functions.new_evaluator(
     description="Tasuki Gap: A continuation pattern with a gap followed by candlesticks that move in the same direction, indicating strong trend momentum.",
 )
 
-CDLTHRUSTING = functions.new_evaluator(
+CDLTHRUSTING = new_evaluator(
     "CDLTHRUSTING",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -564,7 +586,7 @@ CDLTHRUSTING = functions.new_evaluator(
     description="Thrusting Pattern: A bearish continuation pattern with a black candlestick followed by a small white candlestick that closes below the midpoint of the previous black candlestick.",
 )
 
-CDLTRISTAR = functions.new_evaluator(
+CDLTRISTAR = new_evaluator(
     "CDLTRISTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -573,7 +595,7 @@ CDLTRISTAR = functions.new_evaluator(
     description="Tristar: A reversal pattern with three consecutive Dojis, indicating a potential trend change.",
 )
 
-CDLUNIQUE3RIVER = functions.new_evaluator(
+CDLUNIQUE3RIVER = new_evaluator(
     "CDLUNIQUE3RIVER",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -582,7 +604,7 @@ CDLUNIQUE3RIVER = functions.new_evaluator(
     description="Unique Three River Bottom: A bullish reversal pattern with three candlesticks, where the third candlestick is a small white candlestick within the body of the second.",
 )
 
-CDLUPSIDEGAP2CROWS = functions.new_evaluator(
+CDLUPSIDEGAP2CROWS = new_evaluator(
     "CDLUPSIDEGAP2CROWS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -591,7 +613,7 @@ CDLUPSIDEGAP2CROWS = functions.new_evaluator(
     description="Upside Gap Two Crows: A bearish reversal pattern with a gap up followed by two black candlesticks that close the gap.",
 )
 
-CDLXSIDEGAP3METHODS = functions.new_evaluator(
+CDLXSIDEGAP3METHODS = new_evaluator(
     "CDLXSIDEGAP3METHODS",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -605,7 +627,7 @@ CDLXSIDEGAP3METHODS = functions.new_evaluator(
 # MOMENTUM INDICATORS #
 #######################
 
-ADX = functions.new_evaluator(
+ADX = new_evaluator(
     "ADX",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -614,7 +636,7 @@ ADX = functions.new_evaluator(
     description="Average Directional Index: Measures the strength of a trend without indicating its direction.",
 )
 
-ADXR = functions.new_evaluator(
+ADXR = new_evaluator(
     "ADXR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -623,7 +645,7 @@ ADXR = functions.new_evaluator(
     description="Average Directional Movement Rating: A smoothed version of ADX, indicating the trend strength.",
 )
 
-APO = functions.new_evaluator(
+APO = new_evaluator(
     "APO",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.FastandSlowPeriod, kt.MAType),
@@ -632,7 +654,7 @@ APO = functions.new_evaluator(
     description="Absolute Price Oscillator: Shows the difference between two moving averages of a security's price.",
 )
 
-AROON = functions.new_evaluator(
+AROON = new_evaluator(
     "AROON",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=kt.TimePeriod,
@@ -641,7 +663,7 @@ AROON = functions.new_evaluator(
     description="Aroon: Identifies the strength of a trend and the likelihood of its continuation.",
 )
 
-AROONOSC = functions.new_evaluator(
+AROONOSC = new_evaluator(
     "AROONOSC",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=kt.TimePeriod,
@@ -650,7 +672,7 @@ AROONOSC = functions.new_evaluator(
     description="Aroon Oscillator: Calculates the difference between Aroon Up and Aroon Down.",
 )
 
-BOP = functions.new_evaluator(
+BOP = new_evaluator(
     "BOP",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=None,
@@ -659,7 +681,7 @@ BOP = functions.new_evaluator(
     description="Balance of Power: Measures the strength of buyers versus sellers.",
 )
 
-CCI = functions.new_evaluator(
+CCI = new_evaluator(
     "CCI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -668,7 +690,7 @@ CCI = functions.new_evaluator(
     description="Commodity Channel Index: Identifies cyclical trends in a security's price.",
 )
 
-CMO = functions.new_evaluator(
+CMO = new_evaluator(
     "CMO",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -677,7 +699,7 @@ CMO = functions.new_evaluator(
     description="Chande Momentum Oscillator: Measures the momentum of a security's price, developed by Tushar Chande.",
 )
 
-DX = functions.new_evaluator(
+DX = new_evaluator(
     "DX",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -686,7 +708,7 @@ DX = functions.new_evaluator(
     description="Directional Movement Index: Indicates the strength of a trend by comparing positive and negative movement.",
 )
 
-MACD = functions.new_evaluator(
+MACD = new_evaluator(
     "MACD",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.FastandSlowPeriod, kt.SignalPeriod),
@@ -695,7 +717,7 @@ MACD = functions.new_evaluator(
     description="Moving Average Convergence Divergence: A trend-following momentum indicator that shows the relationship between two moving averages.",
 )
 
-MACDEXT = functions.new_evaluator(
+MACDEXT = new_evaluator(
     "MACDEXT",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(
@@ -706,7 +728,7 @@ MACDEXT = functions.new_evaluator(
     description="MACD with controllable moving average types: A more flexible version of MACD that allows for different types of moving averages.",
 )
 
-MACDFIX = functions.new_evaluator(
+MACDFIX = new_evaluator(
     "MACDFIX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.SignalPeriod,
@@ -715,7 +737,7 @@ MACDFIX = functions.new_evaluator(
     description="MACD Fix: A variant of the MACD with a fixed 9-day signal line.",
 )
 
-MFI = functions.new_evaluator(
+MFI = new_evaluator(
     "MFI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close, arg_ev.Volume],
     kwargs_schema=kt.TimePeriod,
@@ -724,7 +746,7 @@ MFI = functions.new_evaluator(
     description="Money Flow Index: Measures the buying and selling pressure using both price and volume.",
 )
 
-MINUS_DI = functions.new_evaluator(
+MINUS_DI = new_evaluator(
     "MINUS_DI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -733,7 +755,7 @@ MINUS_DI = functions.new_evaluator(
     description="Minus Directional Indicator: Measures the negative directional movement, used in ADX calculations.",
 )
 
-MINUS_DM = functions.new_evaluator(
+MINUS_DM = new_evaluator(
     "MINUS_DM",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=kt.TimePeriod,
@@ -742,7 +764,7 @@ MINUS_DM = functions.new_evaluator(
     description="Minus Directional Movement: Represents the difference between the low of the current period and the low of the previous period.",
 )
 
-MOM = functions.new_evaluator(
+MOM = new_evaluator(
     "MOM",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -751,7 +773,7 @@ MOM = functions.new_evaluator(
     description="Momentum: Measures the speed and change of price movements.",
 )
 
-PLUS_DI = functions.new_evaluator(
+PLUS_DI = new_evaluator(
     "PLUS_DI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -760,7 +782,7 @@ PLUS_DI = functions.new_evaluator(
     description="Plus Directional Indicator: Measures the positive directional movement, used in ADX calculations.",
 )
 
-PLUS_DM = functions.new_evaluator(
+PLUS_DM = new_evaluator(
     "PLUS_DM",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=kt.TimePeriod,
@@ -769,7 +791,7 @@ PLUS_DM = functions.new_evaluator(
     description="Plus Directional Movement: Represents the difference between the high of the current period and the high of the previous period.",
 )
 
-PPO = functions.new_evaluator(
+PPO = new_evaluator(
     "PPO",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.FastandSlowPeriod, kt.MAType),
@@ -778,7 +800,7 @@ PPO = functions.new_evaluator(
     description="Percentage Price Oscillator: Similar to MACD but expressed as a percentage.",
 )
 
-ROC = functions.new_evaluator(
+ROC = new_evaluator(
     "ROC",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -787,7 +809,7 @@ ROC = functions.new_evaluator(
     description="Rate of Change: Measures the percentage change in price between the current price and the price a certain number of periods ago.",
 )
 
-ROCP = functions.new_evaluator(
+ROCP = new_evaluator(
     "ROCP",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -796,7 +818,7 @@ ROCP = functions.new_evaluator(
     description="Rate of Change Percentage: Expresses the rate of change as a percentage.",
 )
 
-ROCR = functions.new_evaluator(
+ROCR = new_evaluator(
     "ROCR",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -805,7 +827,7 @@ ROCR = functions.new_evaluator(
     description="Rate of Change Ratio: Similar to ROC but expressed as a ratio.",
 )
 
-ROCR100 = functions.new_evaluator(
+ROCR100 = new_evaluator(
     "ROCR100",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -814,7 +836,7 @@ ROCR100 = functions.new_evaluator(
     description="Rate of Change Ratio 100: Similar to ROCR but scaled by 100.",
 )
 
-RSI = functions.new_evaluator(
+RSI = new_evaluator(
     "RSI",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -823,7 +845,7 @@ RSI = functions.new_evaluator(
     description="Relative Strength Index: A momentum oscillator that measures the speed and change of price movements.",
 )
 
-STOCH = functions.new_evaluator(
+STOCH = new_evaluator(
     "STOCH",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=MergeKwargsSchemas(
@@ -838,7 +860,7 @@ STOCH = functions.new_evaluator(
     description="Stochastic Oscillator: Compares a particular closing price to a range of prices over a certain period.",
 )
 
-STOCHF = functions.new_evaluator(
+STOCHF = new_evaluator(
     "STOCHF",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=MergeKwargsSchemas(kt.FastK_Period, kt.FastD_Period, kt.FastD_MAType),
@@ -847,7 +869,7 @@ STOCHF = functions.new_evaluator(
     description="Stochastic Fast: A faster version of the Stochastic Oscillator.",
 )
 
-STOCHRSI = functions.new_evaluator(
+STOCHRSI = new_evaluator(
     "STOCHRSI",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(
@@ -858,7 +880,7 @@ STOCHRSI = functions.new_evaluator(
     description="Stochastic RSI: An oscillator that measures the level of RSI relative to its range.",
 )
 
-TRIX = functions.new_evaluator(
+TRIX = new_evaluator(
     "TRIX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -867,7 +889,7 @@ TRIX = functions.new_evaluator(
     description="Triple Exponential Moving Average Oscillator: Measures the rate of change of a triple exponentially smoothed moving average.",
 )
 
-ULTOSC = functions.new_evaluator(
+ULTOSC = new_evaluator(
     "ULTOSC",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=KwargsSchema(
@@ -883,7 +905,7 @@ ULTOSC = functions.new_evaluator(
     description="Ultimate Oscillator: Combines short-term, intermediate-term, and long-term price action into one oscillator.",
 )
 
-WILLR = functions.new_evaluator(
+WILLR = new_evaluator(
     "WILLR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=kt.TimePeriod,
@@ -897,7 +919,7 @@ WILLR = functions.new_evaluator(
 # MATH OPERATOR FUNCTIONS #
 #############################
 
-ADD = functions.new_evaluator(
+ADD = new_evaluator(
     "ADD",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
     kwargs_schema=None,
@@ -906,7 +928,7 @@ ADD = functions.new_evaluator(
     group="Math Operators",
 )
 
-DIV = functions.new_evaluator(
+DIV = new_evaluator(
     "DIV",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
     kwargs_schema=None,
@@ -915,7 +937,7 @@ DIV = functions.new_evaluator(
     group="Math Operators",
 )
 
-MAX = functions.new_evaluator(
+MAX = new_evaluator(
     "MAX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -924,7 +946,7 @@ MAX = functions.new_evaluator(
     group="Math Operators",
 )
 
-MAXINDEX = functions.new_evaluator(
+MAXINDEX = new_evaluator(
     "MAXINDEX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -933,7 +955,7 @@ MAXINDEX = functions.new_evaluator(
     group="Math Operators",
 )
 
-MIN = functions.new_evaluator(
+MIN = new_evaluator(
     "MIN",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -942,7 +964,7 @@ MIN = functions.new_evaluator(
     group="Math Operators",
 )
 
-MININDEX = functions.new_evaluator(
+MININDEX = new_evaluator(
     "MININDEX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -951,7 +973,7 @@ MININDEX = functions.new_evaluator(
     group="Math Operators",
 )
 
-MINMAX = functions.new_evaluator(
+MINMAX = new_evaluator(
     "MINMAX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -960,7 +982,7 @@ MINMAX = functions.new_evaluator(
     group="Math Operators",
 )
 
-MINMAXINDEX = functions.new_evaluator(
+MINMAXINDEX = new_evaluator(
     "MINMAXINDEX",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -969,7 +991,7 @@ MINMAXINDEX = functions.new_evaluator(
     group="Math Operators",
 )
 
-MULT = functions.new_evaluator(
+MULT = new_evaluator(
     "MULT",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
     kwargs_schema=None,
@@ -978,7 +1000,7 @@ MULT = functions.new_evaluator(
     group="Math Operators",
 )
 
-SUB = functions.new_evaluator(
+SUB = new_evaluator(
     "SUB",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
     kwargs_schema=None,
@@ -987,7 +1009,7 @@ SUB = functions.new_evaluator(
     group="Math Operators",
 )
 
-SUM = functions.new_evaluator(
+SUM = new_evaluator(
     "SUM",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1001,7 +1023,7 @@ SUM = functions.new_evaluator(
 # STATISTIC FUNCTIONS #
 ##########################
 
-BETA = functions.new_evaluator(
+BETA = new_evaluator(
     "BETA",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
     kwargs_schema=kt.TimePeriod,
@@ -1010,7 +1032,7 @@ BETA = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-CORREL = functions.new_evaluator(
+CORREL = new_evaluator(
     "CORREL",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
     kwargs_schema=kt.TimePeriod,
@@ -1019,7 +1041,7 @@ CORREL = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-LINEARREG = functions.new_evaluator(
+LINEARREG = new_evaluator(
     "LINEARREG",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1028,7 +1050,7 @@ LINEARREG = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-LINEARREG_ANGLE = functions.new_evaluator(
+LINEARREG_ANGLE = new_evaluator(
     "LINEARREG_ANGLE",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1037,7 +1059,7 @@ LINEARREG_ANGLE = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-LINEARREG_INTERCEPT = functions.new_evaluator(
+LINEARREG_INTERCEPT = new_evaluator(
     "LINEARREG_INTERCEPT",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1046,7 +1068,7 @@ LINEARREG_INTERCEPT = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-LINEARREG_SLOPE = functions.new_evaluator(
+LINEARREG_SLOPE = new_evaluator(
     "LINEARREG_SLOPE",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1055,7 +1077,7 @@ LINEARREG_SLOPE = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-STDDEV = functions.new_evaluator(
+STDDEV = new_evaluator(
     "STDDEV",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.NbDev),
@@ -1064,7 +1086,7 @@ STDDEV = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-TSF = functions.new_evaluator(
+TSF = new_evaluator(
     "TSF",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1073,7 +1095,7 @@ TSF = functions.new_evaluator(
     group="Statistic Functions",
 )
 
-VAR = functions.new_evaluator(
+VAR = new_evaluator(
     "VAR",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.NbDev),
@@ -1083,11 +1105,11 @@ VAR = functions.new_evaluator(
 )
 
 
-#################################
+#############################
 # OVERLAP STUDIES FUNCTIONS #
-#################################
+#############################
 
-BBANDS = functions.new_evaluator(
+BBANDS = new_evaluator(
     "BBANDS",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.NbDevUpandDown, kt.MAType),
@@ -1096,7 +1118,7 @@ BBANDS = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-DEMA = functions.new_evaluator(
+DEMA = new_evaluator(
     "DEMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1105,7 +1127,7 @@ DEMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-EMA = functions.new_evaluator(
+EMA = new_evaluator(
     "EMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1114,7 +1136,7 @@ EMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-HT_TRENDLINE = functions.new_evaluator(
+HT_TRENDLINE = new_evaluator(
     "HT_TRENDLINE",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=None,
@@ -1123,7 +1145,7 @@ HT_TRENDLINE = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-KAMA = functions.new_evaluator(
+KAMA = new_evaluator(
     "KAMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1132,7 +1154,7 @@ KAMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-MA = functions.new_evaluator(
+MA = new_evaluator(
     "MA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.MAType),
@@ -1141,7 +1163,7 @@ MA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-MAMA = functions.new_evaluator(
+MAMA = new_evaluator(
     "MAMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.FastandSlowLimit,
@@ -1150,16 +1172,20 @@ MAMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-MAVP = functions.new_evaluator(
+MAVP = new_evaluator(
     "MAVP",
-    arg_evaluators=[arg_ev.Real, arg_ev.Periods],
-    kwargs_schema=MergeKwargsSchemas(kt.MinandMaxPeriod, kt.MAType),
+    # arg_evaluators=[arg_ev.Real, arg_ev.Periods],
+    # kwargs_schema=MergeKwargsSchemas(kt.MinandMaxPeriod, kt.MAType),
+    arg_evaluators=[
+        arg_ev.Real
+    ],  # Make Periods a kwarg, so user can specify it since we have no way of evaluating it
+    kwargs_schema=MergeKwargsSchemas(kt.Periods, kt.MinandMaxPeriod, kt.MAType),
     alias="MAVP",
     description="Moving Average with Variable Period (changes period dynamically based on input)",
     group="Overlap Studies",
 )
 
-MIDPOINT = functions.new_evaluator(
+MIDPOINT = new_evaluator(
     "MIDPOINT",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1168,7 +1194,7 @@ MIDPOINT = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-MIDPRICE = functions.new_evaluator(
+MIDPRICE = new_evaluator(
     "MIDPRICE",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=kt.TimePeriod,
@@ -1177,7 +1203,7 @@ MIDPRICE = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-SAR = functions.new_evaluator(
+SAR = new_evaluator(
     "SAR",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=MergeKwargsSchemas(kt.Acceleration, kt.Maximum),
@@ -1186,7 +1212,7 @@ SAR = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-SAREXT = functions.new_evaluator(
+SAREXT = new_evaluator(
     "SAREXT",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
     kwargs_schema=KwargsSchema(
@@ -1207,7 +1233,7 @@ SAREXT = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-SMA = functions.new_evaluator(
+SMA = new_evaluator(
     "SMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1216,7 +1242,7 @@ SMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-T3 = functions.new_evaluator(
+T3 = new_evaluator(
     "T3",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.VFactor),
@@ -1225,7 +1251,7 @@ T3 = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-TEMA = functions.new_evaluator(
+TEMA = new_evaluator(
     "TEMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1234,7 +1260,7 @@ TEMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-TRIMA = functions.new_evaluator(
+TRIMA = new_evaluator(
     "TRIMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1243,7 +1269,7 @@ TRIMA = functions.new_evaluator(
     group="Overlap Studies",
 )
 
-WMA = functions.new_evaluator(
+WMA = new_evaluator(
     "WMA",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=kt.TimePeriod,
@@ -1251,3 +1277,4 @@ WMA = functions.new_evaluator(
     description="Weighted Moving Average (gives more weight to recent data)",
     group="Overlap Studies",
 )
+

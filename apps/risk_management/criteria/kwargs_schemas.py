@@ -1,3 +1,4 @@
+import inspect
 import typing
 import attrs
 
@@ -83,3 +84,46 @@ def MergeKwargsSchemas(
         **kwargs,
     )
 
+
+class _KwargsSchemaJSONSchema(typing.TypedDict):
+    """JSON representation of a KwargsSchema"""
+
+    type: str
+    """The type of the KwargsSchema"""
+    properties: typing.Dict[str, typing.Dict[str, typing.Any]]
+    """The properties of the KwargsSchema"""
+    required: typing.List[str]
+    """List of the required properties of the KwargsSchema"""
+
+
+def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):
+    """Converts a KwargsSchema class to a JSON schema"""
+    json_schema: _KwargsSchemaJSONSchema = {
+        "type": "function_kwargs",
+        "arguments": {},
+        "required_arguments": [],
+    }
+
+    for name, field in attrs.fields_dict(kwargs_schema).items():
+        field_type = field.type
+
+        if hasattr(field.default, "factory"):
+            default_value = field.default.factory()
+        elif callable(field.default):
+            default_value = field.default()
+        elif field.default == attrs.NOTHING:
+            default_value = None
+        else:
+            default_value = field.default
+
+        json_schema["arguments"][name] = {
+            "type": "null" if field_type is type(None) else field_type.__name__,
+            "default": default_value,
+            "required": field.default == attrs.NOTHING,
+            "description": field.metadata.get("description", None),
+        }
+
+        if field.default == attrs.NOTHING:
+            json_schema["required_arguments"].append(name)
+
+    return json_schema

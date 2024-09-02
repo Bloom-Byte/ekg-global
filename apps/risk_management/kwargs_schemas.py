@@ -6,12 +6,17 @@ You should use manually create a new keyword argument type or merge existing one
 for TA-LIB functions that have more intricate or complex keyword arguments.
 """
 
+import functools
+import typing
 import attrs
+import numpy as np
 
 from .criteria.kwargs_schemas import KwargsSchema
 
 
-TimePeriod = KwargsSchema("TimePeriod", {"timeperiod": attrs.field(type=int, default=14)})
+TimePeriod = KwargsSchema(
+    "TimePeriod", {"timeperiod": attrs.field(type=int, default=14)}
+)
 
 Penetration = KwargsSchema(
     "Penetration", {"penetration": attrs.field(type=float, default=0.0)}
@@ -160,5 +165,23 @@ VFactor = KwargsSchema(
     "VFactor",
     {
         "vfactor": attrs.field(type=float, default=0.2),
+    },
+)
+
+
+def to_float_ndarray(values: typing.Iterable) -> np.ndarray:
+    """Converts an iterable of values to a numpy float ndarray"""
+    return np.array(values, dtype=float)
+
+
+Periods = KwargsSchema(
+    "Periods",
+    {
+        "periods": attrs.field(
+            type=np.ndarray[float],
+            default=attrs.Factory(list),
+            converter=to_float_ndarray,
+            validator=attrs.validators.instance_of(np.ndarray),
+        ),
     },
 )

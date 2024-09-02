@@ -6,43 +6,158 @@
 {% endblock title %}
 
 {% block stylesheets %}
-<link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
+<link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
+<link href="{% static 'core/styles/tabs.css' %}" rel="stylesheet">
+<link href="{% static 'risk_management/styles/risk_management.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
+
+<!-- Profile Create Modal -->
+<div class="modal fade" id="profileCreateModal" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="border-radius: 0;">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Risk Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <form 
+                    action="" 
+                    method="post" 
+                    id="profile-create-form"
+                >
+                    {% csrf_token %}
+    
+                    <div class="form-fields">
+                        <div class="form-field">
+                            <label for="name">Name</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="Profile Name" 
+                                id="name"
+                                name="name"
+                                required
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="description">Description</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                placeholder="Profile Description"
+                                id="description"
+                                name="description"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="criteria">Criteria</label>
+                            <input 
+                                type="text" 
+                                class="form-input form-control input-rounded" 
+                                id="criteria"
+                                name="criteria"
+                                required
+                                hidden
+                            >
+                            <small class="field-message"></small>
+
+                            <div id="criteria-selected">
+                                <!-- Selected criteria a displayed here -->
+                            </div>
+
+                            <button 
+                                id="criteria-form-toggle" 
+                                type="button"
+                                data-bs-target="#criteriaModal"
+                                data-criteria-creation-schema-url="{% url 'risk_management:criteria_creation_schema' %}"
+                            >
+                                Add Criteria +
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="submit" class="btn light btn-success btn-sm submit-btn">Create</button>
+                        <button type="button" class="btn btn-danger light btn-sm" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>       
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">Risk Profile</h4>
+                <h4 class="card-title">Risk Profiles</h4>
+
+                <button 
+                    type="button" 
+                    class="btn btn-light btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#profileCreateModal"
+                >
+                    Create Profile
+                </button>
             </div>
-            <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
-                <div class="table-responsive">
-                    <table id="risk-profile-table" class="display" style="min-width: 845px">
-                        <thead>
-                            <tr>
-                                <th><small>Symbol</small></th>
-                                <th><small>Avg. Cost</small></th>
-                                <th><small>Current Rate</small></th>
-                                <th><small>Stop Loss Level</small></th>
-                                <th><small>Target Price</small></th>
-                                <th><small>Gain/Loss %</small></th>
-                                <th><small>Distance for SL</small></th>
-                                <th><small>Fall from Peak</small></th>
-                                <th><small>Lower Lows</small></th>
-                                <th><small>Higher Highs</small></th>
-                                <th><small>200DMA</small></th>
-                                <th><small>% Allocation</small></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for investment in investments %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            
+            <section class="tabs-section p-4" id="risk-profile-tabs-section" data-urlparam="profile">
+                <nav class="tab-toggles-wp">
+                    <ul class="pagination pagination-lg pagination-gutter pagination-success tab-toggles-wp-inner">
+                        <li class="page-item active tab-toggle" data-tabtarget="transaction-history">
+                            <button class="page-link" style="border-radius: 4px !important;">Profile 1</button>
+                        </li>
+                        <li class="page-item tab-toggle" data-tabtarget="stocks-summary">
+                            <button class="page-link" style="border-radius: 4px !important;">Profile 2</button>
+                        </li>
+                    </ul>
+                </nav> 
+                
+                <div class="tabs">
+                    <!-- Transactions Tab -->
+                    <div class="col-12 tab" id="transaction-history">
+                        <div class="card" style="border-radius: 0;">
+                            <div class="card-header">
+                                <h4 class="card-title">Profile 1</h4>
+        
+                                <button 
+                                    type="button" 
+                                    class="btn btn-light btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#transactionAddModal"
+                                >
+                                    Edit Profile
+                                </button>
+                            </div>
+                            <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
+        
+                            <!-- Table goes here -->
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Stocks Summary Tab -->
+                    <div class="col-12 tab" id="stocks-summary">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">Profile 2</h4>
+                            </div>
+                            <div class="card-body">
+                                <!-- Table goes here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>
@@ -50,7 +165,7 @@
 
 
 {% block scripts %}
-<script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
-
-<script src="{% static 'risk_management//scripts//riskProfile.js' %}"></script>
+<script src="{% static 'core//scripts//formCard.js' %}"></script>
+<script src="{% static 'core//scripts//tabs.js' %}"></script>
+<script src="{% static 'risk_management//scripts//riskProfileCreate.js' %}"></script>
 {% endblock %}

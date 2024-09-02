@@ -1,23 +1,25 @@
 import functools
 import typing
+import numpy as np
 import attrs
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from talib import abstract as talib_abstract_api, get_functions as get_talib_functions
+import talib
+import copy
+from talib import get_functions as get_talib_functions
 
 from helpers.typing_utils import SupportsRichComparison
 from .exceptions import UnsupportedFunction, FunctionSpecValidationError
-from .kwargs_schemas import BaseKwargsSchema
+from .kwargs_schemas import BaseKwargsSchema, kwargs_schema_to_json_schema
 
 
 T = typing.TypeVar("T")
 R = typing.TypeVar("R")
-
+P = typing.ParamSpec("P")
 
 TALIB_FUNCTIONS = get_talib_functions()
 
 
-@dataclass(slots=True, frozen=True, repr=False)
+@attrs.define(auto_attribs=True, slots=True, frozen=True, repr=False)
 class FunctionSpec:
     """Specifications for evaluating a TA-LIB function on an object"""
 
@@ -33,7 +35,7 @@ class FunctionSpec:
         return self.name
 
 
-_FunctionAlias = str
+_FunctionName = str
 """The name or alias of the TA-LIB function in the functions registry"""
 FunctionEvaluator = typing.Callable[[T, FunctionSpec], SupportsRichComparison]
 """
@@ -60,7 +62,7 @@ class _FunctionData(typing.TypedDict):
     """Function group of the (TA-LIB) function"""
 
 
-FUNCTIONS_REGISTRY: typing.Dict[_FunctionAlias, _FunctionData] = {}
+FUNCTIONS_REGISTRY: typing.Dict[_FunctionName, _FunctionData] = {}
 
 
 def make_function_spec(name: str, **kwargs) -> FunctionSpec:
@@ -86,6 +88,52 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
 
         kwargs = attrs.asdict(kwargs_schema(**kwargs))
     return FunctionSpec(name, kwargs)
+
+
+def generate_function_schema(function_name: str):
+    """
+    Generate a JSON schema for the function with the given name
+
+    :param function_name: The name of the function to generate the schema for
+    :return: The JSON schema for the function
+    :raises UnsupportedFunction: If the function is unregistered/unsupported
+    """
+    if function_name not in FUNCTIONS_REGISTRY:
+        raise UnsupportedFunction("Unsupported function: {function_name}")
+
+    function_data = copy.deepcopy(FUNCTIONS_REGISTRY[function_name])
+    function_data.pop("evaluator")
+    schema = {
+        "type": "function",
+        "name": function_name,
+        "description": function_data["description"],
+        "group": function_data["group"],
+        "kwargs": None,
+    }
+
+    if function_data["kwargs_schema"]:
+        schema["kwargs"] = kwargs_schema_to_json_schema(function_data["kwargs_schema"])
+    return schema
+
+
+def generate_functions_schema(*, grouped: bool = False):
+    schemas = {}
+    
+    for function in FUNCTIONS_REGISTRY:
+        function_schema = generate_function_schema(function)
+        function_name = function_schema["name"]
+
+        if grouped:
+            group = function_schema.get("group", None)
+            if group:
+                group_functions = schemas.get(group, None) or {}
+                group_functions[function] = function_schema
+                schemas[group] = group_functions
+            else:
+                schemas[function_name] = function_schema
+        else:
+            schemas[function_name] = function_schema
+    return schemas
 
 
 def evaluator(
@@ -127,7 +175,7 @@ def evaluator(
     return _decorator(func)
 
 
-_ArgEvaluator = typing.Callable[[T, FunctionSpec], typing.Any]
+_ArgEvaluator = typing.Callable[[T, FunctionSpec], typing.Union[np.ndarray, R]]
 """
 Takes an object and a `FunctionSpec`. 
 Evaluates and returns an argument to be passed to a TA-LIB function, using the
@@ -141,11 +189,47 @@ _EvaluatorBuilder = typing.Callable[
 ]
 """Builds a TA-LIB function evaluator"""
 
+_EvaluatorResultHandler = typing.Callable[[R], SupportsRichComparison]
+"""
+Handles the result of a TA-LIB function evaluator
+
+Performs additional pre/post-processing on the result of the evaluator
+"""
+
+_dtype = typing.TypeVar("_dtype", bound=np.dtype)
+
+
+def ensure_ndarray(
+    *,
+    array_dtype: typing.Type[_dtype],
+):
+    """
+    Returns a decorator that ensures the result of the argument evaluator is a numpy array
+
+    :param array_dtype: The preferred numpy data type for the array
+    """
+
+    def _decorator(arg_evaluator: _ArgEvaluator):
+        """Wraps the argument evaluator to ensure the result is a numpy array"""
+
+        @functools.wraps(arg_evaluator)
+        def _wrapper(*args, **kwargs) -> np.ndarray[typing.Type[_dtype]]:
+            result = arg_evaluator(*args, **kwargs)
+
+            if not isinstance(result, np.ndarray):
+                result = np.array(list(result), dtype=array_dtype)
+            return result
+
+        return _wrapper
+
+    return _decorator
+
 
 def build_evaluator(
     talib_target: str,
     arg_evaluators: typing.List[_ArgEvaluator],
     *,
+    result_handler: typing.Optional[_EvaluatorResultHandler] = None,
     use_multithreading: bool = False,
 ) -> FunctionEvaluator:
     """
@@ -160,6 +244,8 @@ def build_evaluator(
         the arguments to that will be passed to the TA-LIB function.
         The order of the evaluators in the list should match the order in which
         the arguments are expected by the TA-LIB function.
+    :param result_handler: A callable to be used to handle the result of the TA-LIB function evaluator.
+        This can be used to perform additional pre/post-processing on the result before it is returned.
     :param use_multithreading: If True, the evaluator will run it argument evaluator concurrently.
         Else, they will be run sequentially. You can change this behaviour directly on the evaluator returned,
         by modifying th `use_multithreading` attribute of the evaluator.
@@ -182,7 +268,11 @@ def build_evaluator(
                     )
             else:
                 args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
-        return talib_abstract_api.Function(talib_target)(*args, **spec.kwargs)
+
+        result = getattr(talib, talib_target)(*args, **spec.kwargs)
+        if result_handler:
+            result = result_handler(result)
+        return result
 
     _evaluator.__name__ = talib_target
     _evaluator.use_multithreading = use_multithreading

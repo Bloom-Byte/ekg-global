@@ -1,0 +1,223 @@
+{
+    "Volatility Indicators": {
+        "ATR": {
+            "type": "function",
+            "name": "ATR",
+            "description": "Average True Range. Measures market volatility by decomposing the entire range of an asset price for that period.",
+            "group": "Volatility Indicators",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "NATR": {
+            "type": "function",
+            "name": "NATR",
+            "description": "Normalized Average True Range. The ATR value normalized to represent a percentage of the closing price.",
+            "group": "Volatility Indicators",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "TRANGE": {
+            "type": "function",
+            "name": "TRANGE",
+            "description": "True Range. The greatest of the following: current high minus the current low, the absolute value of the current high minus the previous close, and the absolute value of the current low minus the previous close.",
+            "group": "Volatility Indicators",
+            "kwargs": null
+        }
+    },
+    "Statistic Functions": {
+        "BETA": {
+            "type": "function",
+            "name": "BETA",
+            "description": "Beta (measures the volatility of an asset in comparison to the market as a whole)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "CORREL": {
+            "type": "function",
+            "name": "CORREL",
+            "description": "Pearson's Correlation Coefficient (r) (measures the linear correlation between two datasets)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "LINEARREG": {
+            "type": "function",
+            "name": "LINEARREG",
+            "description": "Linear Regression (calculates a linear regression for a series of values)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "LINEARREG_ANGLE": {
+            "type": "function",
+            "name": "LINEARREG_ANGLE",
+            "description": "Linear Regression Angle (calculates the angle of the linear regression line)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "LINEARREG_INTERCEPT": {
+            "type": "function",
+            "name": "LINEARREG_INTERCEPT",
+            "description": "Linear Regression Intercept (calculates the y-intercept of the linear regression line)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "LINEARREG_SLOPE": {
+            "type": "function",
+            "name": "LINEARREG_SLOPE",
+            "description": "Linear Regression Slope (calculates the slope of the linear regression line)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "STDDEV": {
+            "type": "function",
+            "name": "STDDEV",
+            "description": "Standard Deviation (measures the amount of variation or dispersion of a set of values)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    },
+                    "nbdev": {
+                        "type": "int",
+                        "default": 1,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "TSF": {
+            "type": "function",
+            "name": "TSF",
+            "description": "Time Series Forecast (calculates a linear regression forecast for a series of values)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        },
+        "VAR": {
+            "type": "function",
+            "name": "VAR",
+            "description": "Variance (measures how far a set of numbers are spread out from their average value)",
+            "group": "Statistic Functions",
+            "kwargs": {
+                "type": "function_kwargs",
+                "arguments": {
+                    "timeperiod": {
+                        "type": "int",
+                        "default": 14,
+                        "required": false,
+                        "description": null
+                    },
+                    "nbdev": {
+                        "type": "int",
+                        "default": 1,
+                        "required": false,
+                        "description": null
+                    }
+                },
+                "required_arguments": []
+            }
+        }
+    }
+}

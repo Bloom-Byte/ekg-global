@@ -1,0 +1,20 @@
+
+#profile-create-form #criteria-selected {
+    width: 100%;
+    min-height: 50px;
+    border: 1px dotted #888;
+}
+
+#profile-create-form #criteria-form-toggle {
+    text-decoration: underline;
+    cursor: pointer;
+    outline: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+    margin-block: 6px;
+}
+
+#profile-create-form #criteria-form-toggle:hover {
+    color: #888;
+}

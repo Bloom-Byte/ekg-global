@@ -21,7 +21,7 @@ class CriterionStatus(enum.IntEnum):
     FAILED = 0
 
 
-@attrs.define(slots=True, frozen=True, repr=False)
+@attrs.define(auto_attribs=True, slots=True, frozen=True, repr=False)
 class Criterion:
     """A criterion for evaluating a condition"""
 
@@ -44,7 +44,7 @@ class Criterion:
         return hash(self.id)
 
 
-@attrs.define(slots=True)
+@attrs.define(auto_attribs=True, slots=True)
 class Criteria:
     """A collection of criterion"""
 
@@ -166,13 +166,12 @@ def make_criterion(
     :raises UnsupportedFunction: If the functions are not supported and ignore_unsupported_func is False
     """
     try:
-        func1 = make_function_spec(func1["name"], **func1.get("kwargs"))
+        func1 = make_function_spec(func1["name"], **func1["kwargs"])
         func2 = make_function_spec(func2["name"], **func2["kwargs"])
     except UnsupportedFunction:
         if not ignore_unsupported_func:
             raise
-        pass
-
+    
     kwds = {
         "func1": func1,
         "func2": func2,

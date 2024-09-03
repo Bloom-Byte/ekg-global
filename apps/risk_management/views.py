@@ -27,6 +27,14 @@ class RiskManagementView(LoginRequiredMixin, generic.TemplateView):
         context_data = super().get_context_data(**kwargs)
         risk_profiles = risk_profile_qs.filter(owner=self.request.user)
         context_data["risk_profiles"] = risk_profiles
+
+        functions_schema = generate_functions_schema(grouped=True)
+        operators_schema = {op.name.replace("_", " ").upper(): op.value for op in ComparisonOperator}
+        criteria_creation_schema = {
+            "functions_schema": functions_schema,
+            "operators_schema": operators_schema
+        }
+        context_data["criteria_creation_schema"] = criteria_creation_schema
         return context_data
     
 
@@ -63,27 +71,4 @@ class RiskProfileCreateView(LoginRequiredMixin, generic.View):
         )
 
 
-@capture.enable
-class CriteriaCreationSchemaView(LoginRequiredMixin, generic.View):
-    http_method_names = ["get"]
-
-    @capture.capture(content="Oops! An error occurred")
-    def get(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
-        grouped: bool = str(request.GET.get("grouped", "true")).lower() == "true"
-        functions_schema = generate_functions_schema(grouped=grouped)
-        operators_schema = {op.name.replace("_", " ").upper(): op.value for op in ComparisonOperator}
-        return JsonResponse(
-            data={
-                "status": "success",
-                "detail": "Request processed successfully",
-                "data": {
-                    "functions": functions_schema,
-                    "operators": operators_schema
-                },
-            },
-            status=200,
-        )
-
-
 risk_management_view = RiskManagementView.as_view()
-criteria_creation_schema_view = CriteriaCreationSchemaView.as_view()

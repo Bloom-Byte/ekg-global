@@ -6,8 +6,10 @@ button:disabled, input:disabled{
 }
 
 select{
-    background-color: rgb(74, 50, 178) !important;
-    padding: 6px 8px !important;
+    background-color: rgb(74, 50, 178);
+    padding: 10px 8px;
+    color: inherit;
+    border: none;
 }
 
 select option{

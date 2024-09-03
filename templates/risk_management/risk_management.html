@@ -8,6 +8,7 @@
 {% block stylesheets %}
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
 <link href="{% static 'core/styles/tabs.css' %}" rel="stylesheet">
+<link href="{% static 'risk_management/styles/functions_modal.css' %}" rel="stylesheet">
 <link href="{% static 'risk_management/styles/risk_management.css' %}" rel="stylesheet">
 {% endblock %}
 
@@ -16,7 +17,7 @@
 <!-- Profile Create Modal -->
 <div class="modal fade" id="profileCreateModal" style="display: none;" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content" style="border-radius: 0;">
+        <div class="modal-content" style="border-radius: 2px;">
             <div class="modal-header">
                 <h5 class="modal-title">Create Risk Profile</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal">
@@ -73,14 +74,200 @@
                                 <!-- Selected criteria a displayed here -->
                             </div>
 
-                            <button 
-                                id="criteria-form-toggle" 
-                                type="button"
-                                data-bs-target="#criteriaModal"
-                                data-criteria-creation-schema-url="{% url 'risk_management:criteria_creation_schema' %}"
-                            >
-                                Add Criteria +
-                            </button>
+                            <button id="criteria-creation-section-toggle" type="button">New Criteria +</button>
+
+                            {% with operators_schema=criteria_creation_schema.operators_schema functions_schema=criteria_creation_schema.functions_schema %}
+                            <div id="criteria-creation-section">
+                                <div id="criteria-creation-fields">
+                                    <div class="form-fields">
+                                        <div class="form-field">
+                                            <label for="func1">Function One</label>
+                                            <input 
+                                                type="text" 
+                                                class="form-input form-control input-rounded function-input" 
+                                                id="func1"
+                                                name="func1"
+                                                required
+                                                data-options=""
+                                            >
+                                        </div>
+
+                                        <div class="form-field">
+                                            <label for="op">Operator</label>
+                                            <select name="op" id="op">
+                                                {% for operator_name, operator_value in operators_schema.items %}
+                                                <option value="{{ operator_value }}">{{ operator_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="form-field">
+                                            <label for="func2">Function Two</label>
+                                            <input 
+                                                type="text" 
+                                                class="form-input form-control input-rounded function-input" 
+                                                id="func2"
+                                                name="func2"
+                                                required
+                                                data-options=""
+                                            >
+                                        </div>
+
+                                        <button type="button" class="btn light btn-success btn-sm">Add</button>
+                                    </div>
+                                </div>
+
+                                <div id="functions-modal">
+                                    <div id="modal-header">
+                                        <div id="header-text">
+                                            <h5>Select a function</h5>
+
+                                            <button type="button" class="btn-close">
+                                            </button>
+                                        </div>
+                            
+                                        <div id="options-search-wp">
+                                            <i class="fas fa-search"></i>
+                                            <input type="search" id="options-search-input">
+                                        </div>
+                                    </div>
+                            
+                                    <div id="function-options" class="options">
+                                        <div class="option">
+                                            <div class="option-label">
+                                                <span>ABR</span>
+                                                <span class="arrow">&rarr;</span>
+                                            </div>
+                            
+                                            <div class="sub-options">
+                                                <div class="sub-options-head">
+                                                    <span class="arrow">&larr;</span>
+                                                    <p>ABR</p>
+                                                </div>
+                            
+                                                <div class="options">
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                            
+                                        <div class="option">
+                                            <div class="option-label">
+                                                <span>ABR</span>
+                                                <span class="arrow">&rarr;</span>
+                                            </div>
+                            
+                                            <div class="sub-options">
+                                                <div class="sub-options-head">
+                                                    <span class="arrow">&larr;</span>
+                                                    <p>ABR</p>
+                                                </div>
+                            
+                                                <div class="options">
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                            
+                                        <div class="option">
+                                            <div class="option-label">
+                                                <span>ABR</span>
+                                                <span class="arrow">&rarr;</span>
+                                            </div>
+                            
+                                            <div class="sub-options">
+                                                <div class="sub-options-head">
+                                                    <span class="arrow">&larr;</span>
+                                                    <p>ABR</p>
+                                                </div>
+                            
+                                                <div class="options">
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>ABR</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endwith %}
                         </div>
                     </div>
                     
@@ -167,5 +354,6 @@
 {% block scripts %}
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
 <script src="{% static 'core//scripts//tabs.js' %}"></script>
+<script src="{% static 'risk_management//scripts//functionsModal.js' %}"></script>
 <script src="{% static 'risk_management//scripts//riskProfileCreate.js' %}"></script>
 {% endblock %}

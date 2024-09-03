@@ -6,7 +6,7 @@ import attrs
 
 from .criteria import functions
 from .criteria.kwargs_schemas import KwargsSchema, MergeKwargsSchemas
-from . import kwargs_schemas as kt
+from . import kwargs_schemas as ks
 from . import arg_evaluators as arg_ev
 
 
@@ -44,7 +44,7 @@ new_evaluator = functools.partial(
 ATR = new_evaluator(
     "ATR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ATR",
     description="Average True Range. Measures market volatility by decomposing the entire range of an asset price for that period.",
     group="Volatility Indicators",
@@ -53,7 +53,7 @@ ATR = new_evaluator(
 NATR = new_evaluator(
     "NATR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="NATR",
     description="Normalized Average True Range. The ATR value normalized to represent a percentage of the closing price.",
     group="Volatility Indicators",
@@ -139,7 +139,7 @@ CDL3WHITESOLDIERS = new_evaluator(
 CDLABANDONEDBABY = new_evaluator(
     "CDLABANDONEDBABY",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLABANDONEDBABY",
     group="Pattern Recognition",
     description="Abandoned Baby: A reversal pattern characterized by a gap between the three candles.",
@@ -202,7 +202,7 @@ CDLCOUNTERATTACK = new_evaluator(
 CDLDARKCLOUDCOVER = new_evaluator(
     "CDLDARKCLOUDCOVER",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLDARKCLOUDCOVER",
     group="Pattern Recognition",
     description="Dark Cloud Cover: A bearish reversal pattern with a black candlestick closing below the midpoint of the previous white candlestick.",
@@ -247,7 +247,7 @@ CDLENGULFING = new_evaluator(
 CDLEVENINGDOJISTAR = new_evaluator(
     "CDLEVENINGDOJISTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLEVENINGDOJISTAR",
     group="Pattern Recognition",
     description="Evening Doji Star: A bearish reversal pattern with a Doji in the middle of a three-candlestick formation.",
@@ -256,7 +256,7 @@ CDLEVENINGDOJISTAR = new_evaluator(
 CDLEVENINGSTAR = new_evaluator(
     "CDLEVENINGSTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLEVENINGSTAR",
     group="Pattern Recognition",
     description="Evening Star: A bearish reversal pattern with three candlesticks, indicating the end of an uptrend.",
@@ -445,7 +445,7 @@ CDLMATCHINGLOW = new_evaluator(
 CDLMATHOLD = new_evaluator(
     "CDLMATHOLD",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLMATHOLD",
     group="Pattern Recognition",
     description="Mat Hold: A continuation pattern with a gap up, three small candlesticks, and a gap down, indicating strong trend momentum.",
@@ -454,7 +454,7 @@ CDLMATHOLD = new_evaluator(
 CDLMORNINGDOJISTAR = new_evaluator(
     "CDLMORNINGDOJISTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLMORNINGDOJISTAR",
     group="Pattern Recognition",
     description="Morning Doji Star: A bullish reversal pattern with a Doji in the middle of a three-candlestick formation.",
@@ -463,7 +463,7 @@ CDLMORNINGDOJISTAR = new_evaluator(
 CDLMORNINGSTAR = new_evaluator(
     "CDLMORNINGSTAR",
     arg_evaluators=[arg_ev.Open, arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.Penetration,
+    kwargs_schema=ks.Penetration,
     alias="CDLMORNINGSTAR",
     group="Pattern Recognition",
     description="Morning Star: A bullish reversal pattern with three candlesticks, indicating the end of a downtrend.",
@@ -630,7 +630,7 @@ CDLXSIDEGAP3METHODS = new_evaluator(
 ADX = new_evaluator(
     "ADX",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ADX",
     group="Momentum Indicators",
     description="Average Directional Index: Measures the strength of a trend without indicating its direction.",
@@ -639,7 +639,7 @@ ADX = new_evaluator(
 ADXR = new_evaluator(
     "ADXR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ADXR",
     group="Momentum Indicators",
     description="Average Directional Movement Rating: A smoothed version of ADX, indicating the trend strength.",
@@ -648,7 +648,7 @@ ADXR = new_evaluator(
 APO = new_evaluator(
     "APO",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.FastandSlowPeriod, kt.MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.FastandSlowPeriod, ks.MAType),
     alias="APO",
     group="Momentum Indicators",
     description="Absolute Price Oscillator: Shows the difference between two moving averages of a security's price.",
@@ -657,7 +657,7 @@ APO = new_evaluator(
 AROON = new_evaluator(
     "AROON",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="AROON",
     group="Momentum Indicators",
     description="Aroon: Identifies the strength of a trend and the likelihood of its continuation.",
@@ -666,7 +666,7 @@ AROON = new_evaluator(
 AROONOSC = new_evaluator(
     "AROONOSC",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="AROONOSC",
     group="Momentum Indicators",
     description="Aroon Oscillator: Calculates the difference between Aroon Up and Aroon Down.",
@@ -684,7 +684,7 @@ BOP = new_evaluator(
 CCI = new_evaluator(
     "CCI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="CCI",
     group="Momentum Indicators",
     description="Commodity Channel Index: Identifies cyclical trends in a security's price.",
@@ -693,7 +693,7 @@ CCI = new_evaluator(
 CMO = new_evaluator(
     "CMO",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="CMO",
     group="Momentum Indicators",
     description="Chande Momentum Oscillator: Measures the momentum of a security's price, developed by Tushar Chande.",
@@ -702,7 +702,7 @@ CMO = new_evaluator(
 DX = new_evaluator(
     "DX",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="DX",
     group="Momentum Indicators",
     description="Directional Movement Index: Indicates the strength of a trend by comparing positive and negative movement.",
@@ -711,7 +711,7 @@ DX = new_evaluator(
 MACD = new_evaluator(
     "MACD",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.FastandSlowPeriod, kt.SignalPeriod),
+    kwargs_schema=MergeKwargsSchemas(ks.FastandSlowPeriod, ks.SignalPeriod),
     alias="MACD",
     group="Momentum Indicators",
     description="Moving Average Convergence Divergence: A trend-following momentum indicator that shows the relationship between two moving averages.",
@@ -721,7 +721,7 @@ MACDEXT = new_evaluator(
     "MACDEXT",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(
-        kt.FastandSlowPeriod, kt.FastandSlowMAType, kt.SignalPeriod, kt.SignalMAType
+        ks.FastandSlowPeriod, ks.FastandSlowMAType, ks.SignalPeriod, ks.SignalMAType
     ),
     alias="MACDEXT",
     group="Momentum Indicators",
@@ -731,7 +731,7 @@ MACDEXT = new_evaluator(
 MACDFIX = new_evaluator(
     "MACDFIX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.SignalPeriod,
+    kwargs_schema=ks.SignalPeriod,
     alias="MACDFIX",
     group="Momentum Indicators",
     description="MACD Fix: A variant of the MACD with a fixed 9-day signal line.",
@@ -740,7 +740,7 @@ MACDFIX = new_evaluator(
 MFI = new_evaluator(
     "MFI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close, arg_ev.Volume],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MFI",
     group="Momentum Indicators",
     description="Money Flow Index: Measures the buying and selling pressure using both price and volume.",
@@ -749,7 +749,7 @@ MFI = new_evaluator(
 MINUS_DI = new_evaluator(
     "MINUS_DI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MINUS_DI",
     group="Momentum Indicators",
     description="Minus Directional Indicator: Measures the negative directional movement, used in ADX calculations.",
@@ -758,7 +758,7 @@ MINUS_DI = new_evaluator(
 MINUS_DM = new_evaluator(
     "MINUS_DM",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MINUS_DM",
     group="Momentum Indicators",
     description="Minus Directional Movement: Represents the difference between the low of the current period and the low of the previous period.",
@@ -767,7 +767,7 @@ MINUS_DM = new_evaluator(
 MOM = new_evaluator(
     "MOM",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MOM",
     group="Momentum Indicators",
     description="Momentum: Measures the speed and change of price movements.",
@@ -776,7 +776,7 @@ MOM = new_evaluator(
 PLUS_DI = new_evaluator(
     "PLUS_DI",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="PLUS_DI",
     group="Momentum Indicators",
     description="Plus Directional Indicator: Measures the positive directional movement, used in ADX calculations.",
@@ -785,7 +785,7 @@ PLUS_DI = new_evaluator(
 PLUS_DM = new_evaluator(
     "PLUS_DM",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="PLUS_DM",
     group="Momentum Indicators",
     description="Plus Directional Movement: Represents the difference between the high of the current period and the high of the previous period.",
@@ -794,7 +794,7 @@ PLUS_DM = new_evaluator(
 PPO = new_evaluator(
     "PPO",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.FastandSlowPeriod, kt.MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.FastandSlowPeriod, ks.MAType),
     alias="PPO",
     group="Momentum Indicators",
     description="Percentage Price Oscillator: Similar to MACD but expressed as a percentage.",
@@ -803,7 +803,7 @@ PPO = new_evaluator(
 ROC = new_evaluator(
     "ROC",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ROC",
     group="Momentum Indicators",
     description="Rate of Change: Measures the percentage change in price between the current price and the price a certain number of periods ago.",
@@ -812,7 +812,7 @@ ROC = new_evaluator(
 ROCP = new_evaluator(
     "ROCP",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ROCP",
     group="Momentum Indicators",
     description="Rate of Change Percentage: Expresses the rate of change as a percentage.",
@@ -821,7 +821,7 @@ ROCP = new_evaluator(
 ROCR = new_evaluator(
     "ROCR",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ROCR",
     group="Momentum Indicators",
     description="Rate of Change Ratio: Similar to ROC but expressed as a ratio.",
@@ -830,7 +830,7 @@ ROCR = new_evaluator(
 ROCR100 = new_evaluator(
     "ROCR100",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="ROCR100",
     group="Momentum Indicators",
     description="Rate of Change Ratio 100: Similar to ROCR but scaled by 100.",
@@ -839,7 +839,7 @@ ROCR100 = new_evaluator(
 RSI = new_evaluator(
     "RSI",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="RSI",
     group="Momentum Indicators",
     description="Relative Strength Index: A momentum oscillator that measures the speed and change of price movements.",
@@ -849,11 +849,11 @@ STOCH = new_evaluator(
     "STOCH",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
     kwargs_schema=MergeKwargsSchemas(
-        kt.FastK_Period,
-        kt.SlowK_Period,
-        kt.SlowK_MAType,
-        kt.SlowD_Period,
-        kt.SlowD_MAType,
+        ks.FastK_Period,
+        ks.SlowK_Period,
+        ks.SlowK_MAType,
+        ks.SlowD_Period,
+        ks.SlowD_MAType,
     ),
     alias="STOCH",
     group="Momentum Indicators",
@@ -863,7 +863,7 @@ STOCH = new_evaluator(
 STOCHF = new_evaluator(
     "STOCHF",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=MergeKwargsSchemas(kt.FastK_Period, kt.FastD_Period, kt.FastD_MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.FastK_Period, ks.FastD_Period, ks.FastD_MAType),
     alias="STOCHF",
     group="Momentum Indicators",
     description="Stochastic Fast: A faster version of the Stochastic Oscillator.",
@@ -873,7 +873,7 @@ STOCHRSI = new_evaluator(
     "STOCHRSI",
     arg_evaluators=[arg_ev.Real],
     kwargs_schema=MergeKwargsSchemas(
-        kt.TimePeriod, kt.FastK_Period, kt.FastD_Period, kt.FastD_MAType
+        ks.TimePeriod, ks.FastK_Period, ks.FastD_Period, ks.FastD_MAType
     ),
     alias="STOCHRSI",
     group="Momentum Indicators",
@@ -883,7 +883,7 @@ STOCHRSI = new_evaluator(
 TRIX = new_evaluator(
     "TRIX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="TRIX",
     group="Momentum Indicators",
     description="Triple Exponential Moving Average Oscillator: Measures the rate of change of a triple exponentially smoothed moving average.",
@@ -908,7 +908,7 @@ ULTOSC = new_evaluator(
 WILLR = new_evaluator(
     "WILLR",
     arg_evaluators=[arg_ev.High, arg_ev.Low, arg_ev.Close],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="WILLR",
     group="Momentum Indicators",
     description="Williams %R: A momentum indicator that measures overbought and oversold levels.",
@@ -940,7 +940,7 @@ DIV = new_evaluator(
 MAX = new_evaluator(
     "MAX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MAX",
     description="Highest value over a specified period",
     group="Math Operators",
@@ -949,7 +949,7 @@ MAX = new_evaluator(
 MAXINDEX = new_evaluator(
     "MAXINDEX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MAXINDEX",
     description="Index of highest value over a specified period",
     group="Math Operators",
@@ -958,7 +958,7 @@ MAXINDEX = new_evaluator(
 MIN = new_evaluator(
     "MIN",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MIN",
     description="Lowest value over a specified period",
     group="Math Operators",
@@ -967,7 +967,7 @@ MIN = new_evaluator(
 MININDEX = new_evaluator(
     "MININDEX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MININDEX",
     description="Index of lowest value over a specified period",
     group="Math Operators",
@@ -976,7 +976,7 @@ MININDEX = new_evaluator(
 MINMAX = new_evaluator(
     "MINMAX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MINMAX",
     description="Lowest and highest values over a specified period",
     group="Math Operators",
@@ -985,7 +985,7 @@ MINMAX = new_evaluator(
 MINMAXINDEX = new_evaluator(
     "MINMAXINDEX",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MINMAXINDEX",
     description="Indexes of lowest and highest values over a specified period",
     group="Math Operators",
@@ -1012,7 +1012,7 @@ SUB = new_evaluator(
 SUM = new_evaluator(
     "SUM",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="SUM",
     description="Summation over a specified period",
     group="Math Operators",
@@ -1026,7 +1026,7 @@ SUM = new_evaluator(
 BETA = new_evaluator(
     "BETA",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="BETA",
     description="Beta (measures the volatility of an asset in comparison to the market as a whole)",
     group="Statistic Functions",
@@ -1035,7 +1035,7 @@ BETA = new_evaluator(
 CORREL = new_evaluator(
     "CORREL",
     arg_evaluators=[arg_ev.Real0, arg_ev.Real1],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="CORREL",
     description="Pearson's Correlation Coefficient (r) (measures the linear correlation between two datasets)",
     group="Statistic Functions",
@@ -1044,7 +1044,7 @@ CORREL = new_evaluator(
 LINEARREG = new_evaluator(
     "LINEARREG",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="LINEARREG",
     description="Linear Regression (calculates a linear regression for a series of values)",
     group="Statistic Functions",
@@ -1053,7 +1053,7 @@ LINEARREG = new_evaluator(
 LINEARREG_ANGLE = new_evaluator(
     "LINEARREG_ANGLE",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="LINEARREG_ANGLE",
     description="Linear Regression Angle (calculates the angle of the linear regression line)",
     group="Statistic Functions",
@@ -1062,7 +1062,7 @@ LINEARREG_ANGLE = new_evaluator(
 LINEARREG_INTERCEPT = new_evaluator(
     "LINEARREG_INTERCEPT",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="LINEARREG_INTERCEPT",
     description="Linear Regression Intercept (calculates the y-intercept of the linear regression line)",
     group="Statistic Functions",
@@ -1071,7 +1071,7 @@ LINEARREG_INTERCEPT = new_evaluator(
 LINEARREG_SLOPE = new_evaluator(
     "LINEARREG_SLOPE",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="LINEARREG_SLOPE",
     description="Linear Regression Slope (calculates the slope of the linear regression line)",
     group="Statistic Functions",
@@ -1080,7 +1080,7 @@ LINEARREG_SLOPE = new_evaluator(
 STDDEV = new_evaluator(
     "STDDEV",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.NbDev),
+    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.NbDev),
     alias="STDDEV",
     description="Standard Deviation (measures the amount of variation or dispersion of a set of values)",
     group="Statistic Functions",
@@ -1089,7 +1089,7 @@ STDDEV = new_evaluator(
 TSF = new_evaluator(
     "TSF",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="TSF",
     description="Time Series Forecast (calculates a linear regression forecast for a series of values)",
     group="Statistic Functions",
@@ -1098,7 +1098,7 @@ TSF = new_evaluator(
 VAR = new_evaluator(
     "VAR",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.NbDev),
+    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.NbDev),
     alias="VAR",
     description="Variance (measures how far a set of numbers are spread out from their average value)",
     group="Statistic Functions",
@@ -1112,7 +1112,7 @@ VAR = new_evaluator(
 BBANDS = new_evaluator(
     "BBANDS",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.NbDevUpandDown, kt.MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.NbDevUpandDown, ks.MAType),
     alias="BBANDS",
     description="Bollinger Bands (technical analysis tool defining upper and lower price range levels)",
     group="Overlap Studies",
@@ -1121,7 +1121,7 @@ BBANDS = new_evaluator(
 DEMA = new_evaluator(
     "DEMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="DEMA",
     description="Double Exponential Moving Average (reduces the lag of the standard EMA)",
     group="Overlap Studies",
@@ -1130,7 +1130,7 @@ DEMA = new_evaluator(
 EMA = new_evaluator(
     "EMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="EMA",
     description="Exponential Moving Average (places greater weight on the most recent data)",
     group="Overlap Studies",
@@ -1148,7 +1148,7 @@ HT_TRENDLINE = new_evaluator(
 KAMA = new_evaluator(
     "KAMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="KAMA",
     description="Kaufman Adaptive Moving Average (adapts to market volatility)",
     group="Overlap Studies",
@@ -1157,7 +1157,7 @@ KAMA = new_evaluator(
 MA = new_evaluator(
     "MA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.MAType),
     alias="MA",
     description="Moving Average (smooths out price data to identify the trend direction)",
     group="Overlap Studies",
@@ -1166,7 +1166,7 @@ MA = new_evaluator(
 MAMA = new_evaluator(
     "MAMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.FastandSlowLimit,
+    kwargs_schema=ks.FastandSlowLimit,
     alias="MAMA",
     description="MESA Adaptive Moving Average (adjusts based on market conditions)",
     group="Overlap Studies",
@@ -1175,11 +1175,11 @@ MAMA = new_evaluator(
 MAVP = new_evaluator(
     "MAVP",
     # arg_evaluators=[arg_ev.Real, arg_ev.Periods],
-    # kwargs_schema=MergeKwargsSchemas(kt.MinandMaxPeriod, kt.MAType),
+    # kwargs_schema=MergeKwargsSchemas(ks.MinandMaxPeriod, ks.MAType),
     arg_evaluators=[
         arg_ev.Real
     ],  # Make Periods a kwarg, so user can specify it since we have no way of evaluating it
-    kwargs_schema=MergeKwargsSchemas(kt.Periods, kt.MinandMaxPeriod, kt.MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.Periods, ks.MinandMaxPeriod, ks.MAType),
     alias="MAVP",
     description="Moving Average with Variable Period (changes period dynamically based on input)",
     group="Overlap Studies",
@@ -1188,7 +1188,7 @@ MAVP = new_evaluator(
 MIDPOINT = new_evaluator(
     "MIDPOINT",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MIDPOINT",
     description="MidPoint over period (average of the maximum and minimum values)",
     group="Overlap Studies",
@@ -1197,7 +1197,7 @@ MIDPOINT = new_evaluator(
 MIDPRICE = new_evaluator(
     "MIDPRICE",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="MIDPRICE",
     description="Midpoint Price over period (average of the high and low prices)",
     group="Overlap Studies",
@@ -1206,7 +1206,7 @@ MIDPRICE = new_evaluator(
 SAR = new_evaluator(
     "SAR",
     arg_evaluators=[arg_ev.High, arg_ev.Low],
-    kwargs_schema=MergeKwargsSchemas(kt.Acceleration, kt.Maximum),
+    kwargs_schema=MergeKwargsSchemas(ks.Acceleration, ks.Maximum),
     alias="SAR",
     description="Parabolic SAR (tracks the price over time and identifies potential reversals)",
     group="Overlap Studies",
@@ -1236,7 +1236,7 @@ SAREXT = new_evaluator(
 SMA = new_evaluator(
     "SMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="SMA",
     description="Simple Moving Average (calculates the average of a selected range of prices)",
     group="Overlap Studies",
@@ -1245,7 +1245,7 @@ SMA = new_evaluator(
 T3 = new_evaluator(
     "T3",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(kt.TimePeriod, kt.VFactor),
+    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.VFactor),
     alias="T3",
     description="Triple Exponential Moving Average (T3) (offers a smoother average with less lag)",
     group="Overlap Studies",
@@ -1254,7 +1254,7 @@ T3 = new_evaluator(
 TEMA = new_evaluator(
     "TEMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="TEMA",
     description="Triple Exponential Moving Average (reduces lag more effectively than DEMA)",
     group="Overlap Studies",
@@ -1263,7 +1263,7 @@ TEMA = new_evaluator(
 TRIMA = new_evaluator(
     "TRIMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="TRIMA",
     description="Triangular Moving Average (gives more weight to the middle portion of the period)",
     group="Overlap Studies",
@@ -1272,7 +1272,7 @@ TRIMA = new_evaluator(
 WMA = new_evaluator(
     "WMA",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=kt.TimePeriod,
+    kwargs_schema=ks.TimePeriod,
     alias="WMA",
     description="Weighted Moving Average (gives more weight to recent data)",
     group="Overlap Studies",

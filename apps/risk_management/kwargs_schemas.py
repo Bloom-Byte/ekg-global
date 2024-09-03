@@ -6,7 +6,6 @@ You should use manually create a new keyword argument type or merge existing one
 for TA-LIB functions that have more intricate or complex keyword arguments.
 """
 
-import functools
 import typing
 import attrs
 import numpy as np

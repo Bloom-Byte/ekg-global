@@ -1,11 +1,20 @@
 
+#profileCreateModal{
+    max-height: 95dvh;
+    overflow-y: scroll;
+}
+
+#profileCreateModal::-webkit-scrollbar{
+    display: none;
+}
+
 #profile-create-form #criteria-selected {
     width: 100%;
     min-height: 50px;
     border: 1px dotted #888;
 }
 
-#profile-create-form #criteria-form-toggle {
+#profile-create-form #criteria-creation-section-toggle {
     text-decoration: underline;
     cursor: pointer;
     outline: none;
@@ -15,6 +24,24 @@
     margin-block: 6px;
 }
 
-#profile-create-form #criteria-form-toggle:hover {
+#profile-create-form #criteria-creation-section-toggle:hover {
     color: #888;
 }
+
+
+/* Criteria Creation */
+#profile-create-form:has(#criteria-creation-section.show-block) #criteria-creation-section-toggle {
+    color: #886;
+}
+
+#criteria-creation-section{
+    display: none;
+    width: 100%;
+    padding: 8px;
+}
+
+#criteria-creation-fields{
+    width: 100%;
+    margin-block: 10px;
+}
+

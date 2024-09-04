@@ -38,7 +38,7 @@
                             <input 
                                 type="text" 
                                 class="form-input form-control input-rounded" 
-                                placeholder="Profile Name" 
+                                placeholder="Profile name" 
                                 id="name"
                                 name="name"
                                 required
@@ -51,7 +51,7 @@
                             <input 
                                 type="text" 
                                 class="form-input form-control input-rounded" 
-                                placeholder="Profile Description"
+                                placeholder="Profile description"
                                 id="description"
                                 name="description"
                             >
@@ -89,12 +89,101 @@
                                                 name="func1"
                                                 required
                                                 data-options=""
+                                                placeholder="Function 1"
                                             >
+
+                                            <!-- Funtions Modal -->
+                                            <div class="functions-modal">
+                                                <div class="modal-head">
+                                                    <div class="head-text">
+                                                        <h5>Select a function</h5>
+
+                                                        <button type="button" class="btn-close">
+                                                        </button>
+                                                    </div>
+                                        
+                                                    <div class="options-search-wp">
+                                                        <i class="fas fa-search"></i>
+                                                        <input type="search" class="options-search-input">
+                                                    </div>
+                                                </div>
+                                        
+                                                <div class="function-options options">
+                                                    {% for function_group, function_group_data in functions_schema.items %}
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>{{ function_group }}</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                        
+                                                        <div class="sub-options">
+                                                            <div class="sub-options-head">
+                                                                <span class="arrow">&larr;</span>
+                                                                <p>{{ function_group }}</p>
+                                                            </div>
+                                        
+                                                            <div class="options">
+                                                                {% for function, function_data in function_group_data.items %}
+                                                                <div class="option" data-function="{{ function }}">
+                                                                    <div class="option-label" title="{{ function_data.description }}">
+                                                                        <span>{{ function }}</span>
+
+                                                                        {% if function_data.kwargs %}
+                                                                        <span class="arrow">&rarr;</span>
+                                                                        {% endif %}
+                                                                    </div>
+
+                                                                    {% if function_data.kwargs %}
+                                                                    <div class="sub-options">
+                                                                        <div class="sub-options-head">
+                                                                            <span class="arrow">&larr;</span>
+                                                                            <p>{{ function_data.name }}</p>
+                                                                        </div>
+
+                                                                        <div class="options">
+                                                                            <div class="form-fields" data-function="{{ function }}">
+                                                                                {% for argument, argument_data in function_data.kwargs.arguments.items %}
+                                                                                <div class="form-field">
+                                                                                    <label for="{{ argument }}">{{ argument | title }}</label>
+                                                                                    <input 
+                                                                                        type="text" 
+                                                                                        class="form-input form-control input-rounded function-input" 
+                                                                                        id="{{ argument }}"
+                                                                                        name="{{ argument }}"
+                                                                                        {% if argument_data.required %}
+                                                                                            required
+                                                                                        {% endif %}
+                                                                                        placeholder="{{ argument | title }}"
+                                                                                        title="{{ argument_data.description }}"
+                                                                                        value="{{ argument_data.default }}"
+                                                                                        data-default="{{ argument_data.default }}"
+                                                                                    >
+                                                                                </div>
+                                                                                {% endfor %}
+                                                                                
+                                                                                <button 
+                                                                                    type="button" 
+                                                                                    class="btn light btn-success btn-sm done-btn" 
+                                                                                >
+                                                                                    Done
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="form-field">
                                             <label for="op">Operator</label>
-                                            <select name="op" id="op">
+                                            <select name="op" id="op" class="form-input form-select">
                                                 {% for operator_name, operator_value in operators_schema.items %}
                                                 <option value="{{ operator_value }}">{{ operator_name }}</option>
                                                 {% endfor %}
@@ -110,164 +199,104 @@
                                                 name="func2"
                                                 required
                                                 data-options=""
+                                                placeholder="Function 2"
                                             >
-                                        </div>
 
-                                        <button type="button" class="btn light btn-success btn-sm">Add</button>
-                                    </div>
-                                </div>
+                                            <!-- Funtions Modal -->
+                                            <div class="functions-modal">
+                                                <div class="modal-head">
+                                                    <div class="head-text">
+                                                        <h5>Select a function</h5>
 
-                                <div id="functions-modal">
-                                    <div id="modal-header">
-                                        <div id="header-text">
-                                            <h5>Select a function</h5>
+                                                        <button type="button" class="btn-close">
+                                                        </button>
+                                                    </div>
+                                        
+                                                    <div class="options-search-wp">
+                                                        <i class="fas fa-search"></i>
+                                                        <input type="search" class="options-search-input">
+                                                    </div>
+                                                </div>
+                                        
+                                                <div class="function-options options">
+                                                    {% for function_group, function_group_data in functions_schema.items %}
+                                                    <div class="option">
+                                                        <div class="option-label">
+                                                            <span>{{ function_group }}</span>
+                                                            <span class="arrow">&rarr;</span>
+                                                        </div>
+                                                        
+                                                        <div class="sub-options">
+                                                            <div class="sub-options-head">
+                                                                <span class="arrow">&larr;</span>
+                                                                <p>{{ function_group }}</p>
+                                                            </div>
+                                        
+                                                            <div class="options">
+                                                                {% for function, function_data in function_group_data.items %}
+                                                                <div class="option" data-function="{{ function }}">
+                                                                    <div class="option-label" title="{{ function_data.description }}">
+                                                                        <span>{{ function }}</span>
 
-                                            <button type="button" class="btn-close">
-                                            </button>
-                                        </div>
-                            
-                                        <div id="options-search-wp">
-                                            <i class="fas fa-search"></i>
-                                            <input type="search" id="options-search-input">
-                                        </div>
-                                    </div>
-                            
-                                    <div id="function-options" class="options">
-                                        <div class="option">
-                                            <div class="option-label">
-                                                <span>ABR</span>
-                                                <span class="arrow">&rarr;</span>
-                                            </div>
-                            
-                                            <div class="sub-options">
-                                                <div class="sub-options-head">
-                                                    <span class="arrow">&larr;</span>
-                                                    <p>ABR</p>
-                                                </div>
-                            
-                                                <div class="options">
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
+                                                                        {% if function_data.kwargs %}
+                                                                        <span class="arrow">&rarr;</span>
+                                                                        {% endif %}
+                                                                    </div>
+
+                                                                    {% if function_data.kwargs %}
+                                                                    <div class="sub-options">
+                                                                        <div class="sub-options-head">
+                                                                            <span class="arrow">&larr;</span>
+                                                                            <p>{{ function_data.name }}</p>
+                                                                        </div>
+
+                                                                        <div class="options">
+                                                                            <div class="form-fields" data-function="{{ function }}">
+                                                                                {% for argument, argument_data in function_data.kwargs.arguments.items %}
+                                                                                <div class="form-field">
+                                                                                    <label for="{{ argument }}">{{ argument | title }}</label>
+                                                                                    <input 
+                                                                                        type="text" 
+                                                                                        class="form-input form-control input-rounded function-input" 
+                                                                                        id="{{ argument }}"
+                                                                                        name="{{ argument }}"
+                                                                                        {% if argument_data.required %}
+                                                                                            required
+                                                                                        {% endif %}
+                                                                                        placeholder="{{ argument | title }}"
+                                                                                        title="{{ argument_data.description }}"
+                                                                                        value="{{ argument_data.default }}"
+                                                                                        data-default="{{ argument_data.default }}"
+                                                                                    >
+                                                                                </div>
+                                                                                {% endfor %}
+                                                                                
+                                                                                <button 
+                                                                                    type="button" 
+                                                                                    class="btn light btn-success btn-sm done-btn" 
+                                                                                >
+                                                                                    Done
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                {% endfor %}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                            
-                                        <div class="option">
-                                            <div class="option-label">
-                                                <span>ABR</span>
-                                                <span class="arrow">&rarr;</span>
-                                            </div>
-                            
-                                            <div class="sub-options">
-                                                <div class="sub-options-head">
-                                                    <span class="arrow">&larr;</span>
-                                                    <p>ABR</p>
-                                                </div>
-                            
-                                                <div class="options">
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                            
-                                        <div class="option">
-                                            <div class="option-label">
-                                                <span>ABR</span>
-                                                <span class="arrow">&rarr;</span>
-                                            </div>
-                            
-                                            <div class="sub-options">
-                                                <div class="sub-options-head">
-                                                    <span class="arrow">&larr;</span>
-                                                    <p>ABR</p>
-                                                </div>
-                            
-                                                <div class="options">
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
-                                
-                                                    <div class="option">
-                                                        <div class="option-label">
-                                                            <span>ABR</span>
-                                                            <span class="arrow">&rarr;</span>
-                                                        </div>
-                                                    </div>
+                                                    {% endfor %}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
+                                    <button type="button" class="btn light btn-success btn-sm add-btn">Add</button>
                                 </div>
                             </div>
                             {% endwith %}
+
                         </div>
                     </div>
                     

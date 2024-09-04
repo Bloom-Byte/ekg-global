@@ -43,5 +43,8 @@
 #criteria-creation-fields{
     width: 100%;
     margin-block: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px 0;
 }
 

@@ -19,5 +19,6 @@ class RiskProfile(models.Model):
     class Meta:
         verbose_name = _("Risk Profile")
         verbose_name_plural = _("Risk Profiles")
-        ordering = ["-created_at"]
+        ordering = ["created_at"]
+        unique_together = ["name", "owner"]
 

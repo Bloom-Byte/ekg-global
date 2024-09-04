@@ -38,7 +38,7 @@ tabsSections.forEach((tabSection, index) => {
     const startTabID = URLParams[tabURLParam]
     if (!startTabID) return;
     // Get that tab's toggle
-    const startTabToggle = tabSection.querySelector(`.tab-toggle[data-tabtarget=${startTabID}]`);
+    const startTabToggle = tabSection.querySelector(`.tab-toggle[data-tabtarget='${startTabID}']`);
     if (!startTabToggle) return;
     // Click the tab's toggle to switch to the tab
     startTabToggle.click();

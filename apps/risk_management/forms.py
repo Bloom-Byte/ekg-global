@@ -1,7 +1,9 @@
 import typing
+import uuid
 import cattrs
 from django import forms
 from django.utils.itercompat import is_iterable
+
 
 from .models import RiskProfile
 from .criteria.criteria import Criteria, make_criterion
@@ -26,7 +28,9 @@ def criterion_data(data: typing.Iterable[typing.Dict]):
         if not all((func1, func2, op)):
             raise ValueError("Criterion data must have func1, func2, and op")
 
-        yield make_criterion(func1, func2, op, ignore_unsupported_func=False)
+        yield make_criterion(
+            func1=func1, func2=func2, op=op, ignore_unsupported_func=False
+        )
 
 
 class RiskProfileCreateForm(forms.ModelForm):
@@ -38,7 +42,12 @@ class RiskProfileCreateForm(forms.ModelForm):
         criteria = self.cleaned_data.get("criteria")
         if not criteria:
             return criteria
-        
+
         criterion_list = list(set(criterion_data(criteria)))
         criteria = Criteria(criterion_list)
-        return cattrs.unstructure(criteria)
+
+        converter = cattrs.Converter()
+        # Register a unstructure hook to convert UUIDs to strings
+        converter.register_unstructure_hook(uuid.UUID, lambda u: str(u))
+        criteria = converter.unstructure(criteria)
+        return criteria

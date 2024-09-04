@@ -26,7 +26,7 @@
             
             <div class="modal-body">
                 <form 
-                    action="" 
+                    action="{% url 'risk_management:risk_profile_create' %}" 
                     method="post" 
                     id="profile-create-form"
                 >
@@ -65,8 +65,9 @@
                                 class="form-input form-control input-rounded" 
                                 id="criteria"
                                 name="criteria"
-                                required
                                 hidden
+                                style="display: none; pointer-events: none;"
+                                disabled
                             >
                             <small class="field-message"></small>
 
@@ -87,7 +88,6 @@
                                                 class="form-input form-control input-rounded function-input" 
                                                 id="func1"
                                                 name="func1"
-                                                required
                                                 data-options=""
                                                 placeholder="Function 1"
                                             >
@@ -197,7 +197,6 @@
                                                 class="form-input form-control input-rounded function-input" 
                                                 id="func2"
                                                 name="func2"
-                                                required
                                                 data-options=""
                                                 placeholder="Function 2"
                                             >
@@ -292,7 +291,7 @@
                                         </div>
                                     </div>
 
-                                    <button type="button" class="btn light btn-success btn-sm add-btn">Add</button>
+                                    <button disabled type="button" class="btn light btn-success btn-sm add-btn">Add</button>
                                 </div>
                             </div>
                             {% endwith %}
@@ -329,27 +328,33 @@
             <section class="tabs-section p-4" id="risk-profile-tabs-section" data-urlparam="profile">
                 <nav class="tab-toggles-wp">
                     <ul class="pagination pagination-lg pagination-gutter pagination-success tab-toggles-wp-inner">
-                        <li class="page-item active tab-toggle" data-tabtarget="transaction-history">
-                            <button class="page-link" style="border-radius: 4px !important;">Profile 1</button>
+                        {% for risk_profile in risk_profiles %}
+                        <li 
+                            {% if forloop.first %}
+                            class="page-item active tab-toggle" 
+                            {% else %}
+                            class="page-item tab-toggle" 
+                            {% endif %}
+                            data-tabtarget="{{ risk_profile.name }}"
+                        >
+                            <button class="page-link" style="border-radius: 4px !important;">{{ risk_profile.name }}</button>
                         </li>
-                        <li class="page-item tab-toggle" data-tabtarget="stocks-summary">
-                            <button class="page-link" style="border-radius: 4px !important;">Profile 2</button>
-                        </li>
+                        {% endfor %}
                     </ul>
                 </nav> 
                 
                 <div class="tabs">
-                    <!-- Transactions Tab -->
-                    <div class="col-12 tab" id="transaction-history">
+                    {% for risk_profile in risk_profiles %}
+                    <div class="col-12 tab" id="{{ risk_profile.name }}">
                         <div class="card" style="border-radius: 0;">
                             <div class="card-header">
-                                <h4 class="card-title">Profile 1</h4>
+                                <h4 class="card-title">{{ risk_profile.name }}</h4>
         
                                 <button 
                                     type="button" 
                                     class="btn btn-light btn-sm"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#transactionAddModal"
+                                    data-bs-target=""
                                 >
                                     Edit Profile
                                 </button>
@@ -360,18 +365,7 @@
                             </div>
                         </div>
                     </div>
-        
-                    <!-- Stocks Summary Tab -->
-                    <div class="col-12 tab" id="stocks-summary">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Profile 2</h4>
-                            </div>
-                            <div class="card-body">
-                                <!-- Table goes here -->
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </section>
         </div>

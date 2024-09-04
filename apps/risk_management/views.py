@@ -72,3 +72,4 @@ class RiskProfileCreateView(LoginRequiredMixin, generic.View):
 
 
 risk_management_view = RiskManagementView.as_view()
+risk_profile_create_view = RiskProfileCreateView.as_view()

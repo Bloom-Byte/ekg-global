@@ -25,7 +25,7 @@ class CriterionStatus(enum.IntEnum):
 class Criterion:
     """A criterion for evaluating a condition"""
 
-    id: uuid.UUID = attrs.field(default=uuid.uuid4, kw_only=True)
+    id: uuid.UUID = attrs.field(default=uuid.uuid4, kw_only=True, repr=str)
     """A unique identifier for the criterion"""
     func1: FunctionSpec
     """The first function to evaluate"""
@@ -126,7 +126,7 @@ def remove_criterion(criteria: Criteria, *criterion: Criterion) -> Criteria:
     """
     if not criterion:
         return criteria
-    
+
     criterion_set = set(criteria)
     diff_criterion_set = criterion_set - criterion
     return Criteria(list(diff_criterion_set))
@@ -166,12 +166,12 @@ def make_criterion(
     :raises UnsupportedFunction: If the functions are not supported and ignore_unsupported_func is False
     """
     try:
-        func1 = make_function_spec(func1["name"], **func1["kwargs"])
-        func2 = make_function_spec(func2["name"], **func2["kwargs"])
+        func1 = make_function_spec(func1["name"], **(func1.get("kwargs", None) or {}))
+        func2 = make_function_spec(func2["name"], **(func2.get("kwargs", None) or {}))
     except UnsupportedFunction:
         if not ignore_unsupported_func:
             raise
-    
+
     kwds = {
         "func1": func1,
         "func2": func2,

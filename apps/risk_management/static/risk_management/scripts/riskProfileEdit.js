@@ -1,23 +1,22 @@
-const profileCreateForm = document.querySelector('#profile-create-form');
-const profileCreateButton = profileCreateForm.querySelector('.submit-btn');
+const profileEditForm = document.querySelector('#profile-edit-form');
+const profileEditButton = profileEditForm.querySelector('.submit-btn');
 
+addOnPostAndOnResponseFuncAttr(profileEditButton, 'Processing...');
 
-addOnPostAndOnResponseFuncAttr(profileCreateButton, 'Processing...');
-
-profileCreateForm.onsubmit = function(e) {
+profileEditForm.onsubmit = function(e) {
     e.stopImmediatePropagation();
     e.preventDefault();
 
-    const data = getProfileFormData(profileCreateForm);
+    const data = getProfileFormData(profileEditForm);
     const criteria = data.criteria;
     if (!criteria.length) {
         pushNotification("error", "At least one criterion is required!");
         return;
     }
 
-    profileCreateButton.onPost();
+    profileEditButton.onPost();
     const options = {
-        method: 'POST',
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': getCookie('csrftoken'),
@@ -28,7 +27,7 @@ profileCreateForm.onsubmit = function(e) {
 
     fetch(this.action, options).then((response) => {
         if (!response.ok) {
-            profileCreateButton.onResponse();
+            profileEditButton.onResponse();
             response.json().then((data) => {
                 const errors = data.errors ?? null;
                 if (errors){
@@ -58,8 +57,8 @@ profileCreateForm.onsubmit = function(e) {
             });
 
         }else{
-            profileCreateButton.onResponse();
-            profileCreateButton.disabled = true;
+            profileEditButton.onResponse();
+            profileEditButton.disabled = true;
 
             response.json().then((data) => {
                 pushNotification("success", data.detail ?? data.message ?? 'Request successful!');
@@ -73,5 +72,4 @@ profileCreateForm.onsubmit = function(e) {
             });
         }
     });
-};
-
+}

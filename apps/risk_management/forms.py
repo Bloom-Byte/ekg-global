@@ -33,7 +33,11 @@ def criterion_data(data: typing.Iterable[typing.Dict]):
         )
 
 
-class RiskProfileCreateForm(forms.ModelForm):
+converter = cattrs.Converter()
+# Register a unstructure hook to convert UUIDs to strings
+converter.register_unstructure_hook(uuid.UUID, lambda u: str(u))
+
+class RiskProfileForm(forms.ModelForm):
     class Meta:
         model = RiskProfile
         fields = ("name", "description", "stocks", "criteria")
@@ -45,9 +49,5 @@ class RiskProfileCreateForm(forms.ModelForm):
 
         criterion_list = list(set(criterion_data(criteria)))
         criteria = Criteria(criterion_list)
-
-        converter = cattrs.Converter()
-        # Register a unstructure hook to convert UUIDs to strings
-        converter.register_unstructure_hook(uuid.UUID, lambda u: str(u))
         criteria = converter.unstructure(criteria)
-        return criteria
+        return criteria["criterion_list"]

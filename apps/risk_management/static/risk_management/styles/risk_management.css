@@ -8,7 +8,7 @@
     display: none;
 }
 
-#profile-create-form #criteria-selected {
+.profile-form .criteria-selected {
     width: 100%;
     min-height: 80px;
     border: 1px dotted #888;
@@ -17,7 +17,7 @@
     gap: 8px;
 }
 
-#criteria-selected > .criteria {
+.criteria-selected > .criterion {
     border-radius: 0 !important;
     display: flex;
     align-items: center;
@@ -25,9 +25,10 @@
     gap: 0 10px;
     padding: 8px !important;
     height: min-content;
+    flex-shrink: 0;
 }
 
-#profile-create-form #criteria-creation-section-toggle {
+.profile-form .criterion-creation-section-toggle {
     text-decoration: underline;
     cursor: pointer;
     outline: none;
@@ -37,23 +38,23 @@
     margin-block: 6px;
 }
 
-#profile-create-form #criteria-creation-section-toggle:hover {
+.profile-form .criterion-creation-section-toggle:hover {
     color: #888;
 }
 
 
 /* Criteria Creation */
-#profile-create-form:has(#criteria-creation-section.show-block) #criteria-creation-section-toggle {
+.profile-form:has(.criterion-creation-section.show-block) .criterion-creation-section-toggle {
     color: #886;
 }
 
-#criteria-creation-section{
+.criterion-creation-section{
     display: none;
     width: 100%;
     padding: 8px;
 }
 
-#criteria-creation-fields{
+.criterion-creation-fields{
     width: 100%;
     margin-block: 10px;
     display: flex;

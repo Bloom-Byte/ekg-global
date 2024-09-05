@@ -338,6 +338,7 @@
                             class="page-item tab-toggle" 
                             {% endif %}
                             data-tabtarget="{{ risk_profile.name }}"
+                            data-tab-data-url="{% url 'risk_management:stocks_risk_profile_generation' risk_profile.id %}"
                         >
                             <button class="page-link" style="border-radius: 4px !important;">{{ risk_profile.name }}</button>
                         </li>
@@ -362,8 +363,7 @@
                                     <form 
                                         action="{% url 'risk_management:risk_profile_update' risk_profile.id %}" 
                                         method="put" 
-                                        id="profile-edit-form"
-                                        class="profile-form"
+                                        class="profile-form profile-edit-form"
                                     >
                                         {% csrf_token %}
                         
@@ -708,4 +708,5 @@
 <script src="{% static 'risk_management//scripts//profileForm.js' %}"></script>
 <script src="{% static 'risk_management//scripts//riskProfileCreate.js' %}"></script>
 <script src="{% static 'risk_management//scripts//riskProfileEdit.js' %}"></script>
+<script src="{% static 'risk_management//scripts//riskProfileGeneration.js' %}"></script>
 {% endblock %}

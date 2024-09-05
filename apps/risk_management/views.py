@@ -9,9 +9,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .criteria.functions import generate_functions_schema
 from .criteria.comparisons import ComparisonOperator
+from .criteria.criteria import load_criteria_from_list
 from helpers.exceptions import capture
 from .models import RiskProfile
 from .forms import RiskProfileForm
+from .stock_profiling import (
+    generate_kse30_risk_profile,
+    generate_kse50_risk_profile,
+    generate_kse100_risk_profile,
+    generate_stocks_risk_profile
+)
 
 
 risk_profile_qs = (
@@ -136,8 +143,40 @@ class RiskProfileDeleteView(LoginRequiredMixin, generic.View):
         return reverse("risk_management:risk_management")
 
 
+@capture.enable
+class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
+    http_method_names = ["post"]
+    queryset = risk_profile_qs
+
+    def get_queryset(self) -> models.QuerySet[RiskProfile]:
+        user = self.request.user
+        qs = self.queryset
+        return qs.filter(owner=user)
+
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), id=self.kwargs["profile_id"])
+
+    @capture.capture(content="Oops! An error occurred")
+    def post(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
+        data: typing.Dict = json.loads(request.body)
+
+        risk_profile = self.get_object()
+        criteria = load_criteria_from_list(risk_profile.criteria)
+        stocks_risk_profile = generate_kse100_risk_profile(criteria=criteria)
+        print(stocks_risk_profile)
+        return JsonResponse(
+            data={
+                "status": "success",
+                "detail": "Risk profile generated successfully",
+                "data": stocks_risk_profile,
+            },
+            status=200,
+        )
+
+
 risk_management_view = RiskManagementView.as_view()
 risk_profile_create_view = RiskProfileCreateView.as_view()
 risk_profile_update_view = RiskProfileUpdateView.as_view()
 risk_profile_delete_view = RiskProfileDeleteView.as_view()
 
+stocks_risk_profile_generation_view = StocksRiskProfileGenerationView.as_view()

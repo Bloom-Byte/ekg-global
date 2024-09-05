@@ -1,12 +1,10 @@
 import typing
-import uuid
-import cattrs
 from django import forms
 from django.utils.itercompat import is_iterable
 
 
 from .models import RiskProfile
-from .criteria.criteria import Criteria, make_criterion
+from .criteria.criteria import Criteria, make_criterion, converter
 
 
 def criterion_data(data: typing.Iterable[typing.Dict]):
@@ -32,10 +30,6 @@ def criterion_data(data: typing.Iterable[typing.Dict]):
             func1=func1, func2=func2, op=op, ignore_unsupported_func=False
         )
 
-
-converter = cattrs.Converter()
-# Register a unstructure hook to convert UUIDs to strings
-converter.register_unstructure_hook(uuid.UUID, lambda u: str(u))
 
 class RiskProfileForm(forms.ModelForm):
     class Meta:

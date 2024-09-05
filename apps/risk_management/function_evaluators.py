@@ -3,6 +3,7 @@
 import typing
 import functools
 import attrs
+from django.utils.itercompat import is_iterable
 
 from .criteria import functions
 from .criteria.kwargs_schemas import KwargsSchema, MergeKwargsSchemas
@@ -25,6 +26,8 @@ def _return_first_value(result: typing.Iterable):
     Since based on the stock rates data ordering,
     the latest rate data is always the first element of the result set.
     """
+    if not is_iterable(result):
+        return result
     return result[0]
 
 

@@ -13,6 +13,9 @@ class Stock(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticker = models.CharField(max_length=120, unique=True)
     title = models.CharField(max_length=100, blank=True, null=True)
+    is_kse30 = models.BooleanField(default=False)
+    is_kse50 = models.BooleanField(default=False)
+    is_kse100 = models.BooleanField(default=False)
 
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

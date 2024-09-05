@@ -7,6 +7,21 @@ from .models import Rate, Stock, KSE100Rate
 from helpers.utils.misc import comma_separated_to_int_float
 
 
+def get_kse_top30_stocks():
+    """Return the top 30 stocks in the KSE"""
+    return Stock.objects.prefetch_related("rates").filter(is_kse30=True)
+
+
+def get_kse_top50_stocks():
+    """Return the top 50 stocks in the KSE"""
+    return Stock.objects.prefetch_related("rates").filter(is_kse50=True)
+
+
+def get_kse_top100_stocks():
+    """Return the top 100 stocks in the KSE"""
+    return Stock.objects.prefetch_related("rates").filter(is_kse100=True)
+
+
 def get_trend(previous_close: float, close: float) -> str:
     """Get the market trend based on the previous close and current close."""
     if close > previous_close:

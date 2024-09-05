@@ -78,6 +78,9 @@ class Criteria:
     # Allows iteration over criterion_list directly with the criteria object
     def __iter__(self):
         return iter(self.criterion_list)
+    
+    def __bool__(self):
+        return bool(self.criterion_list)
 
     def __getitem__(self, index: int):
         return self.criterion_list[index]
@@ -238,7 +241,9 @@ def evaluate_criteria(
         function in a criterion is not supported. The criterion will be evaluated as failed
     :return: A dictionary of the criterion and their evaluation status
     """
-
+    if not criteria:
+        return {}
+    
     async def main() -> typing.List[CriterionStatus]:
         async_evaluate_criterion = database_sync_to_async(evaluate_criterion)
         tasks = []
@@ -256,3 +261,30 @@ def evaluate_criteria(
     for criterion, status in zip(criteria, statuses):
         result[criterion] = status
     return result
+
+
+def uuid_unstructure_hook(uuid_obj: uuid.UUID):
+    if callable(uuid_obj):
+        uuid_obj = uuid_obj()
+    return str(uuid_obj)
+
+
+def uuid_structure_hook(uuid_str: str, _):
+    return uuid.UUID(uuid_str)
+
+converter = cattrs.Converter()
+# Register a unstructure hook to convert UUIDs to strings
+converter.register_unstructure_hook(uuid.UUID, uuid_unstructure_hook)
+# Register a structure hook to convert strings to UUIDs
+converter.register_structure_hook(uuid.UUID, uuid_structure_hook)
+
+
+def load_criteria_from_list(criterion_list: typing.List[typing.Dict[str, typing.Any]]):
+    """
+    Load criteria from a list of criterion data
+
+    :param criterion_list: A list of criterion data. 
+        Usually from a JSON object return by `converter.unstructure`
+    :return: A criteria object
+    """
+    return converter.structure({"criterion_list": criterion_list}, Criteria)

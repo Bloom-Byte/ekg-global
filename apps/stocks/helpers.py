@@ -19,7 +19,7 @@ def get_kse_top50_stocks():
 
 def get_kse_top100_stocks():
     """Return the top 100 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").filter(is_kse100=True)
+    return Stock.objects.prefetch_related("rates").all()[:50]
 
 
 def get_trend(previous_close: float, close: float) -> str:

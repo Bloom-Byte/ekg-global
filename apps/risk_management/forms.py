@@ -4,7 +4,8 @@ from django.utils.itercompat import is_iterable
 
 
 from .models import RiskProfile
-from .criteria.criteria import Criteria, make_criterion, converter
+from .criteria import converter
+from .criteria.criteria import Criteria, make_criterion
 
 
 def criterion_data(data: typing.Iterable[typing.Dict]):

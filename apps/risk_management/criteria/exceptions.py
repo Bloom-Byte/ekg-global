@@ -21,3 +21,9 @@ class CriterionValidationError(ValidationError):
 
 class ComparisonExecutorNotFound(CriteriaException):
     pass
+
+
+class FunctionEvaluationError(CriteriaException):
+    """Error occurred while evaluating a TA-LIB function on an object"""
+    
+    pass

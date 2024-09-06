@@ -159,11 +159,10 @@ class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
     @capture.capture(content="Oops! An error occurred")
     def post(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
         data: typing.Dict = json.loads(request.body)
-
+        
         risk_profile = self.get_object()
         criteria = load_criteria_from_list(risk_profile.criteria)
         stocks_risk_profile = generate_kse100_risk_profile(criteria=criteria)
-        print(stocks_risk_profile)
         return JsonResponse(
             data={
                 "status": "success",

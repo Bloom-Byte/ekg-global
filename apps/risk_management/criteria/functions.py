@@ -2,14 +2,19 @@ import functools
 import typing
 import numpy as np
 import attrs
-from concurrent.futures import ThreadPoolExecutor
 import talib
 import copy
 from talib import get_functions as get_talib_functions
 
+from helpers.logging import log_exception
 from helpers.typing_utils import SupportsRichComparison
-from .exceptions import UnsupportedFunction, FunctionSpecValidationError
+from .exceptions import (
+    UnsupportedFunction,
+    FunctionSpecValidationError,
+    FunctionEvaluationError,
+)
 from .kwargs_schemas import BaseKwargsSchema, kwargs_schema_to_json_schema
+from . import converter
 
 
 T = typing.TypeVar("T")
@@ -85,8 +90,7 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
                 f"Function {name} does not have a kwargs_schema defined"
                 " and cannot accept keyword arguments"
             )
-
-        kwargs = attrs.asdict(kwargs_schema(**kwargs))
+        kwargs = converter.unstructure(converter.structure(kwargs, kwargs_schema))
     return FunctionSpec(name, kwargs)
 
 
@@ -118,7 +122,7 @@ def generate_function_schema(function_name: str):
 
 def generate_functions_schema(*, grouped: bool = False):
     schemas = {}
-    
+
     for function in FUNCTIONS_REGISTRY:
         function_schema = generate_function_schema(function)
         function_name = function_schema["name"]
@@ -230,7 +234,6 @@ def build_evaluator(
     arg_evaluators: typing.List[_ArgEvaluator],
     *,
     result_handler: typing.Optional[_EvaluatorResultHandler] = None,
-    use_multithreading: bool = False,
 ) -> FunctionEvaluator:
     """
     Builds a generic TA-LIB function evaluator, assuming that the target TA-LIB function
@@ -246,9 +249,6 @@ def build_evaluator(
         the arguments are expected by the TA-LIB function.
     :param result_handler: A callable to be used to handle the result of the TA-LIB function evaluator.
         This can be used to perform additional pre/post-processing on the result before it is returned.
-    :param use_multithreading: If True, the evaluator will run it argument evaluator concurrently.
-        Else, they will be run sequentially. You can change this behaviour directly on the evaluator returned,
-        by modifying th `use_multithreading` attribute of the evaluator.
     :return: A new TA-LIB function evaluator
     """
     if talib_target not in TALIB_FUNCTIONS:
@@ -257,31 +257,21 @@ def build_evaluator(
         raise ValueError("At least one argument evaluator is required")
 
     def _evaluator(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
-        if len(arg_evaluators) == 1:
-            args = [arg_evaluators[0](o, spec)]
+        args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
 
-        else:
-            if getattr(_evaluator, "use_multithreading", False):
-                with ThreadPoolExecutor() as executor:
-                    args = executor.map(
-                        lambda arg_evaluator: arg_evaluator(o, spec), arg_evaluators
-                    )
-            else:
-                args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
+        print(args)
+        try:
+            result = getattr(talib, talib_target)(*args, **spec.kwargs)
+        except Exception as exc:
+            # log_exception(exc)
+            raise FunctionEvaluationError(exc)
 
-        result = getattr(talib, talib_target)(*args, **spec.kwargs)
         if result_handler:
             result = result_handler(result)
         return result
 
     _evaluator.__name__ = talib_target
-    _evaluator.use_multithreading = use_multithreading
     return _evaluator
-
-
-build_multithreaded_evaluator = functools.partial(
-    build_evaluator, use_multithreading=True
-)
 
 
 def new_evaluator(
@@ -292,7 +282,7 @@ def new_evaluator(
     alias: typing.Optional[str] = None,
     description: typing.Optional[str] = None,
     group: typing.Optional[str] = None,
-    evaluator_builder: _EvaluatorBuilder = build_multithreaded_evaluator,
+    evaluator_builder: _EvaluatorBuilder = build_evaluator,
 ) -> FunctionEvaluator:
     """
     Builds and registers a new (generic) TA-LIB function evaluator,
@@ -325,7 +315,33 @@ def new_evaluator(
     )
 
 
-def evaluate(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
+class Error(SupportsRichComparison):
+    """
+    Special class to represent an error in a TA-LIB function evaluation
+
+    Instances will always return False when compared to other objects
+    """
+    
+    def __ge__(self, other: typing.Any) -> bool:
+        return False
+    
+    def __gt__(self, other: typing.Any) -> bool:
+        return False
+    
+    def __le__(self, other: typing.Any) -> bool:
+        return False
+    
+    def __lt__(self, other: typing.Any) -> bool:
+        return False
+    
+    def __eq__(self, other: typing.Any) -> bool:
+        return False
+    
+    def __ne__(self, other: typing.Any) -> bool:
+        return False
+
+
+def evaluate(o: T, /, spec: FunctionSpec) -> typing.Union[SupportsRichComparison, Error]:
     """
     Run a TA-LIB function evaluation on an object
 
@@ -336,6 +352,9 @@ def evaluate(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
     """
     try:
         evaluator = FUNCTIONS_REGISTRY[spec.name]["evaluator"]
+        return evaluator(o, spec)
     except KeyError as exc:
         raise UnsupportedFunction(f"Unsupported function: {spec.name}") from exc
-    return evaluator(o, spec)
+
+    except FunctionEvaluationError:
+        return Error()

@@ -9,6 +9,7 @@ from helpers.models.db import database_sync_to_async
 from .functions import FunctionSpec, evaluate as evaluate_function, make_function_spec
 from .comparisons import ComparisonOperator, get_comparison_executor
 from .exceptions import UnsupportedFunction
+from . import converter
 
 
 T = typing.TypeVar("T")
@@ -21,7 +22,7 @@ class CriterionStatus(enum.IntEnum):
     FAILED = 0
 
 
-@attrs.define(auto_attribs=True, slots=True, frozen=True, repr=False)
+@attrs.define(auto_attribs=True, slots=True, frozen=True, repr=False, hash=False)
 class Criterion:
     """A criterion for evaluating a condition"""
 
@@ -44,7 +45,7 @@ class Criterion:
         return hash(self.id)
 
 
-@attrs.define(auto_attribs=True, slots=True)
+@attrs.define(auto_attribs=True, slots=True, hash=False)
 class Criteria:
     """A collection of criterion"""
 
@@ -69,6 +70,9 @@ class Criteria:
         """Remove a criterion from the criteria"""
         return remove_criterion(self, criterion)
 
+    def __hash__(self) -> int:
+        return hash(tuple(self.criterion_list))
+
     def __contains__(self, criterion: Criterion) -> bool:
         return criterion in self.criterion_list
 
@@ -78,7 +82,7 @@ class Criteria:
     # Allows iteration over criterion_list directly with the criteria object
     def __iter__(self):
         return iter(self.criterion_list)
-    
+
     def __bool__(self):
         return bool(self.criterion_list)
 
@@ -243,7 +247,7 @@ def evaluate_criteria(
     """
     if not criteria:
         return {}
-    
+
     async def main() -> typing.List[CriterionStatus]:
         async_evaluate_criterion = database_sync_to_async(evaluate_criterion)
         tasks = []
@@ -256,34 +260,18 @@ def evaluate_criteria(
             tasks.append(task)
         return await asyncio.gather(*tasks)
 
-    statuses = asyncio.run(main)
+    statuses = asyncio.run(main())
     result = {}
     for criterion, status in zip(criteria, statuses):
-        result[criterion] = status
+        result[str(criterion)] = status
     return result
-
-
-def uuid_unstructure_hook(uuid_obj: uuid.UUID):
-    if callable(uuid_obj):
-        uuid_obj = uuid_obj()
-    return str(uuid_obj)
-
-
-def uuid_structure_hook(uuid_str: str, _):
-    return uuid.UUID(uuid_str)
-
-converter = cattrs.Converter()
-# Register a unstructure hook to convert UUIDs to strings
-converter.register_unstructure_hook(uuid.UUID, uuid_unstructure_hook)
-# Register a structure hook to convert strings to UUIDs
-converter.register_structure_hook(uuid.UUID, uuid_structure_hook)
 
 
 def load_criteria_from_list(criterion_list: typing.List[typing.Dict[str, typing.Any]]):
     """
     Load criteria from a list of criterion data
 
-    :param criterion_list: A list of criterion data. 
+    :param criterion_list: A list of criterion data.
         Usually from a JSON object return by `converter.unstructure`
     :return: A criteria object
     """

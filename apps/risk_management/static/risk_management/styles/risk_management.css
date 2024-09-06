@@ -14,6 +14,7 @@
     border: 1px dotted #888;
     padding: 8px;
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
 }
 

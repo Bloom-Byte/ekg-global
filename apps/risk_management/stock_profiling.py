@@ -8,10 +8,11 @@ from apps.stocks.helpers import (
     get_kse_top50_stocks,
     get_kse_top100_stocks,
 )
+from helpers.utils.time import timeit
 from .criteria.criteria import Criteria, evaluate_criteria
-from helpers.caching import ttl_cache
 
 
+@timeit
 def generate_stocks_risk_profile(
     stocks: typing.Union[
         typing.Iterable[Stock], typing.Callable[[], typing.Iterable[Stock]]
@@ -30,15 +31,12 @@ def generate_stocks_risk_profile(
         stocks = stocks()
     if not stocks:
         return []
-
-    # Just in case we have repeated stocks, 
-    # This will make sure to only evaluate each stock once
-    _evaluate_criteria = ttl_cache(ttl=60)(evaluate_criteria)
-    with ThreadPoolExecutor() as executor:
-        results = executor.map(
-            lambda stock: _evaluate_criteria(stock, criteria=criteria),
-            stocks,
-        )
+    
+    results = []
+    for stock in stocks:
+        result = evaluate_criteria(stock, criteria=criteria)
+        result["Stock"] = stock.ticker
+        results.append(result)
     return list(results)
 
 

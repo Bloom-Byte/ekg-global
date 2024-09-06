@@ -16,10 +16,14 @@ EVALUATOR_GROUPS = (
     "Pattern Recognition",
     "Momentum Indicators",
     "Math Operators",
+    "Overlap Studies",
+    "Statistic Functions",
 )
 
 
-def _return_first_value(result: typing.Iterable):
+_T = typing.TypeVar("_T")
+
+def _return_first_value(result: typing.Iterable[_T]) -> _T:
     """
     Returns only the first value of the result set.
 
@@ -28,12 +32,12 @@ def _return_first_value(result: typing.Iterable):
     """
     if not is_iterable(result):
         return result
-    return result[0]
+    return _return_first_value(result[0])
 
 
 # TA-LIB function evaluators built by this builder return only the first result in a result set
 build_evaluator = functools.partial(
-    functions.build_multithreaded_evaluator, result_handler=_return_first_value
+    functions.build_evaluator, result_handler=_return_first_value
 )
 # `functions.new_evaluator` with custom evaluator builder predefined
 new_evaluator = functools.partial(

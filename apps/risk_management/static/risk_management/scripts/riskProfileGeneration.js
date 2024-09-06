@@ -1,10 +1,15 @@
 const tabToggles = document.querySelectorAll('.tab-toggle');
 
 
-tabToggles.forEach((toggle) => {
+tabToggles.forEach((toggle, index) => {
 
     toggle.addEventListener('click', () => {
         const tabDataUrl = toggle.dataset.tabDataUrl;
+
+        // Get the tab corresponding to the toggle's index
+        const tab = document.querySelectorAll('.tabs-section .tab')[index];
+        const tabTable = tab.querySelector('.risk-profile-table');
+        
         if (!tabDataUrl) return;
 
         const options = {
@@ -27,6 +32,11 @@ tabToggles.forEach((toggle) => {
                 response.json().then((data) => {    
                     const tabData = data.data ?? null;
                     console.log(tabData);
+                    
+                    var table = new Tabulator(tabTable, {
+                        data:tabData,
+                        autoColumns:true,
+                    });
                 });
             }
         });

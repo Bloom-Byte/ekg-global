@@ -1,9 +1,9 @@
-import inspect
 import typing
 import attrs
+from . import cast_on_set, type_cast
 
 
-@attrs.define(auto_attribs=True)
+@attrs.define(auto_attribs=True, auto_detect=True, slots=True)
 class BaseKwargsSchema:
     """Specifies the schema for the keywords that a TA-LIB function accepts"""
 
@@ -26,9 +26,16 @@ def KwargsSchema(
     :return: subclass of `BaseKwargsSchema` with defined attributes
     """
     kwargs.setdefault("auto_attribs", True)
+    kwargs.setdefault("auto_detect", True)
     kwargs.setdefault("slots", True)
     kwargs.setdefault("bases", (BaseKwargsSchema,))
-    return attrs.make_class(cls_name, attributes, **kwargs)
+
+    _convert = attrs.converters.pipe(
+        attrs.converters.default_if_none, cast_on_set, attrs.converters.optional,
+    )
+    kwargs.setdefault("on_setattr", _convert)
+    cls = attrs.make_class(cls_name, attributes, **kwargs)
+    return type_cast(cls)
 
 
 def MergeKwargsSchemas(
@@ -53,7 +60,7 @@ def MergeKwargsSchemas(
     if len(kwargs_schemas) < 2:
         raise ValueError("At least two KwargsSchemas must be provided for merging.")
 
-    cls_name = cls_name or "_".join([kt.__name__ for kt in kwargs_schemas])
+    cls_name = cls_name or "_".join([ks.__name__ for ks in kwargs_schemas])
     new_attributes = new_attributes or {}
 
     merged_attributes = {}

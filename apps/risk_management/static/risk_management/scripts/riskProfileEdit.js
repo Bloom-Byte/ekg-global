@@ -1,4 +1,4 @@
-const profileEditForms = document.querySelector('.profile-edit-form');
+const profileEditForms = document.querySelectorAll('.profile-edit-form');
 
 
 profileEditForms.forEach((profileEditForm) => {

@@ -7,6 +7,8 @@
 {% endblock title %}
 
 {% block stylesheets %}
+<link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator.min.css" rel="stylesheet">
+ 
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
 <link href="{% static 'core/styles/tabs.css' %}" rel="stylesheet">
 <link href="{% static 'risk_management/styles/functions_modal.css' %}" rel="stylesheet">
@@ -313,7 +315,7 @@
 
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="">
             <div class="card-header">
                 <h4 class="card-title">Risk Profiles</h4>
 
@@ -364,6 +366,7 @@
                                         action="{% url 'risk_management:risk_profile_update' risk_profile.id %}" 
                                         method="put" 
                                         class="profile-form profile-edit-form"
+                                        id="profile{{ risk_profile.id.hex }}"
                                     >
                                         {% csrf_token %}
                         
@@ -687,8 +690,9 @@
                             </div>
                             
                             <div class="card-body" style="display: flex; flex-direction: column; gap: 12px;">
-        
-                            <!-- Table goes here -->
+                                <div class="risk-profile-table">
+                                    <!-- Risk Profile Table -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -702,6 +706,8 @@
 
 
 {% block scripts %}
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
+
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
 <script src="{% static 'core//scripts//tabs.js' %}"></script>
 <script src="{% static 'risk_management//scripts//functionsModal.js' %}"></script>

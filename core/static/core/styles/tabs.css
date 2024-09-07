@@ -16,6 +16,12 @@
     align-items: center;
 }
 
+.tabs .tab{
+    display: flex;
+    flex-direction: column;
+    gap: 10px 0;
+}
+
 .tabs .tab:not(:first-of-type){
     display: none;
 }

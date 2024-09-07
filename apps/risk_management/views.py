@@ -54,7 +54,7 @@ class RiskProfileCreateView(LoginRequiredMixin, generic.View):
     @capture.capture(content="Oops! An error occurred")
     def post(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
         data: typing.Dict = json.loads(request.body)
-        form = self.form_class(data=data)
+        form = self.form_class(data={**data, "owner": request.user})
 
         if not form.is_valid():
             return JsonResponse(
@@ -66,9 +66,7 @@ class RiskProfileCreateView(LoginRequiredMixin, generic.View):
                 status=400,
             )
         
-        risk_profile = form.save(commit=False)
-        risk_profile.owner = request.user
-        risk_profile.save()
+        form.save()
         return JsonResponse(
             data={
                 "status": "success",
@@ -109,9 +107,7 @@ class RiskProfileUpdateView(LoginRequiredMixin, generic.View):
                 status=400,
             )
         
-        risk_profile = form.save(commit=False)
-        risk_profile.owner = request.user
-        risk_profile.save()
+        form.save()
         return JsonResponse(
             data={
                 "status": "success",

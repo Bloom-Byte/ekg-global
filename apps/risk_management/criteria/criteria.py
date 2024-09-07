@@ -234,7 +234,7 @@ def evaluate_criterion(
 
 def evaluate_criteria(
     o: T, /, criteria: Criteria, *, ignore_unsupported_func: bool = False
-) -> typing.Dict[Criterion, CriterionStatus]:
+) -> typing.Dict[str, CriterionStatus]:
     """
     Run multiple criterion evaluations on an object.
     The criterions are evaluated concurrently and so should be independent of each other

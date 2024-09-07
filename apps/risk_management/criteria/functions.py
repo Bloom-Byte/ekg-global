@@ -259,7 +259,6 @@ def build_evaluator(
     def _evaluator(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
         args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
 
-        print(args)
         try:
             result = getattr(talib, talib_target)(*args, **spec.kwargs)
         except Exception as exc:

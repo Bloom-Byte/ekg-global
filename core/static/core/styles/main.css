@@ -39,6 +39,24 @@ img{
     display: none !important;
 }
 
+.disabled{
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
+.spin {
+    animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .nav-header {
     container-type: inline-size;
     container-name: nav-header;

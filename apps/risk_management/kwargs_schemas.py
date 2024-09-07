@@ -168,8 +168,18 @@ VFactor = KwargsSchema(
 )
 
 
+def punctuated_string_to_list(value: str, punctuator: str = ",") -> typing.List[str]:
+    """Converts a punctuated string to a list of strings"""
+    return value.split(punctuator)
+
 def to_float_ndarray(values: typing.Iterable) -> np.ndarray:
     """Converts an iterable of values to a numpy float ndarray"""
+    if isinstance(values, np.ndarray):
+        return values.astype(float)
+    
+    if isinstance(values, str):
+        values = list(map(float, punctuated_string_to_list(values)))
+
     return np.array(values, dtype=float)
 
 
@@ -178,7 +188,6 @@ Periods = KwargsSchema(
     {
         "periods": attrs.field(
             type=np.ndarray[float],
-            default=attrs.Factory(list),
             converter=to_float_ndarray,
             validator=attrs.validators.instance_of(np.ndarray),
         ),

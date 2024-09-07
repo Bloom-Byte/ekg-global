@@ -25,10 +25,10 @@ tabsSections.forEach((tabSection, index) => {
 
             tabs.forEach((tab) => {
                 if (tab.id == targetTabID){
-                    tab.style.display = "block";
+                    tab.classList.add("show-flex");
                 }
                 else{
-                    tab.style.display = "none"; 
+                    tab.classList.remove("show-flex");
                 }
             });
         });

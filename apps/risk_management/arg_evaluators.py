@@ -44,12 +44,6 @@ def KSE100_CLOSE_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[floa
     return KSE100Rate.objects.values_list("close", flat=True)
 
 
-@ensure_ndarray(array_dtype=float)
-def PERIODS(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
-    """Returns a list containing `periods` values of a stock rate"""
-    return 
-
-
 ###########
 # ALIASES #
 ###########
@@ -60,7 +54,6 @@ Low = LOW_VALUES
 Close = CLOSE_VALUES
 Volume = VOLUME_VALUES
 KSE100Close = KSE100_CLOSE_VALUES
-Periods = PERIODS
 
 Real = Close
 Real0 = KSE100Close

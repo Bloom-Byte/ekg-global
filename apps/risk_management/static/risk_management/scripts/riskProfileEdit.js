@@ -65,12 +65,9 @@ profileEditForms.forEach((profileEditForm) => {
 
                 response.json().then((data) => {
                     pushNotification("success", data.detail ?? data.message ?? 'Request successful!');
-
-                    const redirectURL  = data.redirect_url ?? null
-                    if(!redirectURL) return;
-
+                    
                     setTimeout(() => {
-                        window.location.href = redirectURL;
+                        window.location.reload();
                     }, 2000);
                 });
             }

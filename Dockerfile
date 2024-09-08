@@ -16,7 +16,7 @@ RUN chmod +x install_talib.sh
 
 # Install the TA-Lib C library before installing any package requirements
 # Else, the TA-Lib Python wrapper package will fail to install
-RUN ./install_talib.sh -e ./talib_test_env
+RUN ./install_talib.sh -p 3.10.12 -e ./talib_test_env
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt

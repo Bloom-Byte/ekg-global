@@ -60,8 +60,18 @@ echo "Installing global TA-Lib C library..."
 apt update
 apt install build-essential wget -y
 
-# Install Python development headers for the specified or active Python version
-apt-get install "python${PYTHON_VERSION}-dev" -y || { echo "Failed to install Python ${PYTHON_VERSION} development headers"; exit 1; }
+# Check if the required Python version is available
+if ! apt list --installed | grep -q "python${PYTHON_VERSION}-dev"; then
+  echo "Python ${PYTHON_VERSION} development headers not found. Adding deadsnakes PPA to install it..."
+  
+  # Add deadsnakes PPA and install python3.10-dev (or whichever version is required)
+  apt install software-properties-common -y
+  add-apt-repository ppa:deadsnakes/ppa -y
+  apt update
+  apt install "python${PYTHON_VERSION}-dev" -y || { echo "Failed to install Python ${PYTHON_VERSION} development headers"; exit 1; }
+else
+  echo "Python ${PYTHON_VERSION}-dev is already installed."
+fi
 
 # Create directory for TA-Lib version and navigate to it
 mkdir -p "ta-lib-${TA_LIB_VERSION}"

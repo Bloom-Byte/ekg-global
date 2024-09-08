@@ -57,11 +57,11 @@ done
 echo "Installing global TA-Lib C library..."
 
 # Update and install build tools
-sudo apt update
-sudo apt install build-essential wget -y
+apt update
+apt install build-essential wget -y
 
 # Install Python development headers for the specified or active Python version
-sudo apt-get install "python${PYTHON_VERSION}-dev" -y || { echo "Failed to install Python ${PYTHON_VERSION} development headers"; exit 1; }
+apt-get install "python${PYTHON_VERSION}-dev" -y || { echo "Failed to install Python ${PYTHON_VERSION} development headers"; exit 1; }
 
 # Create directory for TA-Lib version and navigate to it
 mkdir -p "ta-lib-${TA_LIB_VERSION}"
@@ -77,7 +77,7 @@ tar --strip-components=1 -xzf "ta-lib-${TA_LIB_VERSION}-src.tar.gz" || { echo "F
 make || { echo "Build failed"; exit 1; }
 
 echo "Installing TA-Lib globally..."
-sudo make install || { echo "Installation failed"; exit 1; }
+make install || { echo "Installation failed"; exit 1; }
 
 # Check if the virtual environment exists
 if [ -d "$VENV_DIR" ]; then
@@ -110,8 +110,8 @@ else
   export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
   
   # Option 2: Add /usr/local/lib to /etc/ld.so.conf and run ldconfig (permanent)
-  echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf
-  sudo /sbin/ldconfig
+  echo "/usr/local/lib" | tee -a /etc/ld.so.conf
+  /sbin/ldconfig
 fi
 
 echo "Deactivating virtual environment..."

@@ -11,7 +11,7 @@ WORKDIR /django
 
 RUN chmod +x install_talib.sh entrypoint.sh
 
-RUN ./install_talib_nosudo.sh -p 3.10.12 -e ./talib_test_env
+RUN ./install_talib.sh -p 3.10.12 -e ./talib_test_env
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt

@@ -175,12 +175,10 @@ def punctuated_string_to_list(value: str, punctuator: str = ",") -> typing.List[
 
 def to_float_ndarray(values: typing.Iterable) -> np.ndarray:
     """Converts an iterable of values to a numpy float ndarray"""
-    print("TESTING")
     if isinstance(values, np.ndarray):
         return values.astype(float)
     
     if isinstance(values, str):
-        print("Testing")
         values = list(map(float, punctuated_string_to_list(values)))
 
     return np.array(values, dtype=float)

@@ -17,8 +17,13 @@ def cast_on_set_factory(converter: cattrs.Converter):
         
         if getattr(attribute, "converter", None):
             value = attribute.converter(value)
-        # Otherwise, cast it to the declared type
-        return attribute.type(value) if attribute.type else value
+        
+        try:
+            # Otherwise, cast it to the declared type
+            return attribute.type(value) if attribute.type else value
+        except (TypeError, ValueError):
+            # If not possible, return value as is
+            return value
 
     return _cast_on_set
 

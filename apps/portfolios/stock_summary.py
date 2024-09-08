@@ -8,7 +8,6 @@ from django.db import models
 from .helpers import parse_dt_filter, get_stocks_invested_from_investments
 from .models import TransactionType, Portfolio, Investment
 from apps.stocks.models import Rate
-from helpers.utils.time import timeit
 from helpers.utils.decimals import to_n_decimal_places
 
 
@@ -116,7 +115,6 @@ def _update_stock_summary_with_percentage_allocation(
     return stock_summary
 
 
-@timeit
 def generate_portfolio_stocks_summary(
     portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
 ) -> typing.List[StockSummary]:

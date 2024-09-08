@@ -172,6 +172,7 @@ def punctuated_string_to_list(value: str, punctuator: str = ",") -> typing.List[
     """Converts a punctuated string to a list of strings"""
     return value.split(punctuator)
 
+
 def to_float_ndarray(values: typing.Iterable) -> np.ndarray:
     """Converts an iterable of values to a numpy float ndarray"""
     if isinstance(values, np.ndarray):

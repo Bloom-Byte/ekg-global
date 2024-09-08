@@ -107,13 +107,10 @@ function captureFunctionSelection(functionsModal, inputField) {
         doneBtns.forEach(doneBtn => {
             doneBtn.addEventListener("click", () => {
                 const parentFormFieldContainer = doneBtn.closest(".form-fields");
-                try{
-                    const formFieldsData = getSubOptionFormFieldsData(parentFormFieldContainer);
-                    inputField.value = formFieldsData.name;
-                    inputField.dataset.options = JSON.stringify(formFieldsData.options);
-                } catch {
-                    return
-                }
+                const formFieldsData = getSubOptionFormFieldsData(parentFormFieldContainer);
+                inputField.value = formFieldsData.name;
+                inputField.dataset.options = JSON.stringify(formFieldsData.options);
+        
                 functionsModal.close();
             });
         });

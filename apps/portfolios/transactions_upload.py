@@ -12,6 +12,7 @@ from apps.accounts.models import UserAccount
 from .data_cleaners import InvestmentDataCleaner
 from helpers.utils.misc import comma_separated_to_int_float
 
+
 EXPECTED_TRANSACTION_COLUMNS = [
     "TRDATE",
     "STDATE",

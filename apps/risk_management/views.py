@@ -6,7 +6,6 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
-import rich
 
 from .criteria.functions import generate_functions_schema
 from .criteria.comparisons import ComparisonOperator
@@ -49,6 +48,36 @@ class RiskManagementView(LoginRequiredMixin, generic.TemplateView):
         available_stocksets = [stockset.value for stockset in StockSet if stockset != StockSet.CUSTOM]
         context_data["available_stocksets"] = available_stocksets
         return context_data
+
+
+@capture.enable
+class FunctionOptionsValidationView(LoginRequiredMixin, generic.View):
+    http_method_names = ["post"]
+    form_class = RiskProfileForm
+
+    @capture.capture(content="Oops! An error occurred")
+    def post(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
+        data: typing.Dict = json.loads(request.body)
+        form = self.form_class(data=data)
+
+        if not form.is_valid():
+            return JsonResponse(
+                data={
+                    "status": "error",
+                    "detail": "An error occurred",
+                    "errors": form.errors,
+                },
+                status=400,
+            )
+
+        form.save()
+        return JsonResponse(
+            data={
+                "status": "success",
+                "detail": "Function options are valid!",
+            },
+            status=200,
+        )
 
 
 @capture.enable

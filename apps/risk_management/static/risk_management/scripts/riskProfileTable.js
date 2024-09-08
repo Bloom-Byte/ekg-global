@@ -2,7 +2,13 @@ const profileTabs = document.querySelectorAll('.tabs-section .tab');
 const profileTabToggles = document.querySelectorAll('.tab-toggle');
 const profileTabDataReloaders = document.querySelectorAll('.tab-data-reloader');
 
-
+/**
+ * Update the cell properties based on whether its value is thruthy or not
+ * @param {*} cell 
+ * @param {*} formatterParams 
+ * @param {*} onRendered 
+ * @returns cell value
+ */
 function truthyFormatter(cell, formatterParams, onRendered){
     let value = cell.getValue();
     if(value) {
@@ -13,14 +19,34 @@ function truthyFormatter(cell, formatterParams, onRendered){
     return value;
 }
 
-
+/**
+ * Format the background and color of the cell based on the value. 
+ * The color transitions from red (low values) to yellow (mid values) to green (high values).
+ * Sort of like a heatmap
+ * @param {*} cell 
+ * @param {*} formatterParams 
+ * @param {*} onRendered 
+ * @returns The cell value as percentage
+ */
 function heatMapFormatter(cell, formatterParams, onRendered){
     let value = cell.getValue();
-    let intensity = (parseInt(value, 10) / 100) * 255; // assuming the value is out of 100
-    let color = `rgb(${255 - intensity}, ${intensity}, 0)`; // transitions from red to green
+    let intensity = parseInt(value, 10) / 100; // value as a fraction of 100
 
-    cell.getElement().style.backgroundColor = `${color} !important`;
-    cell.getElement().style.color = "#fff"; // set text color to white for readability
+    let red = 255;
+    let green = 0;
+
+    // Transition from red (low values) to yellow (mid values) to green (high values)
+    if (intensity < 0.5) {
+        green = Math.floor(510 * intensity); // increase green up to 255 (yellow)
+    } else {
+        green = 255; // stay at max green
+        red = Math.floor(510 * (1 - intensity)); // decrease red from 255 to 0 (green)
+    }
+    let color = `rgba(${red}, ${green}, 0, 0.7)`; // final color with adjusted opacity
+
+    cell.getElement().style.backgroundColor = color;
+    cell.getElement().style.color = "#e0e0e0";
+    cell.getElement().style.fontWeight = "bold";
     return `${value} %`;
 }
 

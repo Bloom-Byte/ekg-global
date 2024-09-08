@@ -4,6 +4,7 @@ import decimal
 import functools
 import typing
 import asyncio
+from asgiref.sync import sync_to_async
 from django.db import models
 
 try:
@@ -17,8 +18,6 @@ from helpers.utils.colors import random_colors
 from helpers.utils.models import get_objects_within_datetime_range
 from helpers.utils.datetime import split
 from helpers.caching import ttl_cache
-from helpers.utils.time import timeit
-from helpers.models.db import database_sync_to_async
 from helpers.utils.misc import merge_dicts
 
 
@@ -69,7 +68,6 @@ def get_investments_allocation_data(
     return allocation_data
 
 
-@timeit
 def get_investments_allocation_piechart_data(
     investments: models.QuerySet[Investment],
 ) -> str:
@@ -147,7 +145,6 @@ def parse_dt_filter(
     return start_date, end_date
 
 
-@timeit
 @ttl_cache(ttl=60 * 5)
 def get_kse_performance_data(
     dt_filter: str, timezone: typing.Optional[str] = None
@@ -197,7 +194,7 @@ def get_kse_performance_data(
         }
 
     async def main():
-        async_func = database_sync_to_async(get_kse_performance_data_for_period)
+        async_func = sync_to_async(get_kse_performance_data_for_period)
         tasks = []
         for periods in split(start_date, end_date, parts=5):
             task = asyncio.create_task(async_func(*periods))
@@ -238,7 +235,6 @@ def get_investment_percentage_return_on_dates(
     return list(result)
 
 
-@timeit
 def get_portfolio_performance_data(
     portfolio: Portfolio,
     dt_filter: str,
@@ -292,7 +288,7 @@ def get_portfolio_performance_data(
         func = get_portfolio_percentage_return_values_for_period
 
     async def main():
-        async_func = database_sync_to_async(func)
+        async_func = sync_to_async(func)
         tasks = []
         for period in split(start_date, end_date, parts=5):
             task = asyncio.create_task(async_func(*period))
@@ -308,7 +304,6 @@ def get_portfolio_performance_data(
     return {"all": percentage_return_values}
 
 
-@timeit
 def get_portfolio_performance_graph_data(
     portfolio: Portfolio,
     dt_filter: str = "5D",

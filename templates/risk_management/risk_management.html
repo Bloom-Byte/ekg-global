@@ -150,13 +150,13 @@
                                                                                 <div class="form-field">
                                                                                     <label for="{{ argument }}">{{ argument | title }}</label>
                                                                                     <input 
-                                                                                        type="text" 
+                                                                                        type="{{ argument_data.html_input_type }}" 
                                                                                         class="form-input form-control input-rounded function-input" 
                                                                                         id="{{ argument }}"
                                                                                         name="{{ argument }}"
 
                                                                                         placeholder="{{ argument | title }}"
-                                                                                        title="{{ argument_data.description }}"
+                                                                                        title="{{ argument_data.description|default:'Provide a valid value for this option' }}"
 
                                                                                         {% if argument_data.default is not None %}
                                                                                             value="{{ argument_data.default }}"
@@ -263,18 +263,18 @@
                                                                                 <div class="form-field">
                                                                                     <label for="{{ argument }}">{{ argument | title }}</label>
                                                                                     <input 
-                                                                                        type="text" 
+                                                                                        type="{{ argument_data.html_input_type }}"
                                                                                         class="form-input form-control input-rounded function-input" 
                                                                                         id="{{ argument }}"
                                                                                         name="{{ argument }}"
 
                                                                                         placeholder="{{ argument | title }}"
-                                                                                        title="{{ argument_data.description }}"
-
+                                                                                        title="{{ argument_data.description|default:'Provide a valid value for this option' }}"
+                                                                                        
                                                                                         {% if argument_data.default is not None %}
                                                                                             value="{{ argument_data.default }}"
                                                                                         {% endif %}
-                                                                                        
+
                                                                                         {% if argument_data.default is not None %}
                                                                                             data-default="{{ argument_data.default }}"
                                                                                         {% endif %}
@@ -449,7 +449,7 @@
                                                                     placeholder="Function 1"
                                                                 >
 
-                                                                <!-- Funtions Modal -->
+                                                                <!-- Functions Modal -->
                                                                 <div class="functions-modal">
                                                                     <div class="modal-head">
                                                                         <div class="head-text">
@@ -503,19 +503,17 @@
                                                                                                     <div class="form-field">
                                                                                                         <label for="{{ argument }}">{{ argument | title }}</label>
                                                                                                         <input 
-                                                                                                            type="text" 
+                                                                                                            type="{{ argument_data.html_input_type }}" 
                                                                                                             class="form-input form-control input-rounded function-input" 
                                                                                                             id="{{ argument }}"
                                                                                                             name="{{ argument }}"
-
-
                                                                                                             placeholder="{{ argument | title }}"
-                                                                                                            title="{{ argument_data.description }}"
+                                                                                                            title="{{ argument_data.description|default:'Provide a valid value for this option' }}"
 
                                                                                                             {% if argument_data.default is not None %}
                                                                                                                 value="{{ argument_data.default }}"
                                                                                                             {% endif %}
-                                                                                                            
+
                                                                                                             {% if argument_data.default is not None %}
                                                                                                                 data-default="{{ argument_data.default }}"
                                                                                                             {% endif %}
@@ -617,13 +615,19 @@
                                                                                                     <div class="form-field">
                                                                                                         <label for="{{ argument }}">{{ argument | title }}</label>
                                                                                                         <input 
-                                                                                                            type="text" 
+                                                                                                            type="{{ argument_data.html_input_type }}" 
+
                                                                                                             class="form-input form-control input-rounded function-input" 
                                                                                                             id="{{ argument }}"
                                                                                                             name="{{ argument }}"
                                                                                                             placeholder="{{ argument | title }}"
-                                                                                                            title="{{ argument_data.description }}"
+                                                                                                            title="{{ argument_data.description|default:'Provide a valid value for this option' }}"
                                                                                                             value="{{ argument_data.default }}"
+
+                                                                                                            {% if argument_data.default is not None %}
+                                                                                                                value="{{ argument_data.default }}"
+                                                                                                            {% endif %}
+
                                                                                                             {% if argument_data.default is not None %}
                                                                                                                 value="{{ argument_data.default }}"
                                                                                                             {% endif %}
@@ -670,7 +674,14 @@
                         </div>
                     </div>
 
-                    <div class="col-12 tab" id="{{ risk_profile.name }}">
+                    <div 
+                        {% if forloop.first %}
+                        class="col-12 tab show-flex" 
+                        {% else %}
+                        class="col-12 tab" 
+                        {% endif %}
+                        id="{{ risk_profile.name }}"
+                    >
                         <nav>
                             <ul class="pagination pagination-lg pagination-gutter pagination-warning" style="display: flex; justify-content: flex-end;">
                                 {% for stockset in available_stocksets %}

@@ -5,6 +5,7 @@ import attrs
 import talib
 import copy
 from talib import get_functions as get_talib_functions
+from django.core.exceptions import ValidationError
 
 from helpers.logging import log_exception
 from helpers.typing_utils import SupportsRichComparison
@@ -90,7 +91,16 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
                 f"Function {name} does not have a kwargs_schema defined"
                 " and cannot accept keyword arguments"
             )
-        kwargs = converter.unstructure(converter.structure(kwargs, kwargs_schema))
+        
+        kwargs_schema_instance = converter.structure(kwargs, kwargs_schema)
+        # Validate the keyword arguments
+        try:
+            attrs.validate(kwargs_schema_instance)
+        except Exception as exc:
+            # Convert the exception to a ValidationError
+            raise ValidationError(exc)
+        
+        kwargs = converter.unstructure(kwargs_schema_instance)
     return FunctionSpec(name, kwargs)
 
 

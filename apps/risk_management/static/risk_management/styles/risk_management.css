@@ -131,7 +131,7 @@
 
 .tabulator-row .tabulator-cell {
     padding: 4px 16px !important;
-    background-color: transparent !important;
+    background-color: transparent;
     border-bottom: 1px solid #888;
 }
 

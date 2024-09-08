@@ -148,6 +148,47 @@ def comma_separated_to_int_float(value: str) -> Union[int, float]:
         return value
 
 
+def python_type_to_html_input_type(py_type: type) -> str:
+    """
+    Maps a Python type to the appropriate HTML input type.
+
+    Args:
+        py_type (type): The Python type to be mapped.
+
+    Returns:
+        str: The corresponding HTML input type as a string.
+
+    - `NoneType`: mapped to "text"
+    - `str`: mapped to "text"
+    - `int`: mapped to "number"
+    - `float`: mapped to "number"
+    - `bool`: mapped to "checkbox"
+    - `list` or `tuple`: mapped to "text" (assuming comma-separated values)
+    - `dict`: mapped to "text"
+    - `bytes`: mapped to "file"
+    - Default type: mapped to "text"
+    """
+    if py_type is type(None):
+        return "text"
+    if issubclass(py_type, str):
+        return "text"
+    if issubclass(py_type, int):
+        return "number"
+    if issubclass(py_type, float):
+        return "number"
+    if issubclass(py_type, bool):
+        return "checkbox"
+    if issubclass(py_type, (list, tuple)):
+        return "text"  # Assuming you may want a comma-separated list
+    if issubclass(py_type, dict):
+        return "text"  # Handling complex types can vary
+    if issubclass(py_type, bytes):
+        return "file"
+    
+    # Default case for unsupported types
+    return "text"
+
+
 __all__ = [
     "is_exception_class",
     "str_to_base64",
@@ -158,4 +199,5 @@ __all__ = [
     "get_value_by_traversal_path",
     "get_attr_by_traversal_path",
     "underscore_dict_keys",
+    "python_type_to_html_input_type",
 ]

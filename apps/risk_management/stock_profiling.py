@@ -67,41 +67,6 @@ def generate_stocks_risk_profile(
     return profiles
 
 
-# @timeit
-# def generate_stocks_risk_profile(
-#     stocks: typing.Union[
-#         typing.Iterable[Stock], typing.Callable[[], typing.Iterable[Stock]]
-#     ],
-#     *,
-#     criteria: Criteria,
-# ):
-#     """
-#     Generate the risk profile for the given stocks
-
-#     :param stocks: A list of stocks or a callable that returns a list of stocks
-#     :param criteria: The criteria to evaluate the stocks against
-#     :return: A list of results of each stock's evaluation
-#     """
-#     if callable(stocks):
-#         stocks = stocks()
-#     if not stocks:
-#         return []
-
-#     profiles = []
-#     for stock in stocks:
-#         profile = {}
-#         profile["stock"] = stock.ticker
-#         profile["current rate"] = stock.price
-
-#         evaluation_result = evaluate_criteria(stock, criteria=criteria)
-#         percentage_ranking = calculate_percentage_ranking(evaluation_result)
-#         profile.update(evaluation_result)
-#         profile["ranking"] = percentage_ranking
-
-#         profiles.append(profile)
-#     return list(profiles)
-
-
 class StockSet(enum.Enum):
     KSE100 = "kse100"
     KSE50 = "kse50"

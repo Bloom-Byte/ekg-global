@@ -1,6 +1,8 @@
 import typing
 import attrs
+
 from . import cast_on_set, type_cast
+from helpers.utils.misc import python_type_to_html_input_type
 
 
 @attrs.define(auto_attribs=True, auto_detect=True, slots=True)
@@ -103,6 +105,7 @@ class _KwargsSchemaJSONSchema(typing.TypedDict):
     """List of the required properties of the KwargsSchema"""
 
 
+
 def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):
     """Converts a KwargsSchema class to a JSON schema"""
     json_schema: _KwargsSchemaJSONSchema = {
@@ -124,7 +127,7 @@ def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):
             default_value = field.default
 
         json_schema["arguments"][name] = {
-            "type": "null" if field_type is type(None) else field_type.__name__,
+            "html_input_type": python_type_to_html_input_type(field_type),
             "default": default_value,
             "required": default_value is None,
             "description": field.metadata.get("description", None),

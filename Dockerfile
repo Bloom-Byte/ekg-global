@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     gettext \
     build-essential \
     wget \
-    python3.10-dev \
+    python3-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 

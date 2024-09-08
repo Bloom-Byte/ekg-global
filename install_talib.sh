@@ -61,7 +61,7 @@ apt update
 apt install build-essential wget -y
 
 # Install Python development headers for the specified or active Python version
-apt-get install "python${PYTHON_VERSION}-dev" -y || { echo "Failed to install Python ${PYTHON_VERSION} development headers"; exit 1; }
+#apt-get install "python${PYTHON_VERSION}-dev" -y || { echo "Failed to install Python ${PYTHON_VERSION} development headers"; exit 1; }
 
 # Create directory for TA-Lib version and navigate to it
 mkdir -p "ta-lib-${TA_LIB_VERSION}"

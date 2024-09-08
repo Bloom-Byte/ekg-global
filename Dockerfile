@@ -10,23 +10,36 @@ RUN apt-get update && apt-get install -y \
     gettext \
     build-essential \
     wget \
-    libta-lib0 \
-    libta-lib0-dev \
-    python3-dev
+    python3-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
+# Download and build TA-Lib from source
+RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
+    && tar -xzf ta-lib-0.4.0-src.tar.gz \
+    && cd ta-lib \
+    && ./configure --prefix=/usr \
+    && make \
+    && make install \
+    && rm -rf ta-lib ta-lib-0.4.0-src.tar.gz
 # Upgrade pip
 RUN pip install --upgrade pip
 
-
-
+# Set working directory
 WORKDIR /django
 
-
+# Copy requirements.txt and install dependencies
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .
 
-RUN chmod +x entrypoint.sh
+# Make the necessary scripts executable
+RUN chmod +x install_talib.sh 
+
+# Run the script to install TA-Lib
+RUN ./install_talib.sh
+
+# Entrypoint for the container
 ENTRYPOINT ["./entrypoint.sh"]

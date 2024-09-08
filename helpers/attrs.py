@@ -14,6 +14,9 @@ def cast_on_set_factory(converter: cattrs.Converter):
         if attrs.has(attribute.type):
             # If the attribute is an attrs class, recursively structure it using the provided converter
             return converter.structure(value, attribute.type)
+        
+        if getattr(attribute, "converter", None):
+            value = attribute.converter(value)
         # Otherwise, cast it to the declared type
         return attribute.type(value) if attribute.type else value
 

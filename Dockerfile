@@ -17,7 +17,7 @@ COPY . .
 
 RUN chmod +x install_talib.sh entrypoint.sh
 
-RUN ./install_talib.sh
+RUN ./install_talib_nosudo.sh -p 3.10.12 -e ./talib_test_env
 
 ENTRYPOINT ["./entrypoint.sh"]
 

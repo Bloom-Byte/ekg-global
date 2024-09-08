@@ -46,3 +46,19 @@ class RiskProfileForm(forms.ModelForm):
         criteria = Criteria(criterion_list)
         criteria = converter.unstructure(criteria)
         return criteria["criterion_list"]
+
+
+class RiskProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = RiskProfile
+        fields = ("name", "description", "stocks", "criteria")
+
+    def clean_criteria(self):
+        criteria = self.cleaned_data.get("criteria")
+        if not criteria:
+            return criteria
+
+        criterion_list = list(set(criterion_data(criteria)))
+        criteria = Criteria(criterion_list)
+        criteria = converter.unstructure(criteria)
+        return criteria["criterion_list"]

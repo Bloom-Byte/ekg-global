@@ -69,6 +69,13 @@
 }
 
 
+/* RiskProfile Tabs */
+
+.stockset{
+    padding: 8px 10px !important;
+    font-size: 0.8rem !important;
+}
+
 /* Risk Profile Table */
 
 .risk-profile-table{
@@ -84,6 +91,11 @@
     display: none;
 }
 
+
+.risk-profile-table *::-webkit-scrollbar{
+    display: none !important;
+}
+
 .tabulator-table{
     background-color: transparent !important;
     color: #ccc !important;
@@ -91,6 +103,7 @@
     table-layout: auto;
     border-collapse: separate; 
 }
+
 
 .tabulator-header {
     color: #ccc !important;

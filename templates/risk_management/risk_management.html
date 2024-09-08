@@ -154,13 +154,17 @@
                                                                                         class="form-input form-control input-rounded function-input" 
                                                                                         id="{{ argument }}"
                                                                                         name="{{ argument }}"
-                                                                                        {% if argument_data.required %}
-                                                                                            required
-                                                                                        {% endif %}
+
                                                                                         placeholder="{{ argument | title }}"
                                                                                         title="{{ argument_data.description }}"
-                                                                                        value="{{ argument_data.default }}"
-                                                                                        data-default="{{ argument_data.default }}"
+
+                                                                                        {% if argument_data.default is not None %}
+                                                                                            value="{{ argument_data.default }}"
+                                                                                        {% endif %}
+
+                                                                                        {% if argument_data.default is not None %}
+                                                                                            data-default="{{ argument_data.default }}"
+                                                                                        {% endif %}
                                                                                     >
                                                                                 </div>
                                                                                 {% endfor %}
@@ -263,13 +267,17 @@
                                                                                         class="form-input form-control input-rounded function-input" 
                                                                                         id="{{ argument }}"
                                                                                         name="{{ argument }}"
-                                                                                        {% if argument_data.required %}
-                                                                                            required
-                                                                                        {% endif %}
+
                                                                                         placeholder="{{ argument | title }}"
                                                                                         title="{{ argument_data.description }}"
-                                                                                        value="{{ argument_data.default }}"
-                                                                                        data-default="{{ argument_data.default }}"
+
+                                                                                        {% if argument_data.default is not None %}
+                                                                                            value="{{ argument_data.default }}"
+                                                                                        {% endif %}
+                                                                                        
+                                                                                        {% if argument_data.default is not None %}
+                                                                                            data-default="{{ argument_data.default }}"
+                                                                                        {% endif %}
                                                                                     >
                                                                                 </div>
                                                                                 {% endfor %}
@@ -499,13 +507,18 @@
                                                                                                             class="form-input form-control input-rounded function-input" 
                                                                                                             id="{{ argument }}"
                                                                                                             name="{{ argument }}"
-                                                                                                            {% if argument_data.required %}
-                                                                                                                required
-                                                                                                            {% endif %}
+
+
                                                                                                             placeholder="{{ argument | title }}"
                                                                                                             title="{{ argument_data.description }}"
-                                                                                                            value="{{ argument_data.default }}"
-                                                                                                            data-default="{{ argument_data.default }}"
+
+                                                                                                            {% if argument_data.default is not None %}
+                                                                                                                value="{{ argument_data.default }}"
+                                                                                                            {% endif %}
+                                                                                                            
+                                                                                                            {% if argument_data.default is not None %}
+                                                                                                                data-default="{{ argument_data.default }}"
+                                                                                                            {% endif %}
                                                                                                         >
                                                                                                     </div>
                                                                                                     {% endfor %}
@@ -592,7 +605,7 @@
                                                                                         </div>
 
                                                                                         {% if function_data.kwargs %}
-                                                                                        <div class="sub-options">
+                                                                                        <div class="sub-options">`
                                                                                             <div class="sub-options-head">
                                                                                                 <span class="arrow">&larr;</span>
                                                                                                 <p>{{ function_data.name }}</p>
@@ -608,13 +621,12 @@
                                                                                                             class="form-input form-control input-rounded function-input" 
                                                                                                             id="{{ argument }}"
                                                                                                             name="{{ argument }}"
-                                                                                                            {% if argument_data.required %}
-                                                                                                                required
-                                                                                                            {% endif %}
                                                                                                             placeholder="{{ argument | title }}"
                                                                                                             title="{{ argument_data.description }}"
                                                                                                             value="{{ argument_data.default }}"
-                                                                                                            data-default="{{ argument_data.default }}"
+                                                                                                            {% if argument_data.default is not None %}
+                                                                                                                value="{{ argument_data.default }}"
+                                                                                                            {% endif %}
                                                                                                         >
                                                                                                     </div>
                                                                                                     {% endfor %}
@@ -660,24 +672,24 @@
 
                     <div class="col-12 tab" id="{{ risk_profile.name }}">
                         <nav>
-                            <ul class="pagination pagination-lg pagination-gutter pagination-info" style="display: flex; justify-content: flex-end;">
+                            <ul class="pagination pagination-lg pagination-gutter pagination-warning" style="display: flex; justify-content: flex-end;">
+                                {% for stockset in available_stocksets %}
                                 <li 
+                                    {% if forloop.first %}
                                     class="page-item active" 
-                                >
-                                    <button class="page-link" style="border-radius: 2px !important;">KSE100</button>
-                                </li>
-        
-                                <li 
+                                    {% else %}
                                     class="page-item"
+                                    {% endif %}
                                 >
-                                    <button class="page-link" style="border-radius: 2px !important;">KSE50</button>
+                                    <button 
+                                        class="page-link stockset"
+                                        style="border-radius: 2px !important;"
+                                        data-value="{{ stockset }}"
+                                    >
+                                        {{ stockset | upper }}
+                                    </button>
                                 </li>
-        
-                                <li 
-                                    class="page-item" 
-                                >
-                                    <button class="page-link" style="border-radius: 2px !important;">KSE30</button>
-                                </li>
+                                {% endfor %}
                             </ul>
                         </nav>
 
@@ -738,9 +750,9 @@
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@6.2.5/dist/js/tabulator.min.js"></script>
 
 <script src="{% static 'core//scripts//formCard.js' %}"></script>
-<!-- riskProfileGeneration.js should come before tabs.js so that when tabs.js clicks the previously active tab on page load, -->
+<!-- riskProfileTable.js should come before tabs.js so that when tabs.js clicks the previously active tab on page load, -->
 <!-- a profile data fetch and render for the corresponding risk profile table is triggered -->
-<script src="{% static 'risk_management//scripts//riskProfileGeneration.js' %}"></script> 
+<script src="{% static 'risk_management//scripts//riskProfileTable.js' %}"></script> 
 <script src="{% static 'core//scripts//tabs.js' %}"></script>
 <script src="{% static 'risk_management//scripts//functionsModal.js' %}"></script>
 <script src="{% static 'risk_management//scripts//profileForm.js' %}"></script>

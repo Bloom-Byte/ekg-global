@@ -102,7 +102,6 @@ functionsModals.forEach(functionsModal => {
     });
     
     
-    
     functionsModal.reset = () => {
         subOptionSets.forEach(subOptionSet => {
             subOptionSet.close();
@@ -118,7 +117,7 @@ functionsModals.forEach(functionsModal => {
     }
     
     
-    // Function to handle search functionality
+    // Search functionality
     optionsSearchInput.addEventListener('input', function () {
         const filter = this.value.toLowerCase();
         const targetOptionSet = getVisibleElementWithHighestZIndex(allOptionSets);
@@ -133,6 +132,8 @@ functionsModals.forEach(functionsModal => {
     allOptions.forEach(option => {
         const optionLabel = option.querySelector(".option-label");
         const subOptionSet = option.querySelector(".sub-options");
+        // If the option does not have sub options, ther's no point
+        // add a click listener to option the sub options
         if (!subOptionSet) return;
     
         optionLabel.addEventListener("click", () => {

@@ -9,17 +9,17 @@ from helpers.utils.misc import comma_separated_to_int_float
 
 def get_kse_top30_stocks():
     """Return the top 30 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").filter(is_kse30=True)
+    return Stock.objects.prefetch_related("rates").all()[:30]
 
 
 def get_kse_top50_stocks():
     """Return the top 50 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").filter(is_kse50=True)
+    return Stock.objects.prefetch_related("rates").all()[:50]
 
 
 def get_kse_top100_stocks():
     """Return the top 100 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").all()[:50]
+    return Stock.objects.prefetch_related("rates").all()[:100]
 
 
 def get_trend(previous_close: float, close: float) -> str:

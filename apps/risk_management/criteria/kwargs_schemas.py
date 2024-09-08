@@ -126,11 +126,11 @@ def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):
         json_schema["arguments"][name] = {
             "type": "null" if field_type is type(None) else field_type.__name__,
             "default": default_value,
-            "required": field.default == attrs.NOTHING,
+            "required": default_value is None,
             "description": field.metadata.get("description", None),
         }
 
-        if field.default == attrs.NOTHING:
+        if default_value is None:
             json_schema["required_arguments"].append(name)
 
     return json_schema

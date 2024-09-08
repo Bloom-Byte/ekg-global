@@ -30,6 +30,8 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
     Since based on the stock rates data ordering,
     the latest rate data is always the first element of the result set.
     """
+    if not result:
+        return 0
     if not is_iterable(result):
         return result
     return _return_first_value(result[0])

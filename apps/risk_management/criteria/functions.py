@@ -255,7 +255,7 @@ def build_evaluator(
         raise ValueError(f"Invalid TA-LIB function: {talib_target}")
     if not arg_evaluators:
         raise ValueError("At least one argument evaluator is required")
-
+    
     def _evaluator(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
         args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
 

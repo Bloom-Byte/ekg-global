@@ -1,3 +1,4 @@
+const profileTabs = document.querySelectorAll('.tabs-section .tab');
 const profileTabToggles = document.querySelectorAll('.tab-toggle');
 const profileTabDataReloaders = document.querySelectorAll('.tab-data-reloader');
 
@@ -53,8 +54,8 @@ function buildTable(tableData, tableElement) {
         autoResize: true,
         resizableColumnFit: true,
         pagination: "local",
-        paginationSize: 20,
-        paginationSizeSelector: [10, 20, 30, 40, 50],
+        paginationSize: 30,
+        paginationSizeSelector: [10, 20, 30, 40, 50, 100],
         movableColumns: true,
         paginationCounter: "rows",
         // layout: "fitColumns",
@@ -66,10 +67,9 @@ function buildTable(tableData, tableElement) {
     table.on("tableBuilt", function(){
         // Get the column definitions
         let columns = table.getColumns();
-        
         // Get the field name of the last column
+        if (!columns.length) return;
         let lastColumnField = columns[columns.length - 1].getField();
-        
         // Apply sorting to the last column
         table.setSort(lastColumnField, "desc");
     });
@@ -77,30 +77,42 @@ function buildTable(tableData, tableElement) {
 };
 
 
+function getActiveStockSetFromTab(tabEl){
+    const stockSetElements = tabEl.querySelectorAll(".stockset");
+    const activeStocksets = Array.from(stockSetElements).filter((el) => el.parentElement.classList.contains("active"));
+    if (!activeStocksets) return;
+    return activeStocksets[0].dataset.value;
+}
+
 profileTabDataReloaders.forEach((reloader, index) => {
 
     reloader.addEventListener('click', () => {
         const tabDataUrl = reloader.dataset.tabDataUrl;
 
         // Get the tab corresponding to the reloader's index
-        const tab = document.querySelectorAll('.tabs-section .tab')[index];
-        const tabTable = tab.querySelector('.risk-profile-table');
+        const profileTab = profileTabs[index];
+        const tabTable = profileTab.querySelector('.risk-profile-table');
         
         if (!tabDataUrl) return;
 
         const options = {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken'),
             },
             mode: 'same-origin',
-            body: JSON.stringify({}),
+        }
+
+        const url = new URL(tabDataUrl, window.location.origin);
+        const stockset = getActiveStockSetFromTab(profileTab);
+        if (stockset){
+            url.searchParams.append('stockset', stockset);
         }
 
         // Add the spin class to the reloader and disable it
         reloader.classList.add("spin", "disabled");
-        fetch(tabDataUrl, options).then((response) => {
+        fetch(url, options).then((response) => {
             // On response, remove the spin class and enable the reloader
             reloader.classList.remove("spin", "disabled");
             
@@ -122,10 +134,11 @@ profileTabDataReloaders.forEach((reloader, index) => {
 
 
 profileTabToggles.forEach((toggle, index) => {
+
     toggle.addEventListener('click', () => {
-        const tab = document.querySelectorAll('.tabs-section .tab')[index];
-        const profileTable = tab.querySelector('.risk-profile-table');
-        const profileTabDataReloader = tab.querySelector('.tab-data-reloader');
+        const profileTab = profileTabs[index];
+        const profileTable = profileTab.querySelector('.risk-profile-table');
+        const profileTabDataReloader = profileTab.querySelector('.tab-data-reloader');
 
         // If the table element contains a tabulator js table element, it means the table has been rendered
         const tableHasBeenRendered = profileTable.querySelector(".tabulator-table") !== null;
@@ -135,3 +148,25 @@ profileTabToggles.forEach((toggle, index) => {
         }
     });
 });
+
+
+profileTabs.forEach((profileTab) => {
+    const profileTabDataReloader = profileTab.querySelector('.tab-data-reloader');
+    const tabStockSetElements = profileTab.querySelectorAll(".stockset");
+
+    tabStockSetElements.forEach((stockSetElement) => {
+
+        stockSetElement.addEventListener("click", () => {
+            tabStockSetElements.forEach(el => {
+                if (el != stockSetElement){
+                    el.parentElement.classList.remove("active");
+                }
+                else {
+                    el.parentElement.classList.add("active");
+                }
+            });
+
+            profileTabDataReloader.click();
+        });
+    });
+}); 

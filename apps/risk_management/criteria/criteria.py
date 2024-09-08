@@ -4,8 +4,8 @@ import uuid
 import enum
 import attrs
 import cattrs
+from asgiref.sync import sync_to_async
 
-from helpers.models.db import database_sync_to_async
 from .functions import FunctionSpec, evaluate as evaluate_function, make_function_spec
 from .comparisons import ComparisonOperator, get_comparison_executor
 from .exceptions import UnsupportedFunction
@@ -249,7 +249,7 @@ def evaluate_criteria(
         return {}
 
     async def main() -> typing.List[CriterionStatus]:
-        async_evaluate_criterion = database_sync_to_async(evaluate_criterion)
+        async_evaluate_criterion = sync_to_async(evaluate_criterion)
         tasks = []
         for criterion in criteria:
             task = asyncio.create_task(

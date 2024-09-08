@@ -1,23 +1,23 @@
 import json
-import typing 
+import typing
 from django.db import models
 from django.views import generic
 from django.http import JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
+import rich
 
 from .criteria.functions import generate_functions_schema
 from .criteria.comparisons import ComparisonOperator
 from .criteria.criteria import load_criteria_from_list
 from helpers.exceptions import capture
 from .models import RiskProfile
-from .forms import RiskProfileForm
+from .forms import RiskProfileForm, RiskProfileUpdateForm
 from .stock_profiling import (
-    generate_kse30_risk_profile,
-    generate_kse50_risk_profile,
-    generate_kse100_risk_profile,
-    generate_stocks_risk_profile
+    StockSet,
+    resolve_stockset,
+    generate_stocks_risk_profile,
 )
 
 
@@ -37,14 +37,19 @@ class RiskManagementView(LoginRequiredMixin, generic.TemplateView):
         context_data["risk_profiles"] = risk_profiles
 
         functions_schema = generate_functions_schema(grouped=True)
-        operators_schema = {op.name.replace("_", " ").upper(): op.value for op in ComparisonOperator}
+        operators_schema = {
+            op.name.replace("_", " ").upper(): op.value for op in ComparisonOperator
+        }
         criterion_schema = {
             "functions_schema": functions_schema,
-            "operators_schema": operators_schema
+            "operators_schema": operators_schema,
         }
         context_data["criterion_schema"] = criterion_schema
+
+        available_stocksets = [stockset.value for stockset in StockSet if stockset != StockSet.CUSTOM]
+        context_data["available_stocksets"] = available_stocksets
         return context_data
-    
+
 
 @capture.enable
 class RiskProfileCreateView(LoginRequiredMixin, generic.View):
@@ -65,7 +70,7 @@ class RiskProfileCreateView(LoginRequiredMixin, generic.View):
                 },
                 status=400,
             )
-        
+
         form.save()
         return JsonResponse(
             data={
@@ -75,12 +80,12 @@ class RiskProfileCreateView(LoginRequiredMixin, generic.View):
             },
             status=200,
         )
-    
+
 
 @capture.enable
 class RiskProfileUpdateView(LoginRequiredMixin, generic.View):
     http_method_names = ["put"]
-    form_class = RiskProfileForm
+    form_class = RiskProfileUpdateForm
     queryset = risk_profile_qs
 
     def get_queryset(self) -> models.QuerySet[RiskProfile]:
@@ -106,7 +111,7 @@ class RiskProfileUpdateView(LoginRequiredMixin, generic.View):
                 },
                 status=400,
             )
-        
+
         form.save()
         return JsonResponse(
             data={
@@ -141,7 +146,7 @@ class RiskProfileDeleteView(LoginRequiredMixin, generic.View):
 
 @capture.enable
 class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
-    http_method_names = ["post"]
+    http_method_names = ["get"]
     queryset = risk_profile_qs
 
     def get_queryset(self) -> models.QuerySet[RiskProfile]:
@@ -153,12 +158,13 @@ class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
         return get_object_or_404(self.get_queryset(), id=self.kwargs["profile_id"])
 
     @capture.capture(content="Oops! An error occurred")
-    def post(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
-        data: typing.Dict = json.loads(request.body)
-        
+    def get(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
+        stockset = request.GET.get("stockset", StockSet.KSE100)
         risk_profile = self.get_object()
+
+        stocks = resolve_stockset(stockset, risk_profile)
         criteria = load_criteria_from_list(risk_profile.criteria)
-        stocks_risk_profile = generate_kse100_risk_profile(criteria=criteria)
+        stocks_risk_profile = generate_stocks_risk_profile(stocks, criteria=criteria)
         return JsonResponse(
             data={
                 "status": "success",

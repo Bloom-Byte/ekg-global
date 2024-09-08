@@ -51,36 +51,6 @@ class RiskManagementView(LoginRequiredMixin, generic.TemplateView):
 
 
 @capture.enable
-class FunctionOptionsValidationView(LoginRequiredMixin, generic.View):
-    http_method_names = ["post"]
-    form_class = RiskProfileForm
-
-    @capture.capture(content="Oops! An error occurred")
-    def post(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
-        data: typing.Dict = json.loads(request.body)
-        form = self.form_class(data=data)
-
-        if not form.is_valid():
-            return JsonResponse(
-                data={
-                    "status": "error",
-                    "detail": "An error occurred",
-                    "errors": form.errors,
-                },
-                status=400,
-            )
-
-        form.save()
-        return JsonResponse(
-            data={
-                "status": "success",
-                "detail": "Function options are valid!",
-            },
-            status=200,
-        )
-
-
-@capture.enable
 class RiskProfileCreateView(LoginRequiredMixin, generic.View):
     http_method_names = ["post"]
     form_class = RiskProfileForm

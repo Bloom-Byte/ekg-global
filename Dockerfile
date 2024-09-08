@@ -36,7 +36,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Make the necessary scripts executable
-RUN chmod +x install_talib.sh 
+RUN chmod +x install_talib.sh entrypoint.sh 
 
 # Run the script to install TA-Lib
 RUN ./install_talib.sh

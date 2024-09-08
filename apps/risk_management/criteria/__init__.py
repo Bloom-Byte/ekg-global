@@ -1,6 +1,7 @@
 import uuid
 import typing
 import cattrs
+import numpy as np
 from helpers.attrs import type_cast as type_cast_factory, cast_on_set_factory
 
 
@@ -27,3 +28,19 @@ def string_to_UUID(uuid_str: str, _) -> uuid.UUID:
 converter.register_unstructure_hook(uuid.UUID, UUID_to_string)
 # Register a structure hook to convert strings to UUIDs
 converter.register_structure_hook(uuid.UUID, string_to_UUID)
+
+
+def ndarray_to_list(ndarray_obj: np.ndarray):
+    """Converts a numpy ndarray to a list."""
+    if callable(ndarray_obj):
+        ndarray_obj = ndarray_obj()
+    return list(ndarray_obj)
+
+def list_to_ndarray(ndarray_list: typing.List, _) -> np.ndarray:
+    """Converts a list to a numpy ndarray."""
+    return np.array(ndarray_list)
+
+# Register a unstructure hook to convert numpy ndarrays to lists
+converter.register_unstructure_hook(np.ndarray, ndarray_to_list)
+# Register a structure hook to convert lists to numpy ndarrays
+converter.register_structure_hook(np.ndarray, list_to_ndarray)

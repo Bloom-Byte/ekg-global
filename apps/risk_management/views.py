@@ -14,8 +14,7 @@ from helpers.exceptions import capture
 from .models import RiskProfile
 from .forms import RiskProfileForm, RiskProfileUpdateForm
 from .stock_profiling import (
-    resolve_stockset,
-    generate_stocks_risk_profile,
+    load_risk_profile,
     get_available_stocksets_for_user,
 )
 
@@ -158,14 +157,13 @@ class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
         stockset = request.GET.get("stockset", "kse100")
         risk_profile = self.get_object()
 
-        stocks = resolve_stockset(stockset, risk_profile)
         criteria = load_criteria_from_list(risk_profile.criteria)
-        stocks_risk_profile = generate_stocks_risk_profile(stocks, criteria=criteria)
+        loaded_profile = load_risk_profile(risk_profile, stockset, criteria)
         return JsonResponse(
             data={
                 "status": "success",
                 "detail": "Risk profile generated successfully",
-                "data": stocks_risk_profile,
+                "data": loaded_profile,
             },
             status=200,
         )

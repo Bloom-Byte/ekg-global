@@ -35,7 +35,14 @@ def criterion_data(data: typing.Iterable[typing.Dict]):
 class RiskProfileForm(forms.ModelForm):
     class Meta:
         model = RiskProfile
-        fields = ("name", "description", "criteria", "owner")
+        fields = (
+            "name",
+            "description",
+            "criteria",
+            "owner",
+            "period_return_start",
+            "period_return_end",
+        )
 
     def clean_criteria(self):
         criteria = self.cleaned_data.get("criteria")
@@ -46,12 +53,46 @@ class RiskProfileForm(forms.ModelForm):
         criteria = Criteria(criterion_list)
         criteria = converter.unstructure(criteria)
         return criteria["criterion_list"]
+
+    def clean(self) -> typing.Dict[str, typing.Any]:
+        cleaned_data = super().clean()
+        period_return_start = cleaned_data.get("period_return_start", None)
+        period_return_end = cleaned_data.get("period_return_end", None)
+
+        if any((period_return_start, period_return_end)):
+            if not all((period_return_start, period_return_end)):
+                raise forms.ValidationError(
+                    {
+                        "period_return_end": [
+                            "Both start and end periods are required"
+                        ],
+                        "period_return_start": [
+                            "Both start and end periods are required"
+                        ],
+                    }
+                )
+
+            if period_return_start >= period_return_end:
+                raise forms.ValidationError(
+                    {
+                        "period_return_end": [
+                            "End period must be greater than start period"
+                        ]
+                    }
+                )
+        return cleaned_data
 
 
 class RiskProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = RiskProfile
-        fields = ("name", "description", "criteria")
+        fields = (
+            "name",
+            "description",
+            "criteria",
+            "period_return_start",
+            "period_return_end",
+        )
 
     def clean_criteria(self):
         criteria = self.cleaned_data.get("criteria")
@@ -62,3 +103,31 @@ class RiskProfileUpdateForm(forms.ModelForm):
         criteria = Criteria(criterion_list)
         criteria = converter.unstructure(criteria)
         return criteria["criterion_list"]
+
+    def clean(self) -> typing.Dict[str, typing.Any]:
+        cleaned_data = super().clean()
+        period_return_start = cleaned_data.get("period_return_start", None)
+        period_return_end = cleaned_data.get("period_return_end", None)
+
+        if any((period_return_start, period_return_end)):
+            if not all((period_return_start, period_return_end)):
+                raise forms.ValidationError(
+                    {
+                        "period_return_end": [
+                            "Both start and end periods are required"
+                        ],
+                        "period_return_start": [
+                            "Both start and end periods are required"
+                        ],
+                    }
+                )
+
+            if period_return_start >= period_return_end:
+                raise forms.ValidationError(
+                    {
+                        "period_return_end": [
+                            "End period must be greater than start period"
+                        ]
+                    }
+                )
+        return cleaned_data

@@ -11,6 +11,8 @@ class RiskProfile(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     criteria = models.JSONField(default=list)
+    period_return_start = models.DateField(blank=True, null=True)
+    period_return_end = models.DateField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

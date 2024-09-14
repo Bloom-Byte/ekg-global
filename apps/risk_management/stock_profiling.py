@@ -60,7 +60,9 @@ PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES = (
 )
 
 
-def generate_stock_profile(stock: Stock, criteria: Criteria) -> dict:
+def generate_stock_profile(
+    stock: Stock, criteria: Criteria, risk_profile: RiskProfile
+) -> dict:
     """
     Generates the risk profile for a single stock.
 
@@ -73,7 +75,15 @@ def generate_stock_profile(stock: Stock, criteria: Criteria) -> dict:
     stock_profile["symbol"] = stock.ticker
     stock_profile["close"] = stock.price
 
-    # Calculate the percentage return for the stock over different time periods
+    # Calculate the percentage return for the stock over user defined time periods
+    if risk_profile.period_return_start and risk_profile.period_return_end:
+        percentage_return = calculate_stock_percentage_return(
+            stock, risk_profile.period_return_start, risk_profile.period_return_end
+        )
+        # period = f"{risk_profile.period_return_start.strftime("%d.%m.%Y")} - {risk_profile.period_return_end.strftime("%d.%m.%Y")}"
+        stock_profile["period return (%)"] = float(percentage_return)
+
+    # Calculate the percentage return for the stock over different (default) time periods
     # Update the stock profile with the percentage return for each time period
     for timedelta_code in PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES:
         start, end = timedelta_code_to_datetime_range(timedelta_code)
@@ -92,28 +102,29 @@ def generate_stock_profile(stock: Stock, criteria: Criteria) -> dict:
 
 
 @timeit
-def generate_stocks_risk_profile(
-    stocks: typing.Union[
-        typing.Iterable[Stock], typing.Callable[[], typing.Iterable[Stock]]
-    ],
-    *,
+def load_risk_profile(
+    risk_profile: RiskProfile,
+    stockset: str,
     criteria: Criteria,
 ) -> list:
     """
-    Generate the risk profile for the given stocks in parallel using ThreadPoolExecutor and map.
+    Load the risk profile for the given stockset and criteria.
 
-    :param stocks: A list of stocks or a callable that returns a list of stocks
+    :param risk_profile: The risk profile to load the profile for
+    :param stockset: The stockset to evaluate the profile against
     :param criteria: The criteria to evaluate the stocks against
     :return: A list of results of each stock's evaluation
     """
-    if callable(stocks):
-        stocks = stocks()
+    stocks = resolve_stockset(stockset, risk_profile)
     if not stocks:
         return []
 
     with ThreadPoolExecutor() as executor:
         profiles = list(
-            executor.map(lambda stock: generate_stock_profile(stock, criteria), stocks)
+            executor.map(
+                lambda stock: generate_stock_profile(stock, criteria, risk_profile),
+                stocks,
+            )
         )
 
     return profiles
@@ -146,10 +157,10 @@ def portfolio_stockset(risk_profile: RiskProfile, portofolio_id: uuid.UUID):
 
 
 DEFAULT_STOCKSETS: typing.Dict[str, typing.Callable[[], typing.Iterable[Stock]]] = {
-    "KSE100": lambda *_, **__: get_kse_top100_stocks,
-    "KSE50": lambda *_, **__: get_kse_top50_stocks,
-    "KSE30": lambda *_, **__: get_kse_top30_stocks,
-    "KSE_ALL_SHARES": lambda *_, **__: get_all_kse_stocks,
+    "KSE100": lambda *_, **__: get_kse_top100_stocks(),
+    "KSE50": lambda *_, **__: get_kse_top50_stocks(),
+    "KSE30": lambda *_, **__: get_kse_top30_stocks(),
+    "KSE_ALL_SHARES": lambda *_, **__: get_all_kse_stocks(),
 }
 
 

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load tz %}
 {% load custom_filters %}
 
 {% block title %}
@@ -58,6 +59,30 @@
                                 placeholder="Profile description"
                                 id="description"
                                 name="description"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="period_return_start">Period Return Start</label>
+                            <input 
+                                type="date" 
+                                class="form-input form-control input-rounded" 
+                                id="period_return_start"
+                                name="period_return_start"
+                                max="{% now 'Y-m-d' %}"
+                            >
+                            <small class="field-message"></small>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="period_return_end">Period Return End</label>
+                            <input 
+                                type="date" 
+                                class="form-input form-control input-rounded" 
+                                id="period_return_end"
+                                name="period_return_end"
+                                max="{% now 'Y-m-d' %}"
                             >
                             <small class="field-message"></small>
                         </div>
@@ -403,6 +428,32 @@
                                                     id="description"
                                                     name="description"
                                                     value="{{ risk_profile.description }}"
+                                                >
+                                                <small class="field-message"></small>
+                                            </div>
+
+                                            <div class="form-field">
+                                                <label for="period_return_start">Period Return Start</label>
+                                                <input 
+                                                    type="date" 
+                                                    class="form-input form-control input-rounded" 
+                                                    id="period_return_start"
+                                                    name="period_return_start"
+                                                    value="{{ risk_profile.period_return_start|date:'Y-m-d' }}"
+                                                    max="{% now 'Y-m-d' %}"
+                                                >
+                                                <small class="field-message"></small>
+                                            </div>
+                    
+                                            <div class="form-field">
+                                                <label for="period_return_end">Period Return End</label>
+                                                <input 
+                                                    type="date" 
+                                                    class="form-input form-control input-rounded" 
+                                                    id="period_return_end"
+                                                    name="period_return_end"
+                                                    value="{{ risk_profile.period_return_end|date:'Y-m-d' }}"
+                                                    max="{% now 'Y-m-d' %}"
                                                 >
                                                 <small class="field-message"></small>
                                             </div>

@@ -167,7 +167,7 @@
         {% for portfolio in portfolios %}
         <div class="card mw-l" id="card-title-2">
             <div class="card-header">
-                <h5 class="card-title">{{ portfolio.name }}</h5>
+                <h5 class="card-title" style="overflow-x: hidden; text-overflow: ellipsis; text-wrap: wrap;">{{ portfolio.name }}</h5>
                 
                 <div class="dropdown custom-dropdown">
                     <div class="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown" aria-expanded="true">

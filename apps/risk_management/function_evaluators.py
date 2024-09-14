@@ -53,7 +53,7 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
 def OPEN(stock: Stock, spec: functions.FunctionSpec):
     try:
         latest_rate: Rate = stock.rates.latest("added_at")
-    except Stock.DoesNotExist:
+    except Rate.DoesNotExist:
         return functions.Error()
     return latest_rate.open
 
@@ -66,7 +66,7 @@ def OPEN(stock: Stock, spec: functions.FunctionSpec):
 def HIGH(stock: Stock, spec: functions.FunctionSpec):
     try:
         latest_rate: Rate = stock.rates.latest("added_at")
-    except Stock.DoesNotExist:
+    except Rate.DoesNotExist:
         return functions.Error()
     return latest_rate.high
 
@@ -79,7 +79,7 @@ def HIGH(stock: Stock, spec: functions.FunctionSpec):
 def LOW(stock: Stock, spec: functions.FunctionSpec):
     try:
         latest_rate: Rate = stock.rates.latest("added_at")
-    except Stock.DoesNotExist:
+    except Rate.DoesNotExist:
         return functions.Error()
     return latest_rate.low
 
@@ -92,7 +92,7 @@ def LOW(stock: Stock, spec: functions.FunctionSpec):
 def CLOSE(stock: Stock, spec: functions.FunctionSpec):
     try:
         latest_rate: Rate = stock.rates.latest("added_at")
-    except Stock.DoesNotExist:
+    except Rate.DoesNotExist:
         return functions.Error()
     return latest_rate.close
 
@@ -105,7 +105,7 @@ def CLOSE(stock: Stock, spec: functions.FunctionSpec):
 def VOLUME(stock: Stock, spec: functions.FunctionSpec):
     try:
         latest_rate: Rate = stock.rates.latest("added_at")
-    except Stock.DoesNotExist:
+    except Rate.DoesNotExist:
         return functions.Error()
     return latest_rate.volume
 

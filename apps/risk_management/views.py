@@ -14,15 +14,13 @@ from helpers.exceptions import capture
 from .models import RiskProfile
 from .forms import RiskProfileForm, RiskProfileUpdateForm
 from .stock_profiling import (
-    StockSet,
     resolve_stockset,
     generate_stocks_risk_profile,
+    get_available_stocksets_for_user,
 )
 
 
-risk_profile_qs = (
-    RiskProfile.objects.select_related("owner").all()
-)
+risk_profile_qs = RiskProfile.objects.select_related("owner").all()
 
 
 class RiskManagementView(LoginRequiredMixin, generic.TemplateView):
@@ -43,8 +41,9 @@ class RiskManagementView(LoginRequiredMixin, generic.TemplateView):
         }
         context_data["criterion_schema"] = criterion_schema
 
-        available_stocksets = [stockset.value for stockset in StockSet if stockset != StockSet.CUSTOM]
-        context_data["available_stocksets"] = available_stocksets
+        context_data["available_stocksets"] = get_available_stocksets_for_user(
+            self.request.user
+        )
         return context_data
 
 
@@ -156,7 +155,7 @@ class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
 
     @capture.capture(content="Oops! An error occurred")
     def get(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
-        stockset = request.GET.get("stockset", StockSet.KSE100)
+        stockset = request.GET.get("stockset", "kse100")
         risk_profile = self.get_object()
 
         stocks = resolve_stockset(stockset, risk_profile)

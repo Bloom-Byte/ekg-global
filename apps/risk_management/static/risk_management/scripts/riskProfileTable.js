@@ -106,11 +106,14 @@ function buildTable(tableData, tableElement) {
 };
 
 
-function getActiveStockSetFromTab(tabEl) {
-    const stockSetElements = tabEl.querySelectorAll(".stockset");
-    const activeStocksets = Array.from(stockSetElements).filter((el) => el.parentElement.classList.contains("active"));
-    if (!activeStocksets) return;
-    return activeStocksets[0].dataset.value;
+function getStockSetFormData(tabEl) {
+    const stockSetForm = tabEl.querySelector(".stockset-form");
+    const formData = new FormData(stockSetForm)
+    const data = {};
+    for (const [key, value] of formData.entries()) {
+        data[key] = value;
+    }
+    return data
 }
 
 profileTabDataReloaders.forEach((reloader, index) => {
@@ -134,7 +137,7 @@ profileTabDataReloaders.forEach((reloader, index) => {
         }
 
         const url = new URL(tabDataUrl, window.location.origin);
-        const stockset = getActiveStockSetFromTab(profileTab);
+        const stockset = getStockSetFormData(profileTab).stockset;
         if (stockset) {
             url.searchParams.append('stockset', stockset);
         }
@@ -190,22 +193,10 @@ profileTabToggles.forEach((toggle, index) => {
 
 profileTabs.forEach((profileTab) => {
     const profileTabDataReloader = profileTab.querySelector('.tab-data-reloader');
-    const tabStockSetElements = profileTab.querySelectorAll(".stockset");
+    const stockSetForm = profileTab.querySelector(".stockset-form");
 
-    tabStockSetElements.forEach((stockSetElement) => {
-
-        stockSetElement.addEventListener("click", () => {
-            tabStockSetElements.forEach(el => {
-                if (el != stockSetElement) {
-                    el.parentElement.classList.remove("active");
-                }
-                else {
-                    el.parentElement.classList.add("active");
-                }
-            });
-
-            profileTabDataReloader.click();
-        });
+    stockSetForm.addEventListener("change", () => {
+        profileTabDataReloader.click();
     });
 });
 

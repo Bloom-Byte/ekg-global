@@ -45,7 +45,7 @@ img{
 }
 
 .spin {
-    animation: spin 800ms linear infinite;
+    animation: spin 600ms linear infinite;
 }
 
 @keyframes spin {

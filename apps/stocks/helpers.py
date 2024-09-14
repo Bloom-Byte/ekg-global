@@ -7,6 +7,11 @@ from .models import Rate, Stock, KSE100Rate
 from helpers.utils.misc import comma_separated_to_int_float
 
 
+def get_all_kse_stocks():
+    """Return all available KSE stocks"""
+    return Stock.objects.prefetch_related("rates").all()
+
+
 def get_kse_top30_stocks():
     """Return the top 30 stocks in the KSE"""
     return Stock.objects.prefetch_related("rates").all()[:30]

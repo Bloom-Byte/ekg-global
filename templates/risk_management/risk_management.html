@@ -332,8 +332,9 @@
                     class="btn btn-light btn-sm"
                     data-bs-toggle="modal"
                     data-bs-target="#profileCreateModal"
+                    style="border-radius: 2px;"
                 >
-                    Create Profile
+                    New Profile
                 </button>
             </div>
             
@@ -348,6 +349,7 @@
                             class="page-item tab-toggle" 
                             {% endif %}
                             data-tabtarget="{{ risk_profile.name }}"
+                            style="flex-shrink: 0;"
                         >
                             <button class="page-link" style="border-radius: 4px !important;">{{ risk_profile.name }}</button>
                         </li>
@@ -681,28 +683,15 @@
                         class="col-12 tab" 
                         {% endif %}
                         id="{{ risk_profile.name }}"
-                    >
-                        <nav>
-                            <ul class="pagination pagination-lg pagination-gutter pagination-warning" style="display: flex; justify-content: flex-end;">
+                    >   
+                        <form class="stockset-form">
+                            <label for="stockset">Stock Set</label>
+                            <select name="stockset">
                                 {% for stockset in available_stocksets %}
-                                <li 
-                                    {% if forloop.first %}
-                                    class="page-item active" 
-                                    {% else %}
-                                    class="page-item"
-                                    {% endif %}
-                                >
-                                    <button 
-                                        class="page-link stockset"
-                                        style="border-radius: 2px !important;"
-                                        data-value="{{ stockset }}"
-                                    >
-                                        {{ stockset | upper }}
-                                    </button>
-                                </li>
+                                <option value="{{ stockset.value }}">{{ stockset.name }}</option>
                                 {% endfor %}
-                            </ul>
-                        </nav>
+                            </select>
+                        </form>
 
                         <div class="card" style="border-radius: 0;">
                             <div class="card-header">
@@ -719,9 +708,10 @@
                                 <div style="display: flex; align-items: center; gap: 0 8px;">
                                     <button 
                                         type="button" 
-                                        class="btn btn-light btn-sm"
+                                        class="btn light btn-sm btn-dark"
                                         data-bs-toggle="modal"
                                         data-bs-target="#profile{{ risk_profile.id.hex }}EditModal"
+                                        style="padding: 6px 12px; border-radius: 2px;"
                                     >
                                         Edit
                                         <i class="fas fa-pen"></i>
@@ -730,9 +720,10 @@
                                     <a href="{% url 'risk_management:risk_profile_delete' risk_profile.id %}">
                                         <button 
                                             type="button" 
-                                            class="btn btn-sm btn-danger"
+                                            class="btn light btn-sm btn-danger"
                                             data-bs-toggle="modal"
                                             data-bs-target=""
+                                            style="padding: 6px 12px; border-radius: 2px;"
                                         >
                                             <!-- Delete -->
                                             <i class="fas fa-trash"></i>

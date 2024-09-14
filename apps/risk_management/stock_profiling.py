@@ -1,12 +1,15 @@
 import datetime
 import decimal
-import enum
 import typing
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 
+from apps.accounts.models import UserAccount
+from apps.portfolios.models import Portfolio
 from apps.risk_management.models import RiskProfile
 from apps.stocks.models import Stock
 from apps.stocks.helpers import (
+    get_all_kse_stocks,
     get_kse_top30_stocks,
     get_kse_top50_stocks,
     get_kse_top100_stocks,
@@ -39,7 +42,9 @@ def calculate_stock_percentage_return(
     )
 
 
-def calculate_percentage_ranking(evaluation_result: typing.Dict[str, CriterionStatus]) -> int:
+def calculate_percentage_ranking(
+    evaluation_result: typing.Dict[str, CriterionStatus],
+) -> int:
     """Calculate the percentage ranking of the stock based on the evaluation result."""
     score = sum((status.value for status in evaluation_result.values()))
     expected_score = sum((CriterionStatus.PASSED.value for _ in evaluation_result))
@@ -114,55 +119,73 @@ def generate_stocks_risk_profile(
     return profiles
 
 
-class StockSet(enum.Enum):
-    KSE100 = "kse100"
-    KSE50 = "kse50"
-    KSE30 = "kse30"
-    CUSTOM = "custom"
+def portfolio_stockset(risk_profile: RiskProfile, portofolio_id: uuid.UUID):
+    """
+    Return the stocks in the portfolio with the given ID, if the portfolio exists
+    for the risk profile's owner.
 
+    The stocks are fetched from the portfolio's investments.
 
-StockSetResolver = typing.Callable[
-    [RiskProfile],
-    typing.Union[typing.Iterable[Stock], typing.Callable[[], typing.Iterable[Stock]]],
-]
-STOCKSET_RESOLVERS: typing.Dict[StockSet, StockSetResolver] = {}
-
-
-def stockset_resolver(stockset: StockSet):
-    stockset = StockSet(stockset)
-
-    def decorator(resolver):
-        global STOCKSET_RESOLVERS
-        STOCKSET_RESOLVERS[stockset] = resolver
-        return resolver
-
-    return decorator
-
-
-def resolve_stockset(stockset: typing.Union[str, StockSet], risk_profile: RiskProfile):
-    stockset = StockSet(stockset)
+    :param risk_profile: The risk profile to fetch the portfolio from
+    :param portofolio_id: The ID of the portfolio to fetch the stocks from
+    """
     try:
-        resolver = STOCKSET_RESOLVERS[stockset]
-    except KeyError:
+        stock_ids = (
+            risk_profile.owner.portfolios.prefetch_related(
+                "investments", "investments__stock"
+            )
+            .get(id=portofolio_id)
+            .investments.values_list("stock", flat=True)
+        )
+    except Portfolio.DoesNotExist:
         return []
+    else:
+        return (
+            Stock.objects.prefetch_related("rates").filter(id__in=stock_ids).distinct()
+        )
+
+
+DEFAULT_STOCKSETS: typing.Dict[str, typing.Callable[[], typing.Iterable[Stock]]] = {
+    "KSE100": lambda *_, **__: get_kse_top100_stocks,
+    "KSE50": lambda *_, **__: get_kse_top50_stocks,
+    "KSE30": lambda *_, **__: get_kse_top30_stocks,
+    "KSE_ALL_SHARES": lambda *_, **__: get_all_kse_stocks,
+}
+
+
+def resolve_stockset(stockset: str, risk_profile: RiskProfile):
+    """
+    Resolve the given stockset to a list of stocks.
+
+    If the stockset is a UUID, it is assumed to be a portfolio ID
+    and the stocks in the portfolio are returned.
+
+    :param stockset: The stockset to resolve
+    :param risk_profile: The risk profile to resolve the stockset for
+    :return: A collection of stocks in the stockset
+    """
+    resolver = DEFAULT_STOCKSETS.get(stockset.upper(), None)
+    if not resolver:
+        try:
+            return portfolio_stockset(risk_profile, uuid.UUID(stockset))
+        except ValueError:
+            return []
     return resolver(risk_profile)
 
 
-@stockset_resolver(StockSet.KSE100)
-def _(_):
-    return get_kse_top100_stocks()
+def get_available_stocksets_for_user(user: UserAccount):
+    """
+    Return the available stocksets for the user.
+    """
+    stocksets = [
+        {"name": stockset.replace("_", " "), "value": stockset.lower()}
+        for stockset in DEFAULT_STOCKSETS
+    ]
 
-
-@stockset_resolver(StockSet.KSE50)
-def _(_):
-    return get_kse_top50_stocks()
-
-
-@stockset_resolver(StockSet.KSE30)
-def _(_):
-    return get_kse_top30_stocks()
-
-
-@stockset_resolver(StockSet.CUSTOM)
-def _(risk_profile: RiskProfile):
-    return risk_profile.stocks.all()
+    portfolio_values = user.portfolios.values("id", "name")
+    for portfolio in portfolio_values:
+        stockset = {}
+        stockset["value"] = portfolio["id"]
+        stockset["name"] = f"Portfolio: {portfolio['name']}"
+        stocksets.append(stockset)
+    return stocksets

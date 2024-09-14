@@ -91,7 +91,7 @@ def generate_stock_profile(
             stock, start.date(), end.date()
         )
         stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
-
+    
     evaluation_result = evaluate_criteria(stock, criteria=criteria)
     percentage_ranking = calculate_percentage_ranking(evaluation_result)
     stock_profile.update(evaluation_result)

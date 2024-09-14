@@ -365,7 +365,7 @@
             
             <section class="tabs-section p-4" id="risk-profile-tabs-section" data-urlparam="profile">
                 <nav class="tab-toggles-wp">
-                    <ul class="pagination pagination-lg pagination-gutter pagination-success tab-toggles-wp-inner">
+                    <ul class="pagination pagination-lg pagination-gutter pagination-info tab-toggles-wp-inner">
                         {% for risk_profile in risk_profiles %}
                         <li 
                             {% if forloop.first %}
@@ -376,7 +376,7 @@
                             data-tabtarget="{{ risk_profile.name }}"
                             style="flex-shrink: 0;"
                         >
-                            <button class="page-link" style="border-radius: 4px !important;">{{ risk_profile.name }}</button>
+                            <button class="page-link" style="border-radius: 2px !important; padding: 5px 10px !important; font-size: 0.95rem;">{{ risk_profile.name }}</button>
                         </li>
                         {% endfor %}
                     </ul>

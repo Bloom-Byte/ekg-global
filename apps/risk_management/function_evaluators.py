@@ -5,6 +5,8 @@ import functools
 import attrs
 from django.utils.itercompat import is_iterable
 
+from apps.stocks.models import Rate, Stock
+
 from .criteria import functions
 from .criteria.kwargs_schemas import KwargsSchema, MergeKwargsSchemas
 from . import kwargs_schemas as ks
@@ -12,6 +14,7 @@ from . import arg_evaluators as arg_ev
 
 
 EVALUATOR_GROUPS = (
+    "Price Indicators",
     "Volatility Indicators",
     "Pattern Recognition",
     "Momentum Indicators",
@@ -22,6 +25,7 @@ EVALUATOR_GROUPS = (
 
 
 _T = typing.TypeVar("_T")
+
 
 def _return_first_value(result: typing.Iterable[_T]) -> _T:
     """
@@ -35,6 +39,75 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
     if not is_iterable(result):
         return result
     return _return_first_value(result[0])
+
+
+####################
+# PRICE INDICATORS #
+####################
+
+@functions.evaluator(
+    alias="OPEN",
+    description="Returns the opening price of the latest stock rate.",
+    group="Price Indicators",
+)
+def OPEN(stock: Stock, spec: functions.FunctionSpec):
+    try:
+        latest_rate: Rate = stock.rates.latest("added_at")
+    except Stock.DoesNotExist:
+        return functions.Error()
+    return latest_rate.open
+
+
+@functions.evaluator(
+    alias="HIGH",
+    description="Returns the highest price of the latest stock rate.",
+    group="Price Indicators",
+)
+def HIGH(stock: Stock, spec: functions.FunctionSpec):
+    try:
+        latest_rate: Rate = stock.rates.latest("added_at")
+    except Stock.DoesNotExist:
+        return functions.Error()
+    return latest_rate.high
+
+
+@functions.evaluator(
+    alias="LOW",
+    description="Returns the lowest price of the latest stock rate.",
+    group="Price Indicators",
+)
+def LOW(stock: Stock, spec: functions.FunctionSpec):
+    try:
+        latest_rate: Rate = stock.rates.latest("added_at")
+    except Stock.DoesNotExist:
+        return functions.Error()
+    return latest_rate.low
+
+
+@functions.evaluator(
+    alias="CLOSE",
+    description="Returns the closing price of the latest stock rate.",
+    group="Price Indicators",
+)
+def CLOSE(stock: Stock, spec: functions.FunctionSpec):
+    try:
+        latest_rate: Rate = stock.rates.latest("added_at")
+    except Stock.DoesNotExist:
+        return functions.Error()
+    return latest_rate.close
+
+
+@functions.evaluator(
+    alias="VOLUME",
+    description="Returns the traded volume of the latest stock rate.",
+    group="Price Indicators",
+)
+def VOLUME(stock: Stock, spec: functions.FunctionSpec):
+    try:
+        latest_rate: Rate = stock.rates.latest("added_at")
+    except Stock.DoesNotExist:
+        return functions.Error()
+    return latest_rate.volume
 
 
 # TA-LIB function evaluators built by this builder return only the first result in a result set
@@ -1121,7 +1194,7 @@ VAR = new_evaluator(
 BBANDS = new_evaluator(
     "BBANDS",
     arg_evaluators=[arg_ev.Real],
-    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.NbDevUpandDown, ks.MAType),
+    kwargs_schema=MergeKwargsSchemas(ks.TimePeriod, ks.NbDevUpAndDown, ks.MAType),
     alias="BBANDS",
     description="Bollinger Bands (technical analysis tool defining upper and lower price range levels)",
     group="Overlap Studies",
@@ -1286,4 +1359,3 @@ WMA = new_evaluator(
     description="Weighted Moving Average (gives more weight to recent data)",
     group="Overlap Studies",
 )
-

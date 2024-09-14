@@ -9,15 +9,19 @@ const profileTabDataReloaders = document.querySelectorAll('.tab-data-reloader');
  * @param {*} onRendered 
  * @returns cell value
  */
-function truthyFormatter(cell, formatterParams, onRendered){
+function truthyArrowFormatter(cell, formatterParams, onRendered) {
     let value = cell.getValue();
-    if(value) {
+    cell.getElement().style.textAlign = "center";
+
+    if (value) {
         cell.getElement().classList.add("text-success");
+        return '<i class="fas fa-arrow-up"></i>';
     } else {
         cell.getElement().classList.add("text-danger");
+        return '<i class="fas fa-arrow-down"></i>';
     }
-    return value;
-}
+};
+
 
 /**
  * Format the background and color of the cell based on the value. 
@@ -28,7 +32,7 @@ function truthyFormatter(cell, formatterParams, onRendered){
  * @param {*} onRendered 
  * @returns The cell value as percentage
  */
-function heatMapFormatter(cell, formatterParams, onRendered){
+function heatMapFormatter(cell, formatterParams, onRendered) {
     let value = cell.getValue();
     let intensity = parseInt(value, 10) / 100; // value as a fraction of 100
 
@@ -46,10 +50,10 @@ function heatMapFormatter(cell, formatterParams, onRendered){
 
     cell.getElement().style.backgroundColor = color;
     cell.getElement().style.color = "#e0e0e0";
-    cell.getElement().style.fontWeight = "bold";
-    return `${value} %`;
+    return value;
 }
 
+const comparisonOperators = ['<', '>', '<=', '>=', '=', '!='];
 
 function columnDefinitionsHandler(definitions) {
     definitions.forEach((column, index) => {
@@ -57,10 +61,9 @@ function columnDefinitionsHandler(definitions) {
         if (index in [0, 1]) {
             column.frozen = true;
         }
-        // For cell 3 to the second to the last cell, add a class to the cell based on the value
-        // If the value of the cell is truthy, add a class of text-success, else add a class of text-danger
-        else if (index < definitions.length - 1) {
-            column.formatter = truthyFormatter;
+        // For columns whose title contains comparison operators, set the formatter to truthyArrowFormatter
+        else if (comparisonOperators.some((op) => column.title.includes(op))) {
+            column.formatter = truthyArrowFormatter;
         }
         // For the last cell, set the background color of the cell based on the value
         else if (index === definitions.length - 1) {
@@ -74,8 +77,8 @@ function columnDefinitionsHandler(definitions) {
 
 function buildTable(tableData, tableElement) {
     var table = new Tabulator(tableElement, {
-        data:tableData,
-        autoColumns:true,
+        data: tableData,
+        autoColumns: true,
         autoColumnsDefinitions: columnDefinitionsHandler,
         autoResize: true,
         resizableColumnFit: true,
@@ -90,7 +93,7 @@ function buildTable(tableData, tableElement) {
 
     // Sort the table by descending order of the last column
     // PS: The last column is the ranking of each stock
-    table.on("tableBuilt", function(){
+    table.on("tableBuilt", function () {
         // Get the column definitions
         let columns = table.getColumns();
         // Get the field name of the last column
@@ -103,7 +106,7 @@ function buildTable(tableData, tableElement) {
 };
 
 
-function getActiveStockSetFromTab(tabEl){
+function getActiveStockSetFromTab(tabEl) {
     const stockSetElements = tabEl.querySelectorAll(".stockset");
     const activeStocksets = Array.from(stockSetElements).filter((el) => el.parentElement.classList.contains("active"));
     if (!activeStocksets) return;
@@ -118,7 +121,7 @@ profileTabDataReloaders.forEach((reloader, index) => {
         // Get the tab corresponding to the reloader's index
         const profileTab = profileTabs[index];
         const tabTable = profileTab.querySelector('.risk-profile-table');
-        
+
         if (!tabDataUrl) return;
 
         const options = {
@@ -132,7 +135,7 @@ profileTabDataReloaders.forEach((reloader, index) => {
 
         const url = new URL(tabDataUrl, window.location.origin);
         const stockset = getActiveStockSetFromTab(profileTab);
-        if (stockset){
+        if (stockset) {
             url.searchParams.append('stockset', stockset);
         }
 
@@ -141,37 +144,46 @@ profileTabDataReloaders.forEach((reloader, index) => {
         fetch(url, options).then((response) => {
             // On response, remove the spin class and enable the reloader
             reloader.classList.remove("spin", "disabled");
-            
+
             if (!response.ok) {
                 response.json().then((data) => {
                     pushNotification("error", data.detail ?? data.message ?? 'An error occurred!');
                 });
-    
-            }else{
-                response.json().then((data) => {    
+
+            } else {
+                response.json().then((data) => {
                     const tabData = data.data ?? null;
                     if (!tabData) return;
                     buildTable(tabData, tabTable);
-                });       
+                });
             }
         });
     });
 });
 
 
+/**
+ * Render the table data for the profile tab if it has not been rendered
+ * @param {HTMLElement} profileTab 
+ */
+function renderProfileTabTableData(profileTab) {
+    const profileTable = profileTab.querySelector('.risk-profile-table');
+    const profileTabDataReloader = profileTab.querySelector('.tab-data-reloader');
+
+    // If the table element contains a tabulator js table element, it means the table has been rendered
+    const tableHasBeenRendered = profileTable.querySelector(".tabulator-table") !== null;
+    // If it does not, click on the tab data reloader to fetch and render table data
+    if (!tableHasBeenRendered) {
+        profileTabDataReloader.click();
+    }
+};
+
+
 profileTabToggles.forEach((toggle, index) => {
 
     toggle.addEventListener('click', () => {
         const profileTab = profileTabs[index];
-        const profileTable = profileTab.querySelector('.risk-profile-table');
-        const profileTabDataReloader = profileTab.querySelector('.tab-data-reloader');
-
-        // If the table element contains a tabulator js table element, it means the table has been rendered
-        const tableHasBeenRendered = profileTable.querySelector(".tabulator-table") !== null;
-        // If it does not, click on the tab data reloader to fetch and render table data
-        if (!tableHasBeenRendered) {
-            profileTabDataReloader.click();
-        }
+        renderProfileTabTableData(profileTab);
     });
 });
 
@@ -184,7 +196,7 @@ profileTabs.forEach((profileTab) => {
 
         stockSetElement.addEventListener("click", () => {
             tabStockSetElements.forEach(el => {
-                if (el != stockSetElement){
+                if (el != stockSetElement) {
                     el.parentElement.classList.remove("active");
                 }
                 else {
@@ -195,4 +207,27 @@ profileTabs.forEach((profileTab) => {
             profileTabDataReloader.click();
         });
     });
-}); 
+});
+
+
+// On page load, click on the first active tab toggle
+// If there are no active tab toggles, click on the first tab toggle
+// So that the table data is rendered if it has not been rendered yet
+document.addEventListener("DOMContentLoaded", () => {
+    // If there are no profile tabs, return
+    if (profileTabToggles.length === 0) return;
+
+    // Get the active tab toggles
+    const activeTabToggles = Array.from(profileTabToggles).filter(
+        (toggle) => toggle.classList.contains("active")
+    );
+
+    // If there are active tab toggles, click on the first active tab toggle
+    if (activeTabToggles.length > 0){
+        const activeTabToggle = activeTabToggles[0];
+        activeTabToggle.click();
+    }else{
+        // If there are no active tab toggles, click on the first tab toggle
+        profileTabToggles[0].click();
+    }
+})

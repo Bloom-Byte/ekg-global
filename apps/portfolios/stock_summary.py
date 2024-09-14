@@ -5,7 +5,7 @@ import attrs
 from concurrent.futures import ThreadPoolExecutor
 from django.db import models
 
-from .helpers import parse_dt_filter, get_stocks_invested_from_investments
+from .helpers import datetime_filter_to_date_range, get_stocks_invested_from_investments
 from .models import TransactionType, Portfolio, Investment
 from apps.stocks.models import Rate
 from helpers.utils.decimals import to_n_decimal_places
@@ -118,7 +118,7 @@ def _update_stock_summary_with_percentage_allocation(
 def generate_portfolio_stocks_summary(
     portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
 ) -> typing.List[StockSummary]:
-    start_date, _ = parse_dt_filter(dt_filter, timezone)
+    start_date, _ = datetime_filter_to_date_range(dt_filter, timezone)
     portfolio_investments = (
         portfolio.investments.select_related("stock")
         .prefetch_related("stock__rates")

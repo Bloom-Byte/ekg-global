@@ -188,13 +188,13 @@ def timedelta_code_to_timedelta(timedelta_code: str):
         raise ValueError("Invalid timedelta code")
 
     number = float(number)
-    if unit == "D":
+    if unit.upper() == "D":
         return datetime.timedelta(days=number)
-    elif unit == "W":
+    elif unit.upper() == "W":
         return datetime.timedelta(weeks=number)
-    elif unit == "M":
+    elif unit.upper() == "M":
         return datetime.timedelta(days=number * 30)
-    elif unit == "Y":
+    elif unit.upper() == "Y":
         return datetime.timedelta(days=number * 365)
     else:
         raise ValueError("Invalid timedelta code")

@@ -10,7 +10,6 @@ class RiskProfile(models.Model):
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    stocks = models.ManyToManyField("stocks.Stock", related_name="+", blank=True)
     criteria = models.JSONField(default=list)
 
     created_at = models.DateTimeField(auto_now_add=True)

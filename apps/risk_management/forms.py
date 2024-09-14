@@ -35,7 +35,7 @@ def criterion_data(data: typing.Iterable[typing.Dict]):
 class RiskProfileForm(forms.ModelForm):
     class Meta:
         model = RiskProfile
-        fields = ("name", "description", "stocks", "criteria", "owner")
+        fields = ("name", "description", "criteria", "owner")
 
     def clean_criteria(self):
         criteria = self.cleaned_data.get("criteria")
@@ -51,7 +51,7 @@ class RiskProfileForm(forms.ModelForm):
 class RiskProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = RiskProfile
-        fields = ("name", "description", "stocks", "criteria")
+        fields = ("name", "description", "criteria")
 
     def clean_criteria(self):
         criteria = self.cleaned_data.get("criteria")

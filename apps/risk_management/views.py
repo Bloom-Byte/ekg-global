@@ -21,9 +21,7 @@ from .stock_profiling import (
 
 
 risk_profile_qs = (
-    RiskProfile.objects.select_related("owner")
-    .prefetch_related("stocks", "stocks__rates")
-    .all()
+    RiskProfile.objects.select_related("owner").all()
 )
 
 

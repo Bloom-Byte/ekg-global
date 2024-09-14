@@ -7,16 +7,11 @@ import asyncio
 from asgiref.sync import sync_to_async
 from django.db import models
 
-try:
-    import zoneinfo
-except ImportError:
-    from backports import zoneinfo
-
 from .models import Investment, Portfolio
 from apps.stocks.models import KSE100Rate, Stock
 from helpers.utils.colors import random_colors
 from helpers.utils.models import get_objects_within_datetime_range
-from helpers.utils.datetime import split
+from helpers.utils.datetime import split, timedelta_code_to_datetime_range
 from helpers.caching import ttl_cache
 from helpers.utils.misc import merge_dicts
 
@@ -104,45 +99,26 @@ def get_close_price_range_for_period(
     return min_close, max_close
 
 
-DT_FILTERS_TO_DAY_DELTA = {
-    "5D": 5,
-    "1W": 7,
-    "1M": 30,
-    "3M": 90,
-    "6M": 180,
-    "1Y": 365,
-    "5Y": 365 * 5,
-    "YTD": 0,
-}
+DATETIME_FILTERS = ("5D", "1W", "1M", "3M", "6M", "1Y", "YTD", "5Y")
 
 
 @ttl_cache
-def parse_dt_filter(
-    dt_filter: str, timezone: str = None
+def datetime_filter_to_date_range(
+    _filter: str, timezone: str = None
 ) -> typing.Tuple[typing.Optional[datetime.date], datetime.date]:
     """
-    Parses the datetime filter into a start and end date,
-    based on the correspoding values defined in DT_FILTERS_TO_DAY_DELTA.
+    Parses the datetime filter into a start and end date range.
 
-    :param dt_filter: The datetime filter to parse.
+    :param _filter: The datetime filter to parse.
     :param timezone: The preferred timezone to use.
     :return: A tuple containing the start and end date.
     :raises ValueError: If the filter is invalid.
     """
-    day_delta = DT_FILTERS_TO_DAY_DELTA.get(dt_filter, None)
-    if day_delta is None:
-        raise ValueError(f"Invalid datetime filter: {dt_filter}")
+    if _filter not in DATETIME_FILTERS:
+        raise ValueError(f"Invalid datetime filter: {_filter}")
 
-    delta = datetime.timedelta(days=float(day_delta))
-    tz = zoneinfo.ZoneInfo(timezone) if timezone else None
-    todays_date = datetime.datetime.now(tz).date()
-
-    end_date = todays_date
-    if not day_delta:
-        start_date = None
-    else:
-        start_date = todays_date - delta
-    return start_date, end_date
+    start, end = timedelta_code_to_datetime_range(_filter, timezone=timezone)
+    return start.date(), end.date()
 
 
 @ttl_cache(ttl=60 * 5)
@@ -156,7 +132,7 @@ def get_kse_performance_data(
     :param dt_filter: The datetime filter to use.
     :param timezone: The preferred timezone to use.
     """
-    start_date, end_date = parse_dt_filter(dt_filter, timezone)
+    start_date, end_date = datetime_filter_to_date_range(dt_filter, timezone)
     if not start_date:
         # If the start date is None, use the date of the first KSE100Rate
         earliest_rate = KSE100Rate.objects.order_by("date").first()
@@ -245,7 +221,7 @@ def get_portfolio_performance_data(
         "stock"
     ).prefetch_related("stock__rates")
 
-    start_date, end_date = parse_dt_filter(dt_filter, timezone)
+    start_date, end_date = datetime_filter_to_date_range(dt_filter, timezone)
     if not start_date:
         # If the start date is None, use the date the portfolio was created
         start_date = portfolio.created_at.date()
@@ -355,4 +331,3 @@ def get_stocks_invested_from_investments(
 ) -> typing.List[str]:
     stock_tickers = investments.values_list("stock__ticker", flat=True)
     return list(set(stock_tickers))
-

@@ -11,6 +11,7 @@ class ComparisonOperator(enum.Enum):
     GREATER_THAN = ">"
     LESS_THAN = "<"
     EQUALS = "="
+    NOT_EQUALS = "!="
     GREATER_OR_EQUALS = ">="
     LESS_OR_EQUALS = "<="
 
@@ -79,6 +80,12 @@ def less_than(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
 def equals(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
     """Checks if A is equal to B"""
     return a == b
+
+
+@comparison_executor(ComparisonOperator.NOT_EQUALS)
+def not_equals(a: SupportsRichComparison, b: SupportsRichComparison) -> bool:
+    """Checks if A is not equal to B"""
+    return a != b
 
 
 @comparison_executor(ComparisonOperator.GREATER_OR_EQUALS)

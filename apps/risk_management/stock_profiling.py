@@ -1,3 +1,5 @@
+import datetime
+import decimal
 import enum
 import typing
 from concurrent.futures import ThreadPoolExecutor
@@ -10,13 +12,47 @@ from apps.stocks.helpers import (
     get_kse_top100_stocks,
 )
 from helpers.utils.time import timeit
+from helpers.utils.datetime import timedelta_code_to_datetime_range
 from .criteria.criteria import Criteria, evaluate_criteria, CriterionStatus
 
 
-def calculate_percentage_ranking(evaluation_result: typing.Dict[str, CriterionStatus]):
+def calculate_stock_percentage_return(
+    stock: Stock, start_date: datetime.date, end_date: datetime.date
+) -> decimal.Decimal:
+    """
+    Calculate the percentage return of a stock over a period of time.
+
+    :param stock: A Stock object to calculate the return for
+    :param start_date: The start date of the period
+    :param end_date: The end date of the period
+    :return: The percentage return of the stock
+    """
+    start_price = stock.get_price_on_date(start_date)
+    end_price = stock.get_price_on_date(end_date)
+
+    if not start_price or not end_price:
+        return decimal.Decimal(0).quantize(
+            decimal.Decimal(0.01), rounding=decimal.ROUND_HALF_UP
+        )
+    return (((end_price - start_price) / start_price) * 100).quantize(
+        decimal.Decimal(0.01), rounding=decimal.ROUND_HALF_UP
+    )
+
+
+def calculate_percentage_ranking(evaluation_result: typing.Dict[str, CriterionStatus]) -> int:
+    """Calculate the percentage ranking of the stock based on the evaluation result."""
     score = sum((status.value for status in evaluation_result.values()))
     expected_score = sum((CriterionStatus.PASSED.value for _ in evaluation_result))
     return round((score / expected_score) * 100)
+
+
+PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES = (
+    "1D",
+    "3D",
+    "1W",
+    "1M",
+    "YTD",
+)
 
 
 def generate_stock_profile(stock: Stock, criteria: Criteria) -> dict:
@@ -27,16 +63,27 @@ def generate_stock_profile(stock: Stock, criteria: Criteria) -> dict:
     :param criteria: The criteria to evaluate the stock against
     :return: A dictionary containing the stock's profile and evaluation
     """
-    profile = {}
-    profile["stock"] = stock.ticker
-    profile["current rate"] = stock.price
+    stock_profile = {}
+    # First add the basic information about the stock
+    stock_profile["symbol"] = stock.ticker
+    stock_profile["close"] = stock.price
+
+    # Calculate the percentage return for the stock over different time periods
+    # Update the stock profile with the percentage return for each time period
+    for timedelta_code in PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES:
+        start, end = timedelta_code_to_datetime_range(timedelta_code)
+        percentage_return = calculate_stock_percentage_return(
+            stock, start.date(), end.date()
+        )
+        stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
 
     evaluation_result = evaluate_criteria(stock, criteria=criteria)
     percentage_ranking = calculate_percentage_ranking(evaluation_result)
-    profile.update(evaluation_result)
-    profile["ranking"] = percentage_ranking
-
-    return profile
+    stock_profile.update(evaluation_result)
+    # This is the percentage ranking of the stock based on the evaluation result
+    # It should be the last key in the dictionary
+    stock_profile["EK score (%)"] = percentage_ranking
+    return stock_profile
 
 
 @timeit

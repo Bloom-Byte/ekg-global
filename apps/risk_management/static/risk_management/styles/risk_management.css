@@ -122,6 +122,7 @@
 .tabulator-col .tabulator-col-content {
     background-color: transparent !important;
     padding: 8px 16px !important;
+    font-weight: normal;
 }
 
 .tabulator-row {

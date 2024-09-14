@@ -122,8 +122,8 @@ NbDev = KwargsSchema(
     },
 )
 
-NbDevUpandDown = KwargsSchema(
-    "NbDevUpandDown",
+NbDevUpAndDown = KwargsSchema(
+    "NbDevUpAndDown",
     {
         "nbdevup": attrs.field(type=int, default=2),
         "nbdevdn": attrs.field(type=int, default=2),

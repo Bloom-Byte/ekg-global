@@ -30,7 +30,9 @@ class Portfolio(models.Model):
         blank=True,
         default=decimal.Decimal(0.15),
     )
-    dividends = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    dividends = models.DecimalField(
+        max_digits=14, decimal_places=2, default=0, blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

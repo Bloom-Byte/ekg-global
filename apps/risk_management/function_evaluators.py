@@ -47,7 +47,7 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
 
 @functions.evaluator(
     alias="OPEN",
-    description="Returns the opening price of the latest stock rate.",
+    description="The opening price of the latest stock rate.",
     group="Price Indicators",
 )
 def OPEN(stock: Stock, spec: functions.FunctionSpec):
@@ -60,7 +60,7 @@ def OPEN(stock: Stock, spec: functions.FunctionSpec):
 
 @functions.evaluator(
     alias="HIGH",
-    description="Returns the highest price of the latest stock rate.",
+    description="The highest price of the latest stock rate.",
     group="Price Indicators",
 )
 def HIGH(stock: Stock, spec: functions.FunctionSpec):
@@ -73,7 +73,7 @@ def HIGH(stock: Stock, spec: functions.FunctionSpec):
 
 @functions.evaluator(
     alias="LOW",
-    description="Returns the lowest price of the latest stock rate.",
+    description="The lowest price of the latest stock rate.",
     group="Price Indicators",
 )
 def LOW(stock: Stock, spec: functions.FunctionSpec):
@@ -86,7 +86,7 @@ def LOW(stock: Stock, spec: functions.FunctionSpec):
 
 @functions.evaluator(
     alias="CLOSE",
-    description="Returns the closing price of the latest stock rate.",
+    description="The closing price of the latest stock rate.",
     group="Price Indicators",
 )
 def CLOSE(stock: Stock, spec: functions.FunctionSpec):
@@ -99,7 +99,7 @@ def CLOSE(stock: Stock, spec: functions.FunctionSpec):
 
 @functions.evaluator(
     alias="VOLUME",
-    description="Returns the traded volume of the latest stock rate.",
+    description="The traded volume of the latest stock rate.",
     group="Price Indicators",
 )
 def VOLUME(stock: Stock, spec: functions.FunctionSpec):

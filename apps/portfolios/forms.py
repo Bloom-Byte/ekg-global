@@ -31,6 +31,9 @@ class PortfolioUpdateForm(forms.ModelForm):
 
     def clean_dividends(self):
         dividends = self.cleaned_data["dividends"]
+        if not dividends:
+            return self.instance.dividends
+        
         if self.instance:
             dividends += self.instance.dividends
         return dividends

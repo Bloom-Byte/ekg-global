@@ -122,12 +122,12 @@ class Command(BaseCommand):
     def schedule_update(self, *args, **kwargs):
         try:
             self.stdout.write(
-                f"Scheduling rates update to run every {kwargs.get("cron")}..."
+                f"Scheduling rates update to run every {kwargs.get('cron')}..."
             )
             schedule_stock_rates_update(*args, **kwargs)
             self.stdout.write(
                 self.style.SUCCESS(
-                    f"Stock rates update scheduled to run every {kwargs.get("cron")}."
+                    f"Stock rates update scheduled to run every {kwargs.get('cron')}."
                 )
             )
 

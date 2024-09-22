@@ -1,46 +1,18 @@
 import typing
 import datetime
-import attrs
-import cattrs
 from django.views.decorators.debug import sensitive_variables
 import httpx
+import inflection
 from dcrypt import TextCrypt, CryptKey
 from django.utils import timezone
 from django.conf import settings
 
 from helpers.exceptions.requests import RequestError
-from helpers.attrs import type_cast
 from helpers.logging import log_exception
+from helpers.utils.time import timeit
 
 
 crypt = TextCrypt(key=CryptKey(hash_algorithm="MD5"))
-psx_rate_converter = cattrs.Converter()
-
-
-@type_cast(psx_rate_converter)
-@attrs.define(auto_attribs=True, kw_only=True)
-class MGLinkPSXRate:
-    company_id: str = attrs.field(alias="CompanyId")
-    company_name: str = attrs.field(alias="CompanyName")
-    symbol: str = attrs.field(alias="Symbol")
-    created_date_time: datetime.datetime = attrs.field(alias="CreatedDateTime")
-    open: float = attrs.field(alias="Open")
-    high: float = attrs.field(alias="High")
-    low: float = attrs.field(alias="Low")
-    close: float = attrs.field(alias="Close")
-    volume: int = attrs.field(alias="Volume")
-    previous_close: float = attrs.field(alias="Last")
-    change: float = attrs.field(alias="Change")
-    percentage_change: float = attrs.field(alias="PctChange")
-
-
-def load_psx_rates(rates_data: typing.List[typing.Dict]):
-    for rate_data in rates_data:
-        yield psx_rate_converter.structure(rate_data, MGLinkPSXRate)
-
-
-def psx_rate_to_dict(psx_rate: MGLinkPSXRate) -> typing.Dict:
-    return psx_rate_converter.unstructure(psx_rate)
 
 
 class MGLinkRateProvider:
@@ -102,6 +74,7 @@ class MGLinkRateProvider:
             log_exception(exc)
             raise RequestError(exc) from exc
 
+    @timeit
     def fetch_psx_rates(
         self,
         _from: typing.Optional[datetime.date] = None,
@@ -134,6 +107,30 @@ class MGLinkRateProvider:
         except Exception as exc:
             log_exception(exc)
             raise RequestError(exc) from exc
+
+
+def convert_keys_to_snake_case(data: typing.Dict) -> typing.Dict:
+    return {inflection.underscore(key): value for key, value in data.items()}
+
+
+def clean_rate_data(data: typing.Dict) -> typing.Dict:
+    """Cleans PSX rate data gotten from the provider"""
+    data = convert_keys_to_snake_case(data)
+    data["previous_close"] = data.get("last", 0.00)
+    return data
+
+
+def cleaned_rates_data(rates_data: typing.List[typing.Dict]):
+    """
+    Cleans PSX rates data gotten from the provider.
+
+    Yields cleaned data one at a time
+
+    :param rates_data: The rates data to clean
+    :return: The cleaned rates data
+    """
+    for rate_data in rates_data:
+        yield clean_rate_data(rate_data)
 
 
 mg_link_provider = MGLinkRateProvider(

@@ -1,8 +1,40 @@
 from inspect import isclass
+import collections.abc
 from io import BytesIO
-from typing import Union, Callable, Any, TypeVar, Dict
+from typing import Union, Callable, Any, TypeVar, Dict, Type
 import base64
-import functools
+
+from .choice import ExtendedEnum
+
+
+def has_method(obj: Any, method_name: str) -> bool:
+    """Check if an object or type has a specific method."""
+    return callable(getattr(obj, method_name, None))
+
+
+def type_implements_iter(tp: Type[Any]) -> bool:
+    """Check if the type has an __iter__ method (like lists, sets, etc.)."""
+    return has_method(tp, "__iter__")
+
+
+def is_mapping_type(tp: Type[Any]) -> bool:
+    """Check if a given type is a mapping (like dict)."""
+    return isinstance(tp, type) and issubclass(tp, collections.abc.Mapping)
+
+
+def is_iterable_type(tp: Type[Any]) -> bool:
+    """Check if a given type is an iterable (like list, set, tuple), but not a string."""
+    # Exclude str from being considered an iterable for this use case
+    return (
+        isinstance(tp, type)
+        and issubclass(tp, collections.abc.Iterable)
+        and not issubclass(tp, (str, bytes))
+    )
+
+
+def is_generic_type(tp: Type[Any]) -> bool:
+    """Check if a type is a generic type like List[str], Dict[str, int], etc."""
+    return hasattr(tp, "__origin__")
 
 
 def is_exception_class(exc):
@@ -105,13 +137,34 @@ def get_attr_by_traversal_path(
     return value
 
 
+def get_dict_diff(dict1: Dict, dict2: Dict) -> Dict:
+    """
+    Get the changes between two dictionaries
+
+    The changes in the values of the dictionaries are returned as a new dictionary
+    """
+    diff_dict = {}
+    for key, value in dict1.items():
+        if isinstance(value, dict):
+            diff = get_dict_diff(value, dict2.get(key, {}))
+            if diff:
+                diff_dict[key] = diff
+            continue
+
+        dict2_value = dict2.get(key)
+        if value == dict2_value:
+            continue
+        diff_dict[key] = dict2_value
+    return diff_dict
+
+
 def merge_dicts(dict1: Dict, dict2: Dict) -> Dict:
     """Merges two (nested) dictionaries."""
     # If either dict is empty, return the other
     if not dict2:
-        return dict1
+        return dict1.copy()
     if not dict1:
-        return dict2
+        return dict2.copy()
 
     if not (isinstance(dict1, dict) or isinstance(dict2, dict)):
         raise TypeError("Both arguments must be dictionaries")
@@ -127,9 +180,27 @@ def merge_dicts(dict1: Dict, dict2: Dict) -> Dict:
     return merged
 
 
+def merge_enums(name, *enums) -> ExtendedEnum:
+    """
+    Merges multiple Enums into a single Enum.
+
+    :param name: The name of the new Enum.
+    :param enums: The Enums to merge.
+    :return: A new Enum containing all the members from the provided Enums.
+    """
+    members = {}
+    for enum in enums:
+        for member in enum:
+            if member.name in members:
+                raise ValueError(f"Duplicate enum name found: {member.name}")
+            members[member.name] = member.value
+
+    return ExtendedEnum(name, members)
+
+
 def underscore_dict_keys(_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Replaces all hyphens in the dictionary keys with underscores"""
-    return {key.replace('-', "_"): value for key, value in _dict.items()}
+    return {key.replace("-", "_"): value for key, value in _dict.items()}
 
 
 def comma_separated_to_int_float(value: str) -> Union[int, float]:
@@ -184,7 +255,7 @@ def python_type_to_html_input_type(py_type: type) -> str:
         return "text"  # Handling complex types can vary
     if issubclass(py_type, bytes):
         return "file"
-    
+
     # Default case for unsupported types
     return "text"
 
@@ -198,6 +269,9 @@ __all__ = [
     "compose",
     "get_value_by_traversal_path",
     "get_attr_by_traversal_path",
+    "merge_dicts",
+    "merge_enums",
+    "get_dict_diff",
     "underscore_dict_keys",
     "python_type_to_html_input_type",
 ]

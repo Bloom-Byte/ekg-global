@@ -16,6 +16,8 @@ class Stock(models.Model):
     is_kse30 = models.BooleanField(default=False)
     is_kse50 = models.BooleanField(default=False)
     is_kse100 = models.BooleanField(default=False)
+    
+    metadata = models.JSONField(default=dict, null=True, blank=True)
 
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -77,11 +79,13 @@ class Rate(models.Model):
     high = models.FloatField()
     low = models.FloatField()
     close = models.FloatField()
+    volume = models.FloatField()
     trend = models.CharField(
         max_length=10, choices=MarketTrend.choices, default=MarketTrend.NEUTRAL
     )
-    change = models.FloatField()
-    volume = models.FloatField()
+    ldcp = models.FloatField(null=True, blank=True)
+    change = models.FloatField(null=True, blank=True)
+    pct_change = models.FloatField(null=True, blank=True)
 
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

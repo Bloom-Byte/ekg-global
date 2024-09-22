@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "apps.portfolios",
     "apps.stocks",
     "apps.risk_management",
+    "apps.live_rates",
 ]
 
 MIDDLEWARE = [
@@ -145,3 +146,6 @@ HELPERS_SETTINGS = {
         "message": os.getenv("MAINTENANCE_MODE_MESSAGE", "default:minimal_dark"),
     },
 }
+
+MG_LINK_CLIENT_USERNAME = os.getenv("MG_LINK_CLIENT_USERNAME")
+MG_LINK_CLIENT_PASSWORD = os.getenv("MG_LINK_CLIENT_PASSWORD")

@@ -1,8 +1,8 @@
 import typing
-
+import datetime
 from django.db import models
 
-from .rate_providers import load_psx_rates, psx_rate_to_dict
+from .rate_providers import load_psx_rates, psx_rate_to_dict, mg_link_provider
 from .data_cleaners import MGLinkStockRateDataCleaner
 from apps.stocks.models import Stock, Rate, MarketType
 
@@ -23,11 +23,11 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
 
         stock = Stock.objects.filter(
             models.Q(ticker__iexact=stock_ticker)
-            | models.Q(metadata__mg_link_company_id=mg_link_company_id)
+            | models.Q(metadata__mg_link_company_id__iexact=str(mg_link_company_id))
         ).first()
         if not stock:
             stock = Stock(
-                ticker=stock_ticker, metadata={"mg_link_company_id": mg_link_company_id}
+                ticker=stock_ticker, metadata={"mg_link_company_id": str(mg_link_company_id)}
             )
 
         # Update the stock title here, just in case it is not set or it has changed
@@ -40,5 +40,19 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
             continue
         stocks_rates.append(stock_rate)
 
-    return Rate.objects.bulk_create(stocks_rates)
+    return Rate.objects.bulk_create(stocks_rates, batch_size=999)
 
+
+
+def update_stock_rates(
+    start_date: typing.Optional[datetime.date] = None,
+    end_date: typing.Optional[datetime.date] = None,
+):
+    """
+    Update stock rates data in DB with  rates from MGLink.
+
+    :param start_date: Start date to fetch rates from.
+    :param end_date: End date to fetch rates from.
+    """
+    rates_data = mg_link_provider.fetch_psx_rates(start_date, end_date)
+    save_mg_link_psx_rates_data(rates_data)

@@ -139,4 +139,3 @@ class MGLinkRateProvider:
 mg_link_provider = MGLinkRateProvider(
     username=settings.MG_LINK_CLIENT_USERNAME, password=settings.MG_LINK_CLIENT_PASSWORD
 )
-

@@ -36,11 +36,11 @@ def ndarray_to_list(ndarray_obj: np.ndarray):
         ndarray_obj = ndarray_obj()
     return list(ndarray_obj)
 
-def list_to_ndarray(ndarray_list: typing.List, _) -> np.ndarray:
+def list_to_ndarray(ndarray_list: list, _) -> np.ndarray:
     """Converts a list to a numpy ndarray."""
     return np.array(ndarray_list)
 
 # Register a unstructure hook to convert numpy ndarrays to lists
 converter.register_unstructure_hook(np.ndarray, ndarray_to_list)
-# Register a structure hook to convert lists to numpy ndarrays
-converter.register_structure_hook(np.ndarray, list_to_ndarray)
+# Register a structure hook to convert lists to numpy ndarrays since talib expects numpy ndarrays
+converter.register_structure_hook(list, list_to_ndarray)

@@ -1,6 +1,7 @@
 """Collection of TA-LIB function evaluators for use in criteria"""
 
 import typing
+import numpy as np
 import functools
 import attrs
 from django.utils.itercompat import is_iterable
@@ -34,8 +35,13 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
     Since based on the stock rates data ordering,
     the latest rate data is always the first element of the result set.
     """
-    if not result:
-        return 0
+    if isinstance(result, np.ndarray):
+        if not result.any():
+            return 0
+    else:
+        if not result:
+            return 0
+    
     if not is_iterable(result):
         return result
     return _return_first_value(result[0])

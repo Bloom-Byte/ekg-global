@@ -2,8 +2,8 @@ import functools
 import typing
 import numpy as np
 import attrs
-import talib
 import copy
+import talib
 from talib import get_functions as get_talib_functions
 from django.core.exceptions import ValidationError
 
@@ -15,7 +15,7 @@ from .exceptions import (
     FunctionEvaluationError,
 )
 from .kwargs_schemas import BaseKwargsSchema, kwargs_schema_to_json_schema
-from . import converter
+from . import converter, type_cast
 
 
 T = typing.TypeVar("T")
@@ -25,6 +25,7 @@ P = typing.ParamSpec("P")
 TALIB_FUNCTIONS = get_talib_functions()
 
 
+@type_cast
 @attrs.define(auto_attribs=True, slots=True, frozen=True, repr=False)
 class FunctionSpec:
     """Specifications for evaluating a TA-LIB function on an object"""
@@ -32,7 +33,7 @@ class FunctionSpec:
     name: str
     """The name or alias of the TA-LIB function this specification is for. This will be used to lookup the TA-LIB function evaluator"""
     kwargs: typing.Mapping[str, typing.Any]
-    """Keyword arguments for the TA-LIB function. Will be utilized when evalating the functio on an object"""
+    """Keyword arguments for the TA-LIB function. Will be utilized when evalating the function on an object"""
 
     def __repr__(self) -> str:
         return f"{self.name}({', '.join([f'{k}={v}' for k, v in self.kwargs.items()])})"

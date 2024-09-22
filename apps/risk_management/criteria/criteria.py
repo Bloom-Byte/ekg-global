@@ -9,7 +9,7 @@ from asgiref.sync import sync_to_async
 from .functions import FunctionSpec, evaluate as evaluate_function, make_function_spec
 from .comparisons import ComparisonOperator, get_comparison_executor
 from .exceptions import UnsupportedFunction
-from . import converter
+from . import converter, type_cast
 
 
 T = typing.TypeVar("T")
@@ -22,6 +22,7 @@ class CriterionStatus(enum.IntEnum):
     FAILED = 0
 
 
+@type_cast
 @attrs.define(auto_attribs=True, slots=True, frozen=True, repr=False, hash=False)
 class Criterion:
     """A criterion for evaluating a condition"""

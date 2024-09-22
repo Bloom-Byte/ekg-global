@@ -22,8 +22,8 @@ RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
     && make \
     && make install \
     && rm -rf ta-lib ta-lib-0.4.0-src.tar.gz
-# Upgrade pip
-RUN pip install --upgrade pip
+# Upgrade pip and setuptools
+RUN pip install --upgrade pip setuptools
 
 # Set working directory
 WORKDIR /django

@@ -30,8 +30,8 @@ def schedule_stock_rates_update(
         start_date=start_date,
         end_date=end_date,
         q_options={
-            "timeout": 120,
-            "retry": 150,
+            "timeout": 300,
+            "retry": 350,
             "save": True,
         },
         schedule_type="I",

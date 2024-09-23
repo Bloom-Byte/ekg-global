@@ -1,3 +1,4 @@
+from django.utils import timezone
 from helpers.data_utils import cleaners as cl
 from dateutil.parser import parse as parse_date
 
@@ -11,7 +12,11 @@ class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
     key_mappings = {
         "added_at": "create_date_time",
     }
-    parsers = {"added_at": [lambda v: parse_date(v) if isinstance(v, str) else v]}
+    parsers = {
+        "added_at": [
+            lambda v: timezone.make_aware(parse_date(v)) if isinstance(v, str) else v
+        ]
+    }
 
     def new_instance(self, **extra_fields):
         rate = super().new_instance(**extra_fields)

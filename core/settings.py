@@ -183,3 +183,4 @@ Q_CLUSTER = {
     'django_redis': 'default',
     'broker': 'django_q.brokers.redis_broker.Redis',
 }
+

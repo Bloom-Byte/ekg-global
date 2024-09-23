@@ -98,8 +98,9 @@ class Command(BaseCommand):
     def update_now(
         self, start_date: typing.Optional[date], end_date: typing.Optional[date]
     ):
+        latest = start_date == end_date
         try:
-            if start_date == end_date:
+            if latest:
                 self.stdout.write("Fetching rates for latest available rates...")
             else:
                 self.stdout.write(f"Fetching rates from {start_date} to {end_date}...")
@@ -111,12 +112,16 @@ class Command(BaseCommand):
             self.stdout.write("Saving rates to DB...")
 
             save_mg_link_psx_rates_data(rates_data)
-
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"Successfully updated stock rates data from {start_date} to {end_date}."
+            if latest:
+                self.stdout.write(
+                    self.style.SUCCESS("Successfully updated latest rates data.")
                 )
-            )
+            else:
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"Successfully updated stock rates data from {start_date} to {end_date}."
+                    )
+                )
         except Exception as exc:
             log_exception(exc)
             self.stdout.write(

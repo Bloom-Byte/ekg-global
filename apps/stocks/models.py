@@ -26,10 +26,10 @@ class Stock(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticker = models.CharField(max_length=120, unique=True)
     title = models.CharField(max_length=100, blank=True, null=True)
-    index = models.IntegerField(choices=StockIndices.choices, null=True, blank=True)
-
-    metadata = models.JSONField(default=dict, null=True, blank=True)
-
+    index = models.IntegerField(
+        choices=StockIndices.choices, blank=True, default=StockIndices.KSE_ALLSHR
+    )
+    
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

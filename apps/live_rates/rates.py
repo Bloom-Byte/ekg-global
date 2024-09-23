@@ -22,8 +22,6 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
         data_cleaner.clean()
 
         stock_ticker = stock_ticker.strip()
-        mg_link_company_id = data.get("company_id", None)
-
         stock_created = False
         stock = Stock.objects.filter(ticker__iexact=stock_ticker).first()
         if not stock:
@@ -34,7 +32,6 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
             stock = Stock.objects.create(
                 ticker=stock_ticker.upper(),
                 title=stock_title,
-                metadata={"mg_link_company_id": mg_link_company_id},
             )
             stock_created = True
 

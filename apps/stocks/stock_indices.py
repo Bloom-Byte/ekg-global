@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 import typing
 import csv
 
@@ -26,4 +27,5 @@ def index_stocks(indices_file: typing.Union[str, Path]):
             Stock.objects.filter(ticker__iexact=stock_ticker.strip()).update(
                 index=stock_index,
             )
+    time.sleep(3)
     return

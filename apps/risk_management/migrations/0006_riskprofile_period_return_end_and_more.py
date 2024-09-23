@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('risk_management', '0005_remove_riskprofile_stocks'),
+        ("risk_management", "0005_remove_riskprofile_stocks"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='riskprofile',
-            name='period_return_end',
+            model_name="riskprofile",
+            name="period_return_end",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='riskprofile',
-            name='period_return_start',
+            model_name="riskprofile",
+            name="period_return_start",
             field=models.DateField(blank=True, null=True),
         ),
     ]

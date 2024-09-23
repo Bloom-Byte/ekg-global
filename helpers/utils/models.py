@@ -4,7 +4,8 @@ from django.db import models
 
 
 def get_objects_within_datetime_range(
-    model_or_qs: Union[type[models.Model], models.QuerySet], /, 
+    model_or_qs: Union[type[models.Model], models.QuerySet],
+    /,
     start: Union[datetime.datetime, datetime.date],
     end: Union[datetime.datetime, datetime.date],
     dt_field: str,

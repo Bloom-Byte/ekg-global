@@ -5,20 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('risk_management', '0002_riskprofile_delete_customriskprofile'),
+        ("risk_management", "0002_riskprofile_delete_customriskprofile"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='riskprofile',
-            name='criteria',
+            model_name="riskprofile",
+            name="criteria",
             field=models.JSONField(default=list),
         ),
         migrations.AlterUniqueTogether(
-            name='riskprofile',
-            unique_together={('name', 'owner')},
+            name="riskprofile",
+            unique_together={("name", "owner")},
         ),
     ]

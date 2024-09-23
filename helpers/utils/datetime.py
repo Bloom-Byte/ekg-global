@@ -215,7 +215,7 @@ def timedelta_code_to_datetime_range(
     :return: A tuple containing the start and end datetime objects.
 
     Example:
-    
+
         ```python
         timedelta_code_to_datetime_range("5D") # 5 Days in the past
 

@@ -7,16 +7,27 @@ from django.utils.translation import gettext_lazy as _
 
 from helpers.caching import ttl_cache
 
+
+class StockIndices(models.IntegerChoices):
+    """Available PSX stock indices."""
+
+    KSE100 = 1, _("KSE100")
+    KSE_ALLSHR = 2, _("KSE_ALLSHR")
+    KSE30 = 3, _("KSE30")
+    KMI30 = 4, _("KMI30")
+    KMI_ALLSHR = 5, _("KMI_ALLSHR")
+    BKTI = 6, _("BKTI")
+    OGTI = 7, _("OGTI")
+
+
 class Stock(models.Model):
     """Model definition for Stock."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticker = models.CharField(max_length=120, unique=True)
     title = models.CharField(max_length=100, blank=True, null=True)
-    is_kse30 = models.BooleanField(default=False)
-    is_kse50 = models.BooleanField(default=False)
-    is_kse100 = models.BooleanField(default=False)
-    
+    index = models.IntegerField(choices=StockIndices.choices, null=True, blank=True)
+
     metadata = models.JSONField(default=dict, null=True, blank=True)
 
     added_at = models.DateTimeField(auto_now_add=True)
@@ -25,11 +36,11 @@ class Stock(models.Model):
     class Meta:
         verbose_name = _("Stock")
         verbose_name_plural = _("Stocks")
-        ordering = ["-added_at"]
+        ordering = ["ticker"]
 
     def __str__(self) -> str:
         return self.title or self.ticker
-    
+
     @property
     def price(self) -> typing.Optional[decimal.Decimal]:
         """Current price of the stock."""
@@ -39,10 +50,14 @@ class Stock(models.Model):
         return decimal.Decimal(latest_rate.close).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-    
-    @ttl_cache(ttl=60*5)
-    def get_price_on_date(self, date: datetime.date) -> typing.Optional[decimal.Decimal]:
-        rate_on_date = self.rates.filter(added_at__date=date).order_by("-added_at").first()
+
+    @ttl_cache(ttl=60 * 5)
+    def get_price_on_date(
+        self, date: datetime.date
+    ) -> typing.Optional[decimal.Decimal]:
+        rate_on_date = (
+            self.rates.filter(added_at__date=date).order_by("-added_at").first()
+        )
         if not rate_on_date:
             return
         return decimal.Decimal(rate_on_date.close).quantize(
@@ -113,7 +128,7 @@ class KSE100Rate(models.Model):
         ordering = ["-date"]
 
     @classmethod
-    @ttl_cache(ttl=60*5)
+    @ttl_cache(ttl=60 * 5)
     def get_close_on_date(cls, date: datetime.date):
         rate_on_date = cls.objects.filter(date=date).order_by("-date").first()
         if not rate_on_date:

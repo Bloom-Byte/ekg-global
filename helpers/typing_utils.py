@@ -1,5 +1,6 @@
 import typing
 
+
 class SupportsRichComparison(typing.Protocol):
     def __lt__(self, other: typing.Any) -> bool: ...
     def __le__(self, other: typing.Any) -> bool: ...

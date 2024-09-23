@@ -5,28 +5,40 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('stocks', '0002_stock_title'),
+        ("stocks", "0002_stock_title"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CustomRiskProfile',
+            name="CustomRiskProfile",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('metadata', models.JSONField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('stocks', models.ManyToManyField(blank=True, related_name='+', to='stocks.stock')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("metadata", models.JSONField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "stocks",
+                    models.ManyToManyField(
+                        blank=True, related_name="+", to="stocks.stock"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Custom Risk Profile',
-                'verbose_name_plural': 'Custom Risk Profiles',
-                'ordering': ['-created_at'],
+                "verbose_name": "Custom Risk Profile",
+                "verbose_name_plural": "Custom Risk Profiles",
+                "ordering": ["-created_at"],
             },
         ),
     ]

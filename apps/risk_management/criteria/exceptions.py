@@ -1,4 +1,3 @@
-
 class CriteriaException(Exception):
     pass
 
@@ -25,5 +24,5 @@ class ComparisonExecutorNotFound(CriteriaException):
 
 class FunctionEvaluationError(CriteriaException):
     """Error occurred while evaluating a TA-LIB function on an object"""
-    
+
     pass

@@ -12,6 +12,7 @@ converter = cattrs.Converter()
 type_cast = type_cast_factory(converter)
 cast_on_set = cast_on_set_factory(converter)
 
+
 def UUID_to_string(uuid_obj: uuid.UUID) -> str:
     """Stringify a UUID object."""
     if callable(uuid_obj):
@@ -36,9 +37,11 @@ def ndarray_to_list(ndarray_obj: np.ndarray):
         ndarray_obj = ndarray_obj()
     return list(ndarray_obj)
 
+
 def list_to_ndarray(ndarray_list: list, _) -> np.ndarray:
     """Converts a list to a numpy ndarray."""
     return np.array(ndarray_list)
+
 
 # Register a unstructure hook to convert numpy ndarrays to lists
 converter.register_unstructure_hook(np.ndarray, ndarray_to_list)

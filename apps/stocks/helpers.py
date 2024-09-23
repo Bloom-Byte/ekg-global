@@ -3,28 +3,16 @@ import pandas as pd
 from django.core.files import File
 from dateutil.parser import parse
 
-from .models import Rate, Stock, KSE100Rate
+from .models import Rate, Stock, KSE100Rate, StockIndices
 from helpers.utils.misc import comma_separated_to_int_float
 
 
-def get_all_kse_stocks():
-    """Return all available KSE stocks"""
-    return Stock.objects.prefetch_related("rates").all()
-
-
-def get_kse_top30_stocks():
-    """Return the top 30 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").all()[:30]
-
-
-def get_kse_top50_stocks():
-    """Return the top 50 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").all()[:50]
-
-
-def get_kse_top100_stocks():
-    """Return the top 100 stocks in the KSE"""
-    return Stock.objects.prefetch_related("rates").all()[:100]
+def get_stocks_by_index(index: StockIndices):
+    """Return stocks for a given index."""
+    print(index)
+    return (
+        Stock.objects.prefetch_related("rates").filter(index=index).distinct("ticker")
+    )
 
 
 def get_trend(previous_close: float, close: float) -> str:

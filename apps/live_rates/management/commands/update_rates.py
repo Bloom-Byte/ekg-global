@@ -1,3 +1,4 @@
+from math import e
 import typing
 from django.core.management.base import BaseCommand
 from django.utils import timezone
@@ -98,7 +99,10 @@ class Command(BaseCommand):
         self, start_date: typing.Optional[date], end_date: typing.Optional[date]
     ):
         try:
-            self.stdout.write(f"Fetching rates from {start_date} to {end_date}...")
+            if start_date == end_date:
+                self.stdout.write("Fetching rates for latest available rates...")
+            else:
+                self.stdout.write(f"Fetching rates from {start_date} to {end_date}...")
             rates_data = mg_link_provider.fetch_psx_rates(start_date, end_date)
 
             self.stdout.write(

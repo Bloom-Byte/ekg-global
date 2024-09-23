@@ -7,33 +7,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('risk_management', '0001_initial'),
-        ('stocks', '0002_stock_title'),
+        ("risk_management", "0001_initial"),
+        ("stocks", "0002_stock_title"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RiskProfile',
+            name="RiskProfile",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('criteria', models.JSONField(blank=True, default=list, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='risk_profiles', to=settings.AUTH_USER_MODEL)),
-                ('stocks', models.ManyToManyField(blank=True, related_name='+', to='stocks.stock')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("criteria", models.JSONField(blank=True, default=list, null=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="risk_profiles",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "stocks",
+                    models.ManyToManyField(
+                        blank=True, related_name="+", to="stocks.stock"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Risk Profile',
-                'verbose_name_plural': 'Risk Profiles',
-                'ordering': ['-created_at'],
+                "verbose_name": "Risk Profile",
+                "verbose_name_plural": "Risk Profiles",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.DeleteModel(
-            name='CustomRiskProfile',
+            name="CustomRiskProfile",
         ),
     ]

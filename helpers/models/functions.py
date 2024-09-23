@@ -7,6 +7,7 @@ class PostgreSQLArrayAppend(models.Func):
 
     Uses the `array_append` function in PostgreSQL.
     """
+
     function = "array_append"
     template = "%(function)s(%(expressions)s)"
 

@@ -92,7 +92,7 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
                 f"Function {name} does not have a kwargs_schema defined"
                 " and cannot accept keyword arguments"
             )
-        
+
         kwargs_schema_instance = converter.structure(kwargs, kwargs_schema)
         # Validate the keyword arguments
         try:
@@ -100,7 +100,7 @@ def make_function_spec(name: str, **kwargs) -> FunctionSpec:
         except Exception as exc:
             # Convert the exception to a ValidationError
             raise ValidationError(exc)
-        
+
         kwargs = converter.unstructure(kwargs_schema_instance)
     return FunctionSpec(name, kwargs)
 
@@ -266,7 +266,7 @@ def build_evaluator(
         raise ValueError(f"Invalid TA-LIB function: {talib_target}")
     if not arg_evaluators:
         raise ValueError("At least one argument evaluator is required")
-    
+
     def _evaluator(o: T, /, spec: FunctionSpec) -> SupportsRichComparison:
         args = [arg_evaluator(o, spec) for arg_evaluator in arg_evaluators]
 
@@ -331,27 +331,29 @@ class Error(SupportsRichComparison):
 
     Instances will always return False when compared to other objects
     """
-    
+
     def __ge__(self, other: typing.Any) -> bool:
         return False
-    
+
     def __gt__(self, other: typing.Any) -> bool:
         return False
-    
+
     def __le__(self, other: typing.Any) -> bool:
         return False
-    
+
     def __lt__(self, other: typing.Any) -> bool:
         return False
-    
+
     def __eq__(self, other: typing.Any) -> bool:
         return False
-    
+
     def __ne__(self, other: typing.Any) -> bool:
         return False
 
 
-def evaluate(o: T, /, spec: FunctionSpec) -> typing.Union[SupportsRichComparison, Error]:
+def evaluate(
+    o: T, /, spec: FunctionSpec
+) -> typing.Union[SupportsRichComparison, Error]:
     """
     Run a TA-LIB function evaluation on an object
 

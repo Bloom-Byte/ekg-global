@@ -177,7 +177,7 @@ def to_float_ndarray(values: typing.Iterable) -> np.ndarray:
     """Converts an iterable of values to a numpy float ndarray"""
     if isinstance(values, np.ndarray):
         return values.astype(float)
-    
+
     if isinstance(values, str):
         values = list(map(float, punctuated_string_to_list(values)))
 
@@ -194,4 +194,3 @@ Periods = KwargsSchema(
         ),
     },
 )
-

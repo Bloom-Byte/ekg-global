@@ -4,30 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stocks', '0003_stock_is_kse100_stock_is_kse30_stock_is_kse50'),
+        ("stocks", "0003_stock_is_kse100_stock_is_kse30_stock_is_kse50"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='rate',
-            name='ldcp',
+            model_name="rate",
+            name="ldcp",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='rate',
-            name='pct_change',
+            model_name="rate",
+            name="pct_change",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='stock',
-            name='metadata',
+            model_name="stock",
+            name="metadata",
             field=models.JSONField(blank=True, default=dict, null=True),
         ),
         migrations.AlterField(
-            model_name='rate',
-            name='change',
+            model_name="rate",
+            name="change",
             field=models.FloatField(blank=True, null=True),
         ),
     ]

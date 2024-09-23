@@ -33,11 +33,11 @@ class PortfolioUpdateForm(forms.ModelForm):
         dividends = self.cleaned_data["dividends"]
         if not dividends:
             return self.instance.dividends
-        
+
         if self.instance:
             dividends += self.instance.dividends
         return dividends
-    
+
     def save(self, commit: bool = True) -> Portfolio:
         portfolio: Portfolio = super().save(commit=False)
         cash_addition = self.cleaned_data.get("cash_addition")

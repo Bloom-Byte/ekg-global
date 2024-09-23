@@ -25,7 +25,7 @@ class UploadsView(LoginRequiredMixin, generic.TemplateView):
             if rates_file:
                 handle_rates_file(rates_file)
                 messages.success(request, "Rates upload successful.")
-            
+
             if kse_rates_file:
                 handle_kse_rates_file(kse_rates_file)
                 messages.success(request, "KSE upload successful.")

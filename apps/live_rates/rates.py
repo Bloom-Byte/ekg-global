@@ -1,9 +1,7 @@
 import typing
 import datetime
-from django.db import models
 
 from helpers.utils.time import timeit
-
 from .rate_providers import cleaned_rates_data, mg_link_provider
 from .data_cleaners import MGLinkStockRateDataCleaner
 from apps.stocks.models import Stock, Rate, MarketType
@@ -16,23 +14,27 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
     stocks_rates = []
 
     for data in cleaned_rates_data(mg_link_rates_data):
-        stock_ticker = data["symbol"]
-        stock_title = data["company_name"]
-        mg_link_company_id = data["company_id"]
+        stock_ticker = data.get("symbol", None)
+        if stock_ticker is None or not stock_ticker.strip():
+            continue
 
         data_cleaner = MGLinkStockRateDataCleaner(data)
         data_cleaner.clean()
 
+        stock_ticker = stock_ticker.strip()
+        mg_link_company_id = data.get("company_id", None)
+
         stock_created = False
-        stock = Stock.objects.filter(
-            models.Q(ticker__iexact=stock_ticker)
-            | models.Q(metadata__mg_link_company_id__iexact=str(mg_link_company_id))
-        ).first()
+        stock = Stock.objects.filter(ticker__iexact=stock_ticker).first()
         if not stock:
+            stock_title = data.get("company_name", None)
+            if stock_title:
+                stock_title = stock_title.strip()
+
             stock = Stock.objects.create(
-                ticker=stock_ticker,
+                ticker=stock_ticker.upper(),
                 title=stock_title,
-                metadata={"mg_link_company_id": str(mg_link_company_id)},
+                metadata={"mg_link_company_id": mg_link_company_id},
             )
             stock_created = True
 

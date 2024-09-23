@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('stocks', '0002_stock_title'),
+        ("stocks", "0002_stock_title"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='stock',
-            name='is_kse100',
+            model_name="stock",
+            name="is_kse100",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='stock',
-            name='is_kse30',
+            model_name="stock",
+            name="is_kse30",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='stock',
-            name='is_kse50',
+            model_name="stock",
+            name="is_kse50",
             field=models.BooleanField(default=False),
         ),
     ]

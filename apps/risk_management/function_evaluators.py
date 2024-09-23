@@ -41,7 +41,7 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
     else:
         if not result:
             return 0
-    
+
     if not is_iterable(result):
         return result
     return _return_first_value(result[0])
@@ -50,6 +50,7 @@ def _return_first_value(result: typing.Iterable[_T]) -> _T:
 ####################
 # PRICE INDICATORS #
 ####################
+
 
 @functions.evaluator(
     alias="OPEN",

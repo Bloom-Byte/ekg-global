@@ -6,65 +6,115 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='KSE100Rate',
+            name="KSE100Rate",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('date', models.DateField()),
-                ('open', models.FloatField()),
-                ('high', models.FloatField()),
-                ('low', models.FloatField()),
-                ('close', models.FloatField()),
-                ('volume', models.FloatField()),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("date", models.DateField()),
+                ("open", models.FloatField()),
+                ("high", models.FloatField()),
+                ("low", models.FloatField()),
+                ("close", models.FloatField()),
+                ("volume", models.FloatField()),
             ],
             options={
-                'verbose_name': 'KSE100 Rate',
-                'verbose_name_plural': 'KSE100 Rates',
-                'ordering': ['-date'],
+                "verbose_name": "KSE100 Rate",
+                "verbose_name_plural": "KSE100 Rates",
+                "ordering": ["-date"],
             },
         ),
         migrations.CreateModel(
-            name='Stock',
+            name="Stock",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('ticker', models.CharField(max_length=120, unique=True)),
-                ('added_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("ticker", models.CharField(max_length=120, unique=True)),
+                ("added_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Stock',
-                'verbose_name_plural': 'Stocks',
-                'ordering': ['-added_at'],
+                "verbose_name": "Stock",
+                "verbose_name_plural": "Stocks",
+                "ordering": ["-added_at"],
             },
         ),
         migrations.CreateModel(
-            name='Rate',
+            name="Rate",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('market', models.CharField(choices=[('REG', 'Regular'), ('FUT', 'Future'), ('ODL', 'Odd Lot')], max_length=20)),
-                ('previous_close', models.FloatField()),
-                ('open', models.FloatField()),
-                ('high', models.FloatField()),
-                ('low', models.FloatField()),
-                ('close', models.FloatField()),
-                ('trend', models.CharField(choices=[('up', 'Up'), ('down', 'Down'), ('neutral', 'Neutral')], default='neutral', max_length=10)),
-                ('change', models.FloatField()),
-                ('volume', models.FloatField()),
-                ('added_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('stock', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rates', to='stocks.stock')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "market",
+                    models.CharField(
+                        choices=[
+                            ("REG", "Regular"),
+                            ("FUT", "Future"),
+                            ("ODL", "Odd Lot"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                ("previous_close", models.FloatField()),
+                ("open", models.FloatField()),
+                ("high", models.FloatField()),
+                ("low", models.FloatField()),
+                ("close", models.FloatField()),
+                (
+                    "trend",
+                    models.CharField(
+                        choices=[
+                            ("up", "Up"),
+                            ("down", "Down"),
+                            ("neutral", "Neutral"),
+                        ],
+                        default="neutral",
+                        max_length=10,
+                    ),
+                ),
+                ("change", models.FloatField()),
+                ("volume", models.FloatField()),
+                ("added_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "stock",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rates",
+                        to="stocks.stock",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Rate',
-                'verbose_name_plural': 'Rates',
-                'ordering': ['-added_at'],
+                "verbose_name": "Rate",
+                "verbose_name_plural": "Rates",
+                "ordering": ["-added_at"],
             },
         ),
     ]

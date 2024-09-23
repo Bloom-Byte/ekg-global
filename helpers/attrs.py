@@ -168,7 +168,7 @@ def cast_on_set_factory(
                     return converter.structure(value, type(value))
                 except cattrs.errors.StructureHandlerNotFoundError:
                     return value
-    
+
     return _cast_on_set
 
 

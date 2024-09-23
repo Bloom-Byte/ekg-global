@@ -17,7 +17,6 @@ APPLICATION_ALIAS = os.getenv("APPLICATION_ALIAS")
 
 INSTALLED_APPS = [
     "django_q",
-     
     # Default apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -89,7 +88,7 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             "IGNORE_EXCEPTIONS": False,
-        }
+        },
     }
 }
 
@@ -168,19 +167,20 @@ MG_LINK_CLIENT_USERNAME = os.getenv("MG_LINK_CLIENT_USERNAME")
 MG_LINK_CLIENT_PASSWORD = os.getenv("MG_LINK_CLIENT_PASSWORD")
 
 Q_CLUSTER = {
-    'name': 'ekg-global',
-    'recycle': 500,
-    'compress': True,
-    'save_limit': 250,
-    'queue_limit': 500,
-    'timeout': 30,
-    'retry': 60,
-    'cpu_affinity': 1,
-    'workers': 2, # Since we are not running any heavy tasks, we can keep this low
-    'label': 'Django Q',
-    'catch_up': False,
-    'redis': os.getenv("REDIS_LOCATION"),
-    'django_redis': 'default',
-    'broker': 'django_q.brokers.redis_broker.Redis',
+    "name": "ekg-global",
+    "recycle": 500,
+    "compress": True,
+    "save_limit": 250,
+    "queue_limit": 500,
+    "timeout": 30,
+    "retry": 60,
+    "cpu_affinity": 1,
+    "workers": 2,  # Since we are not running any heavy tasks, we can keep this low
+    "label": "Django Q",
+    "catch_up": False,
+    "redis": os.getenv("REDIS_LOCATION"),
+    "django_redis": "default",
+    "broker": "django_q.brokers.redis_broker.Redis",
 }
 
+STOCKS_INDICES_FILE = os.path.join(BASE_DIR, "resources/stocks_indices.csv")

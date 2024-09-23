@@ -52,7 +52,7 @@ class SignUpView(generic.CreateView):
             for error in errors:
                 messages.error(self.request, error)
         return super().form_invalid(form)
-    
+
     def get_success_url(self) -> str:
         return reverse("accounts:signin")
 

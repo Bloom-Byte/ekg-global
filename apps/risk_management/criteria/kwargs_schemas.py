@@ -33,7 +33,9 @@ def KwargsSchema(
     kwargs.setdefault("bases", (BaseKwargsSchema,))
 
     _convert = attrs.converters.pipe(
-        attrs.converters.default_if_none, cast_on_set, attrs.converters.optional,
+        attrs.converters.default_if_none,
+        cast_on_set,
+        attrs.converters.optional,
     )
     kwargs.setdefault("on_setattr", _convert)
     cls = attrs.make_class(cls_name, attributes, **kwargs)
@@ -103,7 +105,6 @@ class _KwargsSchemaJSONSchema(typing.TypedDict):
     """The properties of the KwargsSchema"""
     required: typing.List[str]
     """List of the required properties of the KwargsSchema"""
-
 
 
 def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):

@@ -1,5 +1,7 @@
+import copy
 import datetime
 import decimal
+import functools
 import typing
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -7,13 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 from apps.accounts.models import UserAccount
 from apps.portfolios.models import Portfolio
 from apps.risk_management.models import RiskProfile
-from apps.stocks.models import Stock
-from apps.stocks.helpers import (
-    get_all_kse_stocks,
-    get_kse_top30_stocks,
-    get_kse_top50_stocks,
-    get_kse_top100_stocks,
-)
+from apps.stocks.models import Stock, StockIndices
+from apps.stocks.helpers import get_stocks_by_index
 from helpers.utils.time import timeit
 from helpers.utils.datetime import timedelta_code_to_datetime_range
 from .criteria.criteria import Criteria, evaluate_criteria, CriterionStatus
@@ -35,10 +32,10 @@ def calculate_stock_percentage_return(
 
     if not start_price or not end_price:
         return decimal.Decimal(0).quantize(
-            decimal.Decimal(0.01), rounding=decimal.ROUND_HALF_UP
+            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
     return (((end_price - start_price) / start_price) * 100).quantize(
-        decimal.Decimal(0.01), rounding=decimal.ROUND_HALF_UP
+        decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
     )
 
 
@@ -91,7 +88,7 @@ def generate_stock_profile(
             stock, start.date(), end.date()
         )
         stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
-    
+
     evaluation_result = evaluate_criteria(stock, criteria=criteria)
     percentage_ranking = calculate_percentage_ranking(evaluation_result)
     stock_profile.update(evaluation_result)
@@ -157,10 +154,10 @@ def portfolio_stockset(risk_profile: RiskProfile, portofolio_id: uuid.UUID):
 
 
 DEFAULT_STOCKSETS: typing.Dict[str, typing.Callable[[], typing.Iterable[Stock]]] = {
-    "KSE100": lambda *_, **__: get_kse_top100_stocks(),
-    "KSE50": lambda *_, **__: get_kse_top50_stocks(),
-    "KSE30": lambda *_, **__: get_kse_top30_stocks(),
-    "KSE_ALL_SHARES": lambda *_, **__: get_all_kse_stocks(),
+    index.name.upper(): functools.partial(
+        lambda *_, index: get_stocks_by_index(index), index=index
+    )
+    for index in StockIndices
 }
 
 
@@ -181,6 +178,7 @@ def resolve_stockset(stockset: str, risk_profile: RiskProfile):
             return portfolio_stockset(risk_profile, uuid.UUID(stockset))
         except ValueError:
             return []
+
     return resolver(risk_profile)
 
 

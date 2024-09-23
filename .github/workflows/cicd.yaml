@@ -62,5 +62,5 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/ekg:${{ github.run_number }}
 
             # Run the new container
-            docker run -d -p 9700:8000 -v /home/dev/ekg/.env:/django/.env --name ekg ${{ secrets.DOCKER_USERNAME }}/ekg:${{ github.run_number }}
+            docker run -d -p 9700:8000 --env-file /home/dev/ekg/.env:/django/.env --name ekg ${{ secrets.DOCKER_USERNAME }}/ekg:${{ github.run_number }}
           EOF

@@ -4,6 +4,7 @@ FROM python:3.10.12
 # Environment variables to improve Python behavior
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV SYSTEMD_PID=1
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y \

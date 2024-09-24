@@ -5,4 +5,9 @@ python manage.py update_rates # Fetches and updates to last 30days stock rates. 
 python manage.py update_rates --schedule --latest --cron "*/5 * * * *" # Schedule background task to update stocks rate to latest rate every 5mins
 python manage.py index_stocks # Update stocks' indices
 python manage.py runserver 0.0.0.0:8000
-python manage.py qcluster &
+#python manage.py qcluster &
+
+systemctl enable /etc/systemd/system/qcluster.service
+
+systemctl start qcluter
+

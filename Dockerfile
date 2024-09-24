@@ -12,16 +12,17 @@ RUN apt-get update && apt-get install -y \
     wget \
     python3-dev \
     curl \
+    systemd \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and build TA-Lib from source
-RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
-    && tar -xzf ta-lib-0.4.0-src.tar.gz \
-    && cd ta-lib \
-    && ./configure --prefix=/usr \
-    && make \
-    && make install \
-    && rm -rf ta-lib ta-lib-0.4.0-src.tar.gz
+#RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz \
+#    && tar -xzf ta-lib-0.4.0-src.tar.gz \
+#    && cd ta-lib \
+#    && ./configure --prefix=/usr \
+#    && make \
+#    && make install \
+#    && rm -rf ta-lib ta-lib-0.4.0-src.tar.gz
 # Upgrade pip and setuptools
 RUN pip install --upgrade pip setuptools
 

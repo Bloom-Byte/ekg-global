@@ -27,8 +27,13 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip setuptools
 
 # Set working directory
+
 WORKDIR /django
 
+RUN ./install_talib.sh
+COPY ./install_talib .
+RUN chmod +x .install_talib.sh
+RUN ./install_talib.sh
 # Copy requirements.txt and install dependencies
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
@@ -37,10 +42,9 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Make the necessary scripts executable
-RUN chmod +x install_talib.sh entrypoint.sh 
+RUN chmod +x entrypoint.sh 
 
 # Run the script to install TA-Lib
-RUN ./install_talib.sh
 
 # Entrypoint for the container
 ENTRYPOINT ["./entrypoint.sh"]

@@ -74,7 +74,13 @@ if (profileCreateForm) {
                     }, 2000);
                 });
             }
-        });
+        }).catch(
+            (error) => {
+                console.error(error);
+                profileCreateButton.onResponse();
+                pushNotification("error", "An error occurred!");
+            }
+        );
     };
 };
 

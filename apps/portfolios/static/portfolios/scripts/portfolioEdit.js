@@ -73,6 +73,10 @@ portfolioEditForms.forEach((portfolioEditForm) => {
                     }, 2000);
                 });
             }
+        }).catch((error) => {
+            portfolioEditButton.onResponse();
+            console.error(error);
+            pushNotification("error", error.message ?? 'An error occurred!');
         });
     };
 });

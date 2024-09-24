@@ -160,7 +160,14 @@ profileTabDataReloaders.forEach((reloader, index) => {
                     buildTable(tabData, tabTable);
                 });
             }
-        });
+        }).catch(
+            (error) => {
+                console.error(error);
+                pushNotification("error", "An error occurred!");
+                // On error, remove the spin class and enable the reloader
+                reloader.classList.remove("spin", "disabled");
+            }
+        );
     });
 });
 

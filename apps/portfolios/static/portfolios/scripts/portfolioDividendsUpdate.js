@@ -73,6 +73,10 @@ portfolioDividendsUpdateForm.addEventListener("submit", function(e) {
                 }, 1000);
             });
         }
+    }).catch((error) => {
+        portfolioDividendsUpdateButton.onResponse();
+        console.error(error);
+        pushNotification("error", error.message ?? 'An error occurred!');
     });
 });
 

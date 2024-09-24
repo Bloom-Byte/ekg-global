@@ -71,6 +71,10 @@ profileEditForms.forEach((profileEditForm) => {
                     }, 2000);
                 });
             }
+        }).catch((error) => {
+            profileEditButton.onResponse();
+            console.error(error);
+            pushNotification("error", error.message ?? 'An error occurred!');
         });
     }
 });

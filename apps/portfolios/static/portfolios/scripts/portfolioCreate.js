@@ -72,6 +72,12 @@ potfolioCreateForm.onsubmit = function(e) {
                 }, 2000);
             });
         }
-    });
+    }).catch(
+        (error) => {
+            portfolioCreateButton.onResponse();
+            console.error(error);
+            pushNotification("error", "An error occurred!");
+        }
+    );
 };
 

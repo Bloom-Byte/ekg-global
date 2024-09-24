@@ -46,7 +46,13 @@ rateFetchButton.addEventListener("click", (e) => {
                 rateInputField.value = latestPrice;
             });
         }
-    });
+    }).catch(
+        (error) => {
+            console.error(error);
+            pushNotification("error", "An error occurred!");
+            rateFetchButton.onResponse();
+        }
+    );
 });
 
 
@@ -117,6 +123,12 @@ transactionAddForm.addEventListener("submit", function(e) {
                 }, 1000);
             });
         }
-    });
+    }).catch(
+        (error) => {
+            console.error(error);
+            pushNotification("error", "An error occurred!");
+            transactionAddButton.onResponse();
+        }
+    );
 });
 

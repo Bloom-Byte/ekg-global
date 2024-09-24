@@ -250,6 +250,9 @@ if (portfolioPerformanceSection) {
                     };
                 });
             }
+        }).catch((error) => {
+            console.error(error);
+            pushNotification("error", error.message ?? 'An error occurred!');
         });
     };
 

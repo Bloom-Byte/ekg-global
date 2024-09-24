@@ -134,5 +134,7 @@ def cleaned_rates_data(rates_data: typing.List[typing.Dict]):
 
 
 mg_link_provider = MGLinkRateProvider(
-    username=settings.MG_LINK_CLIENT_USERNAME, password=settings.MG_LINK_CLIENT_PASSWORD
+    username=settings.MG_LINK_CLIENT_USERNAME,
+    password=settings.MG_LINK_CLIENT_PASSWORD,
+    request_timeout=90.0,
 )

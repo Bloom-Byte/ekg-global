@@ -31,7 +31,7 @@ RUN pip install --upgrade pip setuptools
 WORKDIR /django
 
 COPY ./install_talib.sh .
-RUN chmod +x .install_talib.sh
+RUN chmod +x install_talib.sh
 RUN ./install_talib.sh
 # Copy requirements.txt and install dependencies
 COPY requirements.txt requirements.txt

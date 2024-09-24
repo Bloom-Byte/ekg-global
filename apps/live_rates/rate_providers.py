@@ -6,6 +6,12 @@ import inflection
 from dcrypt import TextCrypt, CryptKey
 from django.utils import timezone
 from django.conf import settings
+from dateutil.parser import parse
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 
 from helpers.exceptions.requests import RequestError
 from helpers.logging import log_exception
@@ -16,8 +22,11 @@ crypt = TextCrypt(key=CryptKey(hash_algorithm="MD5"))
 
 
 class MGLinkRateProvider:
+    """MGLink PSX rate provider client"""
+
     provider_auth_url = "https://api.mg-link.net/api/auth/token"
     provider_rates_url = "https://api.mg-link.net/api/Data1/PSXStockPrices"
+    provider_timezone = "Asia/Karachi"
 
     @sensitive_variables("username", "password")
     def __init__(self, username: str, password: str, request_timeout: float = 30.0):
@@ -34,6 +43,9 @@ class MGLinkRateProvider:
         self._client = httpx.Client(
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0",
             },
             timeout=httpx.Timeout(request_timeout),
         )
@@ -55,7 +67,7 @@ class MGLinkRateProvider:
         )
         return
 
-    def authenticate(self) -> str:
+    def authenticate(self) -> None:
         """Authenticate with the provider"""
         try:
             response = self._client.post(
@@ -117,6 +129,14 @@ def clean_rate_data(data: typing.Dict) -> typing.Dict:
     """Cleans PSX rate data gotten from the provider"""
     data = convert_keys_to_snake_case(data)
     data["previous_close"] = data.get("last", 0.00)
+
+    created_at = data.get("create_date_time", None)
+    if created_at:
+        created_at = parse(created_at)
+        created_at = created_at.replace(
+            tzinfo=zoneinfo.ZoneInfo(MGLinkRateProvider.provider_timezone)
+        )
+        data["create_date_time"] = created_at.strftime("%Y-%m-%dT%H:%M:%S%z")
     return data
 
 

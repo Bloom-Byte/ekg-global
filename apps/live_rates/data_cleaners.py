@@ -5,6 +5,8 @@ from dateutil.parser import parse as parse_date
 from apps.stocks.models import Rate
 from apps.stocks.helpers import get_trend
 
+def null_to_zero(value):
+    return value if value is not None else 0.00
 
 class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
     model = Rate
@@ -13,6 +15,12 @@ class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
         "added_at": "create_date_time",
     }
     parsers = {
+        "open": [null_to_zero, float],
+        "high": [null_to_zero, float],
+        "low": [null_to_zero, float],
+        "close": [null_to_zero, float],
+        "volume": [null_to_zero, float],
+        "previous_close": [null_to_zero, float],
         "added_at": [
             lambda v: timezone.make_aware(parse_date(v)) if isinstance(v, str) else v
         ]

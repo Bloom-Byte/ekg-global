@@ -1,5 +1,12 @@
+from cmath import e
 import typing
 import datetime
+from django.utils import timezone
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 
 from helpers.logging import log_exception
 from helpers.utils.time import timeit
@@ -37,7 +44,9 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
                 )
                 stock_created = True
 
-            stock_rate = data_cleaner.new_instance(stock=stock, market=MarketType.FUTURE)
+            stock_rate = data_cleaner.new_instance(
+                stock=stock, market=MarketType.FUTURE
+            )
             # If the rate already exist for the stock and the added_at date
             # Ignore the rate and continue to the next one
             if (
@@ -55,6 +64,26 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
     return Rate.objects.bulk_create(stocks_rates, batch_size=5000)
 
 
+PAKISTAN_TIMEZONE = zoneinfo.ZoneInfo("Asia/Karachi")
+
+
+def get_time_in_pst(hour: int, minute: int = 0, second: int = 0) -> datetime.time:
+    return datetime.time(hour, minute, second, tzinfo=PAKISTAN_TIMEZONE)
+
+
+PSX_MARKET_HOURS = {
+    0: [(get_time_in_pst(9, 30), get_time_in_pst(15, 30))],
+    1: [(get_time_in_pst(9, 30), get_time_in_pst(15, 30))],
+    2: [(get_time_in_pst(9, 30), get_time_in_pst(15, 30))],
+    3: [(get_time_in_pst(9, 30), get_time_in_pst(15, 30))],
+    4: [
+        (get_time_in_pst(9, 15), get_time_in_pst(12)),
+        (get_time_in_pst(14, 30), get_time_in_pst(16, 30)),
+    ],
+}
+"""The PSX market hours in PST for each day of the week"""
+
+
 def update_stock_rates(
     start_date: typing.Optional[datetime.date] = None,
     end_date: typing.Optional[datetime.date] = None,
@@ -65,5 +94,43 @@ def update_stock_rates(
     :param start_date: Start date to fetch rates from.
     :param end_date: End date to fetch rates from.
     """
+
+    def adjust_date_range_for_latest_rates(
+        start_date: typing.Optional[datetime.date],
+        end_date: typing.Optional[datetime.date],
+    ) -> typing.Tuple[typing.Optional[datetime.date], typing.Optional[datetime.date]]:
+        """
+        Based on client request,
+
+        Only when fetching the latest rates - start_date and end_date are None;
+        This function adjusts the date range to the current date if the current
+        time is outside the PSX market hours.
+
+        However, if the current time is within the PSX market hours, the date range
+        is returned as is (None, None).
+        """
+        if any([start_date, end_date]):
+            return start_date, end_date
+
+        # Both start_date and end_date are None from here on
+        weekday_now = timezone.now().weekday()
+        if weekday_now not in PSX_MARKET_HOURS:
+            return start_date, end_date
+
+        market_hours = PSX_MARKET_HOURS[weekday_now]
+        time_now_pst = timezone.now().astimezone(PAKISTAN_TIMEZONE).time()
+        for market_hour in market_hours:
+            market_open_pst, market_close_pst = market_hour
+
+            # Based on the client request, we should only fetch the latest rates
+            # if the current time is within the PSX market hours
+            if not (market_open_pst <= time_now_pst <= market_close_pst):
+                start_date = timezone.now().date()
+                end_date = start_date
+                return start_date, end_date
+
+        return start_date, end_date
+
+    start_date, end_date = adjust_date_range_for_latest_rates(start_date, end_date)
     rates_data = mg_link_provider.fetch_psx_rates(start_date, end_date)
     save_mg_link_psx_rates_data(rates_data)

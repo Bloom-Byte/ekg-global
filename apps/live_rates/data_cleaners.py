@@ -22,7 +22,7 @@ class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
         "volume": [null_to_zero, float],
         "previous_close": [null_to_zero, float],
         "added_at": [
-            lambda v: timezone.make_aware(parse_date(v)) if isinstance(v, str) else v
+            lambda v: parse_date(v).astimezone() if isinstance(v, str) else v
         ]
     }
 

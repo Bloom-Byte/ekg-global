@@ -50,6 +50,10 @@ class MGLinkRateProvider:
             timeout=httpx.Timeout(request_timeout),
         )
 
+    def __del__(self):
+        # Close the request client when the object is destroyed
+        self._client.close()
+
     @property
     def client(self):
         """Returns request client, authenticating if necessary"""

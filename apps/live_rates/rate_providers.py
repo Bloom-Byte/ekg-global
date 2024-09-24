@@ -15,7 +15,6 @@ except ImportError:
 
 from helpers.exceptions.requests import RequestError
 from helpers.logging import log_exception
-from helpers.utils.time import timeit
 
 
 crypt = TextCrypt(key=CryptKey(hash_algorithm="MD5"))
@@ -90,7 +89,6 @@ class MGLinkRateProvider:
             log_exception(exc)
             raise RequestError(exc) from exc
 
-    @timeit
     def fetch_psx_rates(
         self,
         _from: typing.Optional[datetime.date] = None,

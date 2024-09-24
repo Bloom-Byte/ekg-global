@@ -1,4 +1,3 @@
-from cmath import e
 import typing
 import datetime
 from django.utils import timezone
@@ -9,13 +8,11 @@ except ImportError:
     from backports import zoneinfo
 
 from helpers.logging import log_exception
-from helpers.utils.time import timeit
 from .rate_providers import cleaned_rates_data, mg_link_provider
 from .data_cleaners import MGLinkStockRateDataCleaner
 from apps.stocks.models import Stock, Rate, MarketType
 
 
-@timeit
 def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
     # Load first to ensure the data is valid and the
     # and the values are casted to their proper types
@@ -134,3 +131,5 @@ def update_stock_rates(
     start_date, end_date = adjust_date_range_for_latest_rates(start_date, end_date)
     rates_data = mg_link_provider.fetch_psx_rates(start_date, end_date)
     save_mg_link_psx_rates_data(rates_data)
+
+

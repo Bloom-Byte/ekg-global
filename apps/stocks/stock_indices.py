@@ -1,12 +1,15 @@
 from pathlib import Path
-import time
 import typing
 import csv
+from django.db import models
 
 from .models import Stock, StockIndices
 from apps.live_rates.rate_providers import convert_keys_to_snake_case
+from helpers.models.functions import PostgreSQLArrayAppend
+from helpers.utils.time import timeit
 
 
+@timeit
 def index_stocks(indices_file: typing.Union[str, Path]):
     """
     Update existing stock indices using data contained in a CSV file.
@@ -24,8 +27,11 @@ def index_stocks(indices_file: typing.Union[str, Path]):
                 continue
 
             stock_index = StockIndices(int(index_id))
-            Stock.objects.filter(ticker__iexact=stock_ticker.strip()).update(
-                index=stock_index,
-            )
-    time.sleep(3)
+            stock = Stock.objects.filter(ticker__iexact=stock_ticker.strip()).first()
+            if stock:
+                if stock_index not in stock.indices:
+                    stock.indices = PostgreSQLArrayAppend(
+                        models.F("indices"), models.Value(stock_index)
+                    )
+                    stock.save(update_fields=["indices"])
     return

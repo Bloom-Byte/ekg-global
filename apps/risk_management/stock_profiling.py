@@ -10,7 +10,7 @@ from apps.accounts.models import UserAccount
 from apps.portfolios.models import Portfolio
 from apps.risk_management.models import RiskProfile
 from apps.stocks.models import Stock, StockIndices
-from apps.stocks.helpers import get_stocks_by_index
+from apps.stocks.helpers import get_stocks_by_indices
 from helpers.utils.time import timeit
 from helpers.utils.datetime import timedelta_code_to_datetime_range
 from .criteria.criteria import Criteria, evaluate_criteria, CriterionStatus
@@ -155,7 +155,7 @@ def portfolio_stockset(risk_profile: RiskProfile, portofolio_id: uuid.UUID):
 
 DEFAULT_STOCKSETS: typing.Dict[str, typing.Callable[[], typing.Iterable[Stock]]] = {
     index.name.upper(): functools.partial(
-        lambda *_, index: get_stocks_by_index(index), index=index
+        lambda *_, index: get_stocks_by_indices(index), index=index
     )
     for index in StockIndices
 }

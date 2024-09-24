@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 
 from apps.stocks.models import Stock, Rate, StockIndices
-from apps.stocks.helpers import get_stocks_by_index
+from apps.stocks.helpers import get_stocks_by_indices
 from .criteria.functions import FunctionSpec, ensure_ndarray
 
 
@@ -79,7 +79,7 @@ def VOLUME_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
 @ensure_ndarray(array_dtype=float)
 def KSE100_CLOSE_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
     """Returns a list containing latest `close` values of KSE100 stocks"""
-    kse100_stocks = get_stocks_by_index(StockIndices.KSE100)
+    kse100_stocks = get_stocks_by_indices(StockIndices.KSE100)
 
     latest_close_values = []
     for kse100_stock in kse100_stocks:

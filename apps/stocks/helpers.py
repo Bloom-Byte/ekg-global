@@ -7,12 +7,9 @@ from .models import Rate, Stock, KSE100Rate, StockIndices
 from helpers.utils.misc import comma_separated_to_int_float
 
 
-def get_stocks_by_index(index: StockIndices):
+def get_stocks_by_indices(*indices: StockIndices):
     """Return stocks for a given index."""
-    print(index)
-    return (
-        Stock.objects.prefetch_related("rates").filter(index=index).distinct("ticker")
-    )
+    return Stock.objects.prefetch_related("rates").filter(indices__contains=indices)
 
 
 def get_trend(previous_close: float, close: float) -> str:

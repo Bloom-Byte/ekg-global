@@ -5,7 +5,6 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from datetime import date, timedelta
 
-from helpers.logging import log_exception
 from apps.live_rates.rate_providers import mg_link_provider
 from apps.live_rates.rates import save_mg_link_psx_rates_data
 from apps.live_rates.schedules import schedule_stock_rates_update
@@ -123,7 +122,6 @@ class Command(BaseCommand):
                     )
                 )
         except Exception as exc:
-            log_exception(exc)
             self.stdout.write(
                 self.style.ERROR(f"Error updating stock rates data: {exc}")
             )
@@ -141,7 +139,6 @@ class Command(BaseCommand):
             )
 
         except Exception as exc:
-            log_exception(exc)
             self.stdout.write(
                 self.style.ERROR(f"Error scheduling stock rates update: {exc}")
             )

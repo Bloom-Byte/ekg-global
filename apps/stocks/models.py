@@ -2,6 +2,7 @@ import decimal
 import typing
 import datetime
 import uuid
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -26,10 +27,11 @@ class Stock(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticker = models.CharField(max_length=120, unique=True)
     title = models.CharField(max_length=100, blank=True, null=True)
-    index = models.IntegerField(
-        choices=StockIndices.choices, blank=True, default=StockIndices.KSE_ALLSHR
+    indices = ArrayField(
+        models.IntegerField(choices=StockIndices.choices, blank=True),
+        default=list,
     )
-    
+
     added_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

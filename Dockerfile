@@ -42,9 +42,11 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Make the necessary scripts executable
-RUN chmod +x entrypoint.sh 
+RUN chmod +x entrypoint.sh entrypoint-qcluster.sh 
 
 # Run the script to install TA-Lib
 
 # Entrypoint for the container
 ENTRYPOINT ["./entrypoint.sh"]
+
+CMD [ "./entrypoint-qcluster.sh" ]

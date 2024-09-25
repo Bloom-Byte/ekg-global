@@ -128,7 +128,7 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
         ) * investment.base_cost
         new_investments.append(investment)
 
-    Investment.objects.bulk_create(new_investments, batch_size=998)
+    Investment.objects.bulk_create(new_investments, batch_size=5000)
     return None
 
 

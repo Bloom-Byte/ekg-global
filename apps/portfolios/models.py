@@ -95,7 +95,7 @@ class Portfolio(models.Model):
 
         The current return on the invested capital.
         """
-        todays_date = timezone.now().date()
+        todays_date = timezone.now().astimezone(self.owner.timezone).date()
         return self.get_total_return_on_investments(date=todays_date)
 
     @property

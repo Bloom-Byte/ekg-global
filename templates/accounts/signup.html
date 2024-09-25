@@ -82,6 +82,10 @@
                                             <label class="mb-1"><strong>Password</strong></label>
                                             <input type="password" class="form-control" name="password">
                                         </div>
+                                        <div class="mb-3">
+                                            <label class="mb-1" hidden><strong>Timezone</strong></label>
+                                            <input id="timezone" type="text" class="form-control" name="timezone" hidden>
+                                        </div>
                                         <div class="text-center mt-4">
                                             <button type="submit" class="btn btn-primary btn-block">Sign me up</button>
                                         </div>
@@ -107,6 +111,10 @@
 <script src="{% static 'js/custom.min.js' %}"></script>
 <script src="{% static 'js/dlabnav-init.js' %}"></script>
 
+<script src="{% static 'core/scripts/utils.js' %}"></script>
+<script>
+    document.getElementById("timezone").value = getClientTimezone();
+</script>
 </body>
 </html>
 {% endblock %}

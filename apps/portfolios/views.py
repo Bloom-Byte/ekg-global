@@ -140,7 +140,9 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         #     get_portfolio_performance_graph_data(portfolio)
         # )
         context["stocks_summary"] = generate_portfolio_stocks_summary(
-            portfolio, dt_filter=stocks_summary_dt_filter
+            portfolio,
+            dt_filter=stocks_summary_dt_filter,
+            timezone=str(self.request.user.timezone),
         )
         context["stocks_summary_dt_filter"] = stocks_summary_dt_filter
         return context
@@ -168,7 +170,7 @@ class PortfolioPerformanceDataView(LoginRequiredMixin, generic.View):
         data: Dict = json.loads(request.body)
         dt_filter = data.get("dt_filter", "5D")
         stocks = data.get("stocks", None)
-        timezone = data.get("timezone", None)
+        timezone = data.get("timezone", str(request.user.timezone))
         portfolio = self.get_object()
         data = get_portfolio_performance_graph_data(
             portfolio=portfolio,

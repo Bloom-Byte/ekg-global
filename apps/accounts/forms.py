@@ -1,3 +1,4 @@
+from email.policy import default
 from django import forms
 
 from .models import UserAccount
@@ -30,6 +31,7 @@ class UserAccountCreationForm(forms.ModelForm):
             "name",
             "email",
             "password",
+            "timezone",
         )
 
     def clean_password(self) -> str:
@@ -50,3 +52,4 @@ class SignInForm(forms.Form):
 
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput)
+    timezone = forms.CharField(widget=forms.HiddenInput, required=False)

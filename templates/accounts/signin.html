@@ -25,7 +25,6 @@
 	<link href="{% static 'vendor/jquery-nice-select/css/nice-select.css' %}" rel="stylesheet">
 	<link href="{% static 'vendor/jquery-autocomplete/jquery-ui.css' %}" rel="stylesheet">
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
-
 </head>
 
 <body class="body  h-100">
@@ -81,6 +80,10 @@
 											<label class="mb-1"><strong>Password</strong></label>
 											<input type="password" name="password" class="form-control"">
 										</div>
+										<div class="mb-3">
+                                            <label class="mb-1" hidden><strong>Timezone</strong></label>
+                                            <input id="timezone" type="text" class="form-control" name="timezone" hidden>
+                                        </div>
 										<div class="row d-flex justify-content-between mt-4 mb-2">
 											<div class="mb-3">
 											   <div class="form-check custom-checkbox ms-1">
@@ -121,7 +124,10 @@
     <script src="{% static 'js/custom.min.js' %}"></script>
     <script src="{% static 'js/dlabnav-init.js' %}"></script>
 	
-	
+	<script src="{% static 'core/scripts/utils.js' %}"></script>
+	<script>
+		document.getElementById("timezone").value = getClientTimezone();
+	</script>
 </body>
 </html>
 

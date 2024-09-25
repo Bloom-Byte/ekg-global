@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load tz %}
 
 {% block stylesheets %}
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
@@ -163,6 +164,7 @@
         </div>
     </div>
 
+    {% timezone request.user.timezone %}
     <section id="portfolios-section">
         {% for portfolio in portfolios %}
         <div class="card mw-l" id="card-title-2">
@@ -296,6 +298,7 @@
         </div>  
         {% endfor %}
     </section>
+    {% endtimezone %}
 
     <!-- Paginator -->
     {% if page_obj.paginator.num_pages > 1 %}

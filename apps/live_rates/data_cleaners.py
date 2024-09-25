@@ -1,12 +1,13 @@
-from django.utils import timezone
 from helpers.data_utils import cleaners as cl
 from dateutil.parser import parse as parse_date
 
 from apps.stocks.models import Rate
 from apps.stocks.helpers import get_trend
 
+
 def null_to_zero(value):
     return value if value is not None else 0.00
+
 
 class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
     model = Rate
@@ -21,9 +22,7 @@ class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
         "close": [null_to_zero, float],
         "volume": [null_to_zero, float],
         "previous_close": [null_to_zero, float],
-        "added_at": [
-            lambda v: parse_date(v).astimezone() if isinstance(v, str) else v
-        ]
+        "added_at": [lambda v: parse_date(v).astimezone() if isinstance(v, str) else v],
     }
 
     def new_instance(self, **extra_fields):

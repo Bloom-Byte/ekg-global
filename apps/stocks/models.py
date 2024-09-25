@@ -2,6 +2,7 @@ import decimal
 import typing
 import datetime
 import uuid
+from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -53,7 +54,6 @@ class Stock(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
-    @ttl_cache(ttl=60 * 5)
     def get_price_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:
@@ -104,7 +104,7 @@ class Rate(models.Model):
     change = models.FloatField(null=True, blank=True)
     pct_change = models.FloatField(null=True, blank=True)
 
-    added_at = models.DateTimeField(auto_now_add=True)
+    added_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

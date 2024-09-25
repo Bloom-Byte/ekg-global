@@ -83,7 +83,8 @@ def generate_stock_profile(
     # Calculate the percentage return for the stock over different (default) time periods
     # Update the stock profile with the percentage return for each time period
     for timedelta_code in PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES:
-        start, end = timedelta_code_to_datetime_range(timedelta_code)
+        tz = str(risk_profile.owner.timezone)
+        start, end = timedelta_code_to_datetime_range(timedelta_code, timezone=tz)
         percentage_return = calculate_stock_percentage_return(
             stock, start.date(), end.date()
         )

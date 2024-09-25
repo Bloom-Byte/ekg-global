@@ -2,6 +2,11 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
+
 
 load_dotenv(find_dotenv(".env", raise_error_if_not_found=True))
 
@@ -184,3 +189,5 @@ Q_CLUSTER = {
 }
 
 STOCKS_INDICES_FILE = os.path.join(BASE_DIR, "resources/stocks_indices.csv")
+
+PAKISTAN_TIMEZONE = zoneinfo.ZoneInfo("Asia/Karachi")

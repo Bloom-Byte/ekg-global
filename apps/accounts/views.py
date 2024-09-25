@@ -24,9 +24,14 @@ class SignInView(generic.TemplateView):
         if form.is_valid():
             email = form.cleaned_data["email"]
             password = form.cleaned_data["password"]
+            timezone = form.cleaned_data["timezone"]
             user_account = authenticate(request, username=email, password=password)
 
             if user_account:
+                if timezone:
+                    user_account.timezone = timezone
+                    user_account.save(update_fields=["timezone"])
+                
                 login(request, user_account)
                 query_params = parse_query_params_from_request(request)
                 return redirect(query_params.get("next") or "dashboard:index")

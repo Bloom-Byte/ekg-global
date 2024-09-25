@@ -1,11 +1,7 @@
 import typing
 import datetime
 from django.utils import timezone
-
-try:
-    import zoneinfo
-except ImportError:
-    from backports import zoneinfo
+from django.conf import settings
 
 from helpers.logging import log_exception
 from .rate_providers import cleaned_rates_data, mg_link_provider
@@ -24,9 +20,6 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
             if stock_ticker is None or not stock_ticker.strip():
                 continue
 
-            data_cleaner = MGLinkStockRateDataCleaner(data)
-            data_cleaner.clean()
-
             stock_ticker = stock_ticker.strip()
             stock_created = False
             stock = Stock.objects.filter(ticker__iexact=stock_ticker).first()
@@ -41,10 +34,13 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
                 )
                 stock_created = True
 
+            data_cleaner = MGLinkStockRateDataCleaner(data)
+            data_cleaner.clean()
             stock_rate = data_cleaner.new_instance(
-                stock=stock, market=MarketType.FUTURE
+                stock=stock,
+                market=MarketType.FUTURE,
             )
-            # If the rate already exist for the stock and the added_at date
+            # If the rate already exists for the stock and the added_at date
             # Ignore the rate and continue to the next one
             if (
                 not stock_created
@@ -53,19 +49,19 @@ def save_mg_link_psx_rates_data(mg_link_rates_data: typing.List[typing.Dict]):
                 ).exists()
             ):
                 continue
-            stocks_rates.append(stock_rate)
         except Exception as exc:
             log_exception(exc)
             continue
+        else:
+            stocks_rates.append(stock_rate)
 
-    return Rate.objects.bulk_create(stocks_rates, batch_size=5000)
-
-
-PAKISTAN_TIMEZONE = zoneinfo.ZoneInfo("Asia/Karachi")
+    return Rate.objects.bulk_create(
+        stocks_rates, batch_size=5000, ignore_conflicts=False
+    )
 
 
 def get_time_in_pst(hour: int, minute: int = 0, second: int = 0) -> datetime.time:
-    return datetime.time(hour, minute, second, tzinfo=PAKISTAN_TIMEZONE)
+    return datetime.time(hour, minute, second, tzinfo=settings.PAKISTAN_TIMEZONE)
 
 
 PSX_MARKET_HOURS = {
@@ -78,7 +74,7 @@ PSX_MARKET_HOURS = {
         (get_time_in_pst(14, 30), get_time_in_pst(16, 30)),
     ],
 }
-"""The PSX market hours in PST for each day of the week"""
+"""The PSX market hours in PST for each market day of the week"""
 
 
 def update_stock_rates(
@@ -86,7 +82,7 @@ def update_stock_rates(
     end_date: typing.Optional[datetime.date] = None,
 ):
     """
-    Update stock rates data in DB with  rates from MGLink.
+    Update stock rates data in DB with rates from MGLink.
 
     :param start_date: Start date to fetch rates from.
     :param end_date: End date to fetch rates from.
@@ -115,7 +111,7 @@ def update_stock_rates(
             return start_date, end_date
 
         market_hours = PSX_MARKET_HOURS[weekday_now]
-        time_now_pst = timezone.now().astimezone(PAKISTAN_TIMEZONE).time()
+        time_now_pst = timezone.now().astimezone(settings.PAKISTAN_TIMEZONE).time()
         for market_hour in market_hours:
             market_open_pst, market_close_pst = market_hour
 
@@ -131,5 +127,6 @@ def update_stock_rates(
     start_date, end_date = adjust_date_range_for_latest_rates(start_date, end_date)
     rates_data = mg_link_provider.fetch_psx_rates(start_date, end_date)
     save_mg_link_psx_rates_data(rates_data)
-
-
+    # Just return this for now to be able to track date used for fetching rates
+    # in admin logs
+    return start_date, end_date

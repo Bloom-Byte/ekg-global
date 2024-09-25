@@ -829,6 +829,7 @@
         </nav> 
         
         <div class="tabs">
+            {% timezone request.user.timezone %}
             <!-- Transactions Tab -->
             <div class="col-12 tab show-flex" id="transaction-history">
                 <div class="card" style="border-radius: 2px;">
@@ -963,6 +964,7 @@
                     </div>
                 </div>
             </div>
+            {% endtimezone %}
 
             <!-- Stocks Summary Tab -->
             <div class="col-12 tab" id="stocks-summary">

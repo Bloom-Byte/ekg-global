@@ -8,11 +8,6 @@ from django.utils import timezone
 from django.conf import settings
 from dateutil.parser import parse
 
-try:
-    import zoneinfo
-except ImportError:
-    from backports import zoneinfo
-
 from helpers.exceptions.requests import RequestError
 from helpers.logging import log_exception
 
@@ -25,7 +20,7 @@ class MGLinkRateProvider:
 
     provider_auth_url = "https://api.mg-link.net/api/auth/token"
     provider_rates_url = "https://api.mg-link.net/api/Data1/PSXStockPrices"
-    provider_timezone = "Asia/Karachi"
+    provider_timezone = settings.PAKISTAN_TIMEZONE
 
     @sensitive_variables("username", "password")
     def __init__(self, username: str, password: str, request_timeout: float = 30.0):
@@ -56,7 +51,8 @@ class MGLinkRateProvider:
     @property
     def client(self):
         """Returns request client, authenticating if necessary"""
-        if self.authentication_required_at <= timezone.now():
+        # Authenticate 10 seconds before the token expires
+        if (self.authentication_required_at - timezone.now()).total_seconds() < 10:
             self.authenticate()
         return self._client
 
@@ -135,9 +131,7 @@ def clean_rate_data(data: typing.Dict) -> typing.Dict:
     created_at = data.get("create_date_time", None)
     if created_at:
         created_at = parse(created_at)
-        created_at = created_at.replace(
-            tzinfo=zoneinfo.ZoneInfo(MGLinkRateProvider.provider_timezone)
-        )
+        created_at = created_at.replace(tzinfo=MGLinkRateProvider.provider_timezone)
         data["create_date_time"] = created_at.strftime("%Y-%m-%dT%H:%M:%S%z")
     return data
 
@@ -160,3 +154,8 @@ mg_link_provider = MGLinkRateProvider(
     password=settings.MG_LINK_CLIENT_PASSWORD,
     request_timeout=90.0,
 )
+
+# import rich
+
+# date = parse("2023-09-26")
+# rich.print(mg_link_provider.fetch_psx_rates(date, date))

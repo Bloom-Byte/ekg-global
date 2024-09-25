@@ -2,6 +2,11 @@ import typing
 import decimal
 from dateutil.parser import parse
 
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
+
 from helpers.data_utils import cleaners as cl
 from .models import Investment
 
@@ -14,16 +19,19 @@ def toDecimal(val):
     )
 
 
-def toDate(val):
+def toDate(val, timezone=None):
     if not val:
         return None
-    return parse(val).date()
+    tz = zoneinfo.ZoneInfo(timezone) if timezone else zoneinfo.ZoneInfo("UTC")
+    return parse(val).astimezone(tz).date()
 
 
-def toTime(val):
+def toTime(val, timezone=None):
     if not val:
         return None
-    return parse(val).time()
+    
+    tz = zoneinfo.ZoneInfo(timezone) if timezone else zoneinfo.ZoneInfo("UTC")
+    return parse(val).astimezone(tz).time()
 
 
 _DataCleaner = typing.TypeVar("_DataCleaner", bound=cl.ModelDataCleaner)
@@ -65,13 +73,13 @@ class InvestmentDataCleaner(cl.ModelDataCleaner[Investment]):
     }
     parsers = {
         "transaction_date": [
-            toDate,
+            lambda val: toDate(val, timezone="Asia/Karachi"),
         ],
         "settlement_date": [
-            toDate,
+            lambda val: toDate(val, timezone="Asia/Karachi"),
         ],
         "transaction_time": [
-            toTime,
+            lambda val: toTime(val, timezone="Asia/Karachi"),
         ],
     }
 

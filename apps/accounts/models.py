@@ -2,6 +2,7 @@ import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from timezone_field import TimeZoneField
 
 from .managers import UserAccountManager
 
@@ -21,6 +22,8 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
         max_length=120, choices=AccountType.choices, default=AccountType.USER
     )
     email = models.EmailField(unique=True)
+    timezone = TimeZoneField(default="UTC")
+    
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)

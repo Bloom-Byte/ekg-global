@@ -18,7 +18,7 @@ services:
   qcluster:
     image: bloombyte/ekg:latest
     volumes:
-      - /home/dev/ekg/.env:/django/.env:ro
+      - /home/dev/ekg/.env:/django/.env
     command: python manage.py qcluster
     restart: always
     networks:

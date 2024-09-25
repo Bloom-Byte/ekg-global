@@ -6,7 +6,7 @@ services:
   ekg:
     image: bloombyte/ekg:latest
     volumes:
-      - /home/ekg/.env:/django/.env
+      - /home/dev/ekg/.env:/django/.env
     ports:
       - "9700:8000"
     depends_on:
@@ -18,7 +18,7 @@ services:
   qcluster:
     image: bloombyte/ekg:latest
     volumes:
-      - /home/ekg/.env:/django/.env:ro
+      - /home/dev/ekg/.env:/django/.env:ro
     command: python manage.py qcluster
     restart: always
     networks:

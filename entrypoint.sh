@@ -7,7 +7,5 @@ python manage.py index_stocks # Update stocks' indices
 python manage.py runserver 0.0.0.0:8000
 #python manage.py qcluster &
 
-systemctl enable /etc/systemd/system/qcluster.service
 
-systemctl start qcluter
 

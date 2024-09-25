@@ -34,9 +34,8 @@ def schedule_stock_rates_update(
             "retry": 620,
             "save": True,
         },
-        schedule_type="I",
+        schedule_type="C",
         repeats=repeats,
-        type="C",
         cron=cron,
         # Set the next run time to 10 seconds from now to avoid running the task immediately
         next_run=(timezone.now() + datetime.timedelta(seconds=10)),

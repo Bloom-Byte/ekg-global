@@ -1,6 +1,7 @@
 import typing
 import decimal
 from dateutil.parser import parse
+from django.conf import settings
 
 try:
     import zoneinfo
@@ -19,17 +20,17 @@ def toDecimal(val):
     )
 
 
-def toDate(val, timezone=None):
+def toDate(val, timezone: typing.Optional[str] = None):
     if not val:
         return None
     tz = zoneinfo.ZoneInfo(timezone) if timezone else zoneinfo.ZoneInfo("UTC")
     return parse(val).astimezone(tz).date()
 
 
-def toTime(val, timezone=None):
+def toTime(val, timezone: typing.Optional[str] = None):
     if not val:
         return None
-    
+
     tz = zoneinfo.ZoneInfo(timezone) if timezone else zoneinfo.ZoneInfo("UTC")
     return parse(val).astimezone(tz).time()
 
@@ -73,13 +74,13 @@ class InvestmentDataCleaner(cl.ModelDataCleaner[Investment]):
     }
     parsers = {
         "transaction_date": [
-            lambda val: toDate(val, timezone="Asia/Karachi"),
+            lambda val: toDate(val, timezone=str(settings.PAKISTAN_TIMEZONE)),
         ],
         "settlement_date": [
-            lambda val: toDate(val, timezone="Asia/Karachi"),
+            lambda val: toDate(val, timezone=str(settings.PAKISTAN_TIMEZONE)),
         ],
         "transaction_time": [
-            lambda val: toTime(val, timezone="Asia/Karachi"),
+            lambda val: toTime(val, timezone=str(settings.PAKISTAN_TIMEZONE)),
         ],
     }
 

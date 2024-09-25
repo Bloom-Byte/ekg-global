@@ -1,0 +1,25 @@
+version: '3'
+networks:
+  ekg_net:
+    driver: bridge
+services:
+  ekg:
+    image: bloombyte/ekg:latest
+    volumes:
+      - /home/ekg/.env:/django/.env
+    ports:
+      - "9700:8000"
+    depends_on:
+      - qcluster
+    entrypoint: ./entrypoint.sh
+    networks:
+      - ekg_net
+
+  qcluster:
+    image: bloombyte/ekg:latest
+    volumes:
+      - /home/ekg/.env:/django/.env:ro
+    command: python manage.py qcluster
+    restart: always
+    networks:
+      - ekg_net

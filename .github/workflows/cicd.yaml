@@ -22,7 +22,7 @@ jobs:
           restore-keys: docker-${{ runner.os }}-
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ekg:$GITHUB_RUN_NUMBER .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ekg:latest .
 
 
       - name: Login to Docker Hub
@@ -32,7 +32,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/ekg:$GITHUB_RUN_NUMBER
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/ekg:latest
 
   deploy:
     needs: build
@@ -46,24 +46,9 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 using Docker Compose
         run: |
-          ssh -o StrictHostKeyChecking=no  dev@${{ secrets.EC2_IP }} << 'EOF'
-            # Stop and remove any existing container
-            if docker ps -a --format '{{.Names}}' | grep -q '^ekg$'; then
-            docker stop ekg || true
-            docker rm ekg || true
-            docker image prune -f --filter "reference=*ekg*" || true
-
-          fi 
-
-
-            # Pull the new image
-            docker pull ${{ secrets.DOCKER_USERNAME }}/ekg:${{ github.run_number }}
-
-            # Run the new container
-            docker run -d -p 9700:8000 \
-             -v /home/dev/ekg/.env:/django/.env \
-             -v /home/dev/ekg/qcluster.service:/etc/systemd/system/qcluster.service \
-            --name ekg ${{ secrets.DOCKER_USERNAME }}/ekg:${{ github.run_number }}
+          ssh -o StrictHostKeyChecking=no dev@${{ secrets.EC2_IP }} << 'EOF'
+            docker-compose -f /home/dev/docker-compose.yml pull
+            docker-compose -f /home/dev/docker-compose.yml up -d
           EOF

@@ -9,6 +9,7 @@ from .helpers import datetime_filter_to_date_range, get_stocks_invested_from_inv
 from .models import TransactionType, Portfolio, Investment
 from apps.stocks.models import Rate
 from helpers.utils.decimals import to_n_decimal_places
+from helpers.utils.datetime import activate_timezone
 
 
 convert_to_2dp_decimal = functools.partial(to_n_decimal_places, n=2)
@@ -118,12 +119,14 @@ def _update_stock_summary_with_percentage_allocation(
 def generate_portfolio_stocks_summary(
     portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
 ) -> typing.List[StockSummary]:
-    start_date, _ = datetime_filter_to_date_range(dt_filter, timezone)
-    portfolio_investments = (
-        portfolio.investments.select_related("stock")
-        .prefetch_related("stock__rates")
-        .filter(added_at__date__gte=start_date)
-    )
+    
+    with activate_timezone(timezone):
+        start_date, _ = datetime_filter_to_date_range(dt_filter)
+        portfolio_investments = (
+            portfolio.investments.select_related("stock")
+            .prefetch_related("stock__rates")
+            .filter(added_at__date__gte=start_date)
+        )
 
     # If no investments exists, return a summary for the total only
     if not portfolio_investments.exists():

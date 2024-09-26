@@ -11,7 +11,7 @@ from .models import Investment, Portfolio
 from apps.stocks.models import KSE100Rate, Stock
 from helpers.utils.colors import random_colors
 from helpers.utils.models import get_objects_within_datetime_range
-from helpers.utils.datetime import split, timedelta_code_to_datetime_range
+from helpers.utils.datetime import activate_timezone, split, timedelta_code_to_datetime_range
 from helpers.caching import ttl_cache
 from helpers.utils.misc import merge_dicts
 
@@ -132,56 +132,57 @@ def get_kse_performance_data(
     :param dt_filter: The datetime filter to use.
     :param timezone: The preferred timezone to use.
     """
-    start_date, end_date = datetime_filter_to_date_range(dt_filter, timezone)
-    if not start_date:
-        # If the start date is None, use the date of the first KSE100Rate
-        earliest_rate = KSE100Rate.objects.order_by("date").first()
-        if earliest_rate:
-            start_date = earliest_rate.date
+    with activate_timezone(timezone):
+        start_date, end_date = datetime_filter_to_date_range(dt_filter)
+        if not start_date:
+            # If the start date is None, use the date of the first KSE100Rate
+            earliest_rate = KSE100Rate.objects.order_by("date").first()
+            if earliest_rate:
+                start_date = earliest_rate.date
 
-    delta = None
+        delta = None
 
-    def get_kse_performance_data_for_period(period_start, period_end):
-        nonlocal kse_performance_data, delta
-        if delta is None:
-            delta = period_end - period_start
+        def get_kse_performance_data_for_period(period_start, period_end):
+            nonlocal kse_performance_data, delta
+            if delta is None:
+                delta = period_end - period_start
 
-        pre_period_start = period_start - delta
+            pre_period_start = period_start - delta
 
-        pre_period_start_price = KSE100Rate.get_close_on_date(pre_period_start)
-        period_start_price = KSE100Rate.get_close_on_date(period_start)
-        period_end_price = KSE100Rate.get_close_on_date(period_end)
+            pre_period_start_price = KSE100Rate.get_close_on_date(pre_period_start)
+            period_start_price = KSE100Rate.get_close_on_date(period_start)
+            period_end_price = KSE100Rate.get_close_on_date(period_end)
 
-        percentage_change_at_period_start = 0.00
-        percentage_change_at_period_end = 0.00
-        if pre_period_start_price and period_start_price:
-            percentage_change_at_period_start = (
-                (period_start_price - pre_period_start_price) / pre_period_start_price
-            ) * 100
+            percentage_change_at_period_start = 0.00
+            percentage_change_at_period_end = 0.00
+            if pre_period_start_price and period_start_price:
+                percentage_change_at_period_start = (
+                    (period_start_price - pre_period_start_price) / pre_period_start_price
+                ) * 100
 
-        if period_start_price and period_end_price:
-            percentage_change_at_period_end = (
-                (period_end_price - period_start_price) / period_start_price
-            ) * 100
+            if period_start_price and period_end_price:
+                percentage_change_at_period_end = (
+                    (period_end_price - period_start_price) / period_start_price
+                ) * 100
 
-        return {
-            period_start.isoformat(): percentage_change_at_period_start,
-            period_end.isoformat(): percentage_change_at_period_end,
-        }
+            return {
+                period_start.isoformat(): percentage_change_at_period_start,
+                period_end.isoformat(): percentage_change_at_period_end,
+            }
 
-    async def main():
-        async_func = sync_to_async(get_kse_performance_data_for_period)
-        tasks = []
-        for periods in split(start_date, end_date, parts=5):
-            task = asyncio.create_task(async_func(*periods))
-            tasks.append(task)
+        async def main():
+            async_func = sync_to_async(get_kse_performance_data_for_period)
+            tasks = []
+            for periods in split(start_date, end_date, parts=5):
+                task = asyncio.create_task(async_func(*periods))
+                tasks.append(task)
 
-        return await asyncio.gather(*tasks)
+            return await asyncio.gather(*tasks)
 
-    results = asyncio.run(main())
-    # Merge the results such that the most recent result updates the existing one
-    kse_performance_data = functools.reduce(merge_dicts, results)
-    return kse_performance_data
+        results = asyncio.run(main())
+        # Merge the results such that the most recent result updates the existing one
+        kse_performance_data = functools.reduce(merge_dicts, results)
+        return kse_performance_data
 
 
 def get_portfolio_percentage_return_on_dates(
@@ -221,63 +222,64 @@ def get_portfolio_performance_data(
         "stock"
     ).prefetch_related("stock__rates")
 
-    start_date, end_date = datetime_filter_to_date_range(dt_filter, timezone)
-    if not start_date:
-        # If the start date is None, use the date the portfolio was created
-        start_date = portfolio.created_at.date()
+    with activate_timezone(timezone):
+        start_date, end_date = datetime_filter_to_date_range(dt_filter)
+        if not start_date:
+            # If the start date is None, use the date the portfolio was created
+            start_date = portfolio.created_at.date()
 
-    def get_portfolio_percentage_return_values_for_period(period_start, period_end):
-        nonlocal percentage_return_values
-        percentage_returns = get_portfolio_percentage_return_on_dates(
-            portfolio, period_start, period_end
-        )
-        return {
-            period_start.isoformat(): float(percentage_returns[0]),
-            period_end.isoformat(): float(percentage_returns[1]),
-        }
-
-    def get_investment_percentage_return_values_for_period(period_start, period_end):
-        nonlocal percentage_return_values
-        nonlocal stocks
-        period_start_iso_fmt = period_start.isoformat()
-        period_end_iso_fmt = period_end.isoformat()
-        result = {}
-
-        for stock in stocks:
-            investment: Investment = portfolio_investments.filter(
-                stock__ticker=stock
-            ).first()
-            if not investment:
-                continue
-            percentage_returns = get_investment_percentage_return_on_dates(
-                investment, period_start, period_end
+        def get_portfolio_percentage_return_values_for_period(period_start, period_end):
+            nonlocal percentage_return_values
+            percentage_returns = get_portfolio_percentage_return_on_dates(
+                portfolio, period_start, period_end
             )
-            result[stock] = {
-                period_start_iso_fmt: float(percentage_returns[0]),
-                period_end_iso_fmt: float(percentage_returns[1]),
+            return {
+                period_start.isoformat(): float(percentage_returns[0]),
+                period_end.isoformat(): float(percentage_returns[1]),
             }
-        return result
 
-    if stocks:
-        func = get_investment_percentage_return_values_for_period
-    else:
-        func = get_portfolio_percentage_return_values_for_period
+        def get_investment_percentage_return_values_for_period(period_start, period_end):
+            nonlocal percentage_return_values
+            nonlocal stocks
+            period_start_iso_fmt = period_start.isoformat()
+            period_end_iso_fmt = period_end.isoformat()
+            result = {}
 
-    async def main():
-        async_func = sync_to_async(func)
-        tasks = []
-        for period in split(start_date, end_date, parts=5):
-            task = asyncio.create_task(async_func(*period))
-            tasks.append(task)
+            for stock in stocks:
+                investment: Investment = portfolio_investments.filter(
+                    stock__ticker=stock
+                ).first()
+                if not investment:
+                    continue
+                percentage_returns = get_investment_percentage_return_on_dates(
+                    investment, period_start, period_end
+                )
+                result[stock] = {
+                    period_start_iso_fmt: float(percentage_returns[0]),
+                    period_end_iso_fmt: float(percentage_returns[1]),
+                }
+            return result
 
-        return await asyncio.gather(*tasks)
+        if stocks:
+            func = get_investment_percentage_return_values_for_period
+        else:
+            func = get_portfolio_percentage_return_values_for_period
 
-    results = asyncio.run(main())
-    # Merge the results such that the most recent result updates the existing one
-    percentage_return_values = functools.reduce(merge_dicts, results)
-    if stocks:
-        return percentage_return_values
-    return {"all": percentage_return_values}
+        async def main():
+            async_func = sync_to_async(func)
+            tasks = []
+            for period in split(start_date, end_date, parts=5):
+                task = asyncio.create_task(async_func(*period))
+                tasks.append(task)
+
+            return await asyncio.gather(*tasks)
+
+        results = asyncio.run(main())
+        # Merge the results such that the most recent result updates the existing one
+        percentage_return_values = functools.reduce(merge_dicts, results)
+        if stocks:
+            return percentage_return_values
+        return {"all": percentage_return_values}
 
 
 def get_portfolio_performance_graph_data(
@@ -329,5 +331,6 @@ def get_stocks_invested_from_portfolio(portfolio: Portfolio) -> typing.List[str]
 def get_stocks_invested_from_investments(
     investments: models.QuerySet[Investment],
 ) -> typing.List[str]:
+    """Returns the tickers of all stocks invested in from the given investment set"""
     stock_tickers = investments.values_list("stock__ticker", flat=True)
     return list(set(stock_tickers))

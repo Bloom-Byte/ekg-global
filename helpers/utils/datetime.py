@@ -7,6 +7,8 @@ try:
 except ImportError:
     from backports import zoneinfo
 
+from contextlib import contextmanager
+
 
 def split(
     start: typing.Union[datetime.date, datetime.datetime],
@@ -202,7 +204,10 @@ def timedelta_code_to_timedelta(timedelta_code: str):
 
 
 def timedelta_code_to_datetime_range(
-    timdelta_code: str, *, timezone: str = None, future: bool = False
+    timdelta_code: str,
+    *,
+    timezone: typing.Optional[typing.Union[str, zoneinfo.ZoneInfo]] = None,
+    future: bool = False,
 ) -> typing.Tuple[typing.Optional[datetime.datetime], datetime.datetime]:
     """
     Parses the timedelta code into a datetime range.
@@ -230,9 +235,9 @@ def timedelta_code_to_datetime_range(
         ```
     """
     delta = timedelta_code_to_timedelta(timdelta_code)
-    tz = zoneinfo.ZoneInfo(timezone) if timezone else None
+    tz = zoneinfo.ZoneInfo(timezone) if isinstance(timezone, str) else timezone
     now_in_tz = django_timezone.now().astimezone(tz)
-    
+
     if future:
         start = now_in_tz
         end = now_in_tz + delta
@@ -240,3 +245,18 @@ def timedelta_code_to_datetime_range(
         start = now_in_tz - delta
         end = now_in_tz
     return start, end
+
+
+@contextmanager
+def activate_timezone(tz: typing.Union[str, zoneinfo.ZoneInfo]):
+    """
+    Temporarily activate a timezone in a context.
+
+    :param tz: The timezone to activate.
+    """
+    tz = zoneinfo.ZoneInfo(tz) if isinstance(tz, str) else tz
+    try:
+        django_timezone.activate(tz)
+        yield
+    finally:
+        django_timezone.deactivate()

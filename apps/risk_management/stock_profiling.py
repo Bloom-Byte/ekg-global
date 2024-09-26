@@ -1,4 +1,3 @@
-import copy
 import datetime
 import decimal
 import functools
@@ -12,7 +11,7 @@ from apps.risk_management.models import RiskProfile
 from apps.stocks.models import Stock, StockIndices
 from apps.stocks.helpers import get_stocks_by_indices
 from helpers.utils.time import timeit
-from helpers.utils.datetime import timedelta_code_to_datetime_range
+from helpers.utils.datetime import timedelta_code_to_datetime_range, activate_timezone
 from .criteria.criteria import Criteria, evaluate_criteria, CriterionStatus
 
 
@@ -72,30 +71,30 @@ def generate_stock_profile(
     stock_profile["symbol"] = stock.ticker
     stock_profile["close"] = stock.price
 
-    # Calculate the percentage return for the stock over user defined time periods
-    if risk_profile.period_return_start and risk_profile.period_return_end:
-        percentage_return = calculate_stock_percentage_return(
-            stock, risk_profile.period_return_start, risk_profile.period_return_end
-        )
-        # period = f"{risk_profile.period_return_start.strftime("%d.%m.%Y")} - {risk_profile.period_return_end.strftime("%d.%m.%Y")}"
-        stock_profile["period return (%)"] = float(percentage_return)
+    with activate_timezone(risk_profile.owner.timezone):
+        # Calculate the percentage return for the stock over user defined time periods
+        if risk_profile.period_return_start and risk_profile.period_return_end:
+            percentage_return = calculate_stock_percentage_return(
+                stock, risk_profile.period_return_start, risk_profile.period_return_end
+            )
+            # period = f"{risk_profile.period_return_start.strftime("%d.%m.%Y")} - {risk_profile.period_return_end.strftime("%d.%m.%Y")}"
+            stock_profile["period return (%)"] = float(percentage_return)
 
-    # Calculate the percentage return for the stock over different (default) time periods
-    # Update the stock profile with the percentage return for each time period
-    for timedelta_code in PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES:
-        tz = str(risk_profile.owner.timezone)
-        start, end = timedelta_code_to_datetime_range(timedelta_code, timezone=tz)
-        percentage_return = calculate_stock_percentage_return(
-            stock, start.date(), end.date()
-        )
-        stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
+        # Calculate the percentage return for the stock over different (default) time periods
+        # Update the stock profile with the percentage return for each time period
+        for timedelta_code in PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES:
+            start, end = timedelta_code_to_datetime_range(timedelta_code)
+            percentage_return = calculate_stock_percentage_return(
+                stock, start.date(), end.date()
+            )
+            stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
 
-    evaluation_result = evaluate_criteria(stock, criteria=criteria)
-    percentage_ranking = calculate_percentage_ranking(evaluation_result)
-    stock_profile.update(evaluation_result)
-    # This is the percentage ranking of the stock based on the evaluation result
-    # It should be the last key in the dictionary
-    stock_profile["EK score (%)"] = percentage_ranking
+        evaluation_result = evaluate_criteria(stock, criteria=criteria)
+        percentage_ranking = calculate_percentage_ranking(evaluation_result)
+        stock_profile.update(evaluation_result)
+        # This is the percentage ranking of the stock based on the evaluation result
+        # It should be the last key in the dictionary
+        stock_profile["EK score (%)"] = percentage_ranking
     return stock_profile
 
 

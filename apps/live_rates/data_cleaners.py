@@ -14,6 +14,7 @@ class MGLinkStockRateDataCleaner(cl.ModelDataCleaner[Rate]):
     exclude = ["id", "stock", "market", "trend", "updated_at"]
     key_mappings = {
         "added_at": "create_date_time",
+        "close": "last",
     }
     parsers = {
         "open": [null_to_zero, float],

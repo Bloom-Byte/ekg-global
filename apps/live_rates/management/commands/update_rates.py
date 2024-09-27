@@ -103,7 +103,7 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(f"Fetching rates from {start_date} to {end_date}...")
             rates_data = mg_link_provider.fetch_psx_rates(start_date, end_date)
-
+            
             self.stdout.write(
                 self.style.SUCCESS(f"{len(rates_data)} rates fetched from MGLink.")
             )

@@ -60,7 +60,7 @@ class Stock(models.Model):
         rate_on_date = (
             self.rates.filter(added_at__date=date).order_by("-added_at").first()
         )
-        
+        print(rate_on_date)
         if not rate_on_date:
             return
         return decimal.Decimal(rate_on_date.close).quantize(

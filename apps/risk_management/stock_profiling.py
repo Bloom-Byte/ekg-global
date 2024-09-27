@@ -26,7 +26,6 @@ def calculate_stock_percentage_return(
     :param end_date: The end date of the period
     :return: The percentage return of the stock
     """
-    print(start_date, end_date)
     start_price = stock.get_price_on_date(start_date)
     end_price = stock.get_price_on_date(end_date)
 
@@ -89,7 +88,6 @@ def generate_stock_profile(
                 stock, start.date(), end.date()
             )
             stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
-        print(risk_profile.owner.timezone)
 
         evaluation_result = evaluate_criteria(stock, criteria=criteria)
         percentage_ranking = calculate_percentage_ranking(evaluation_result)

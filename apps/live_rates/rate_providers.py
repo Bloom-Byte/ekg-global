@@ -1,3 +1,4 @@
+from re import M
 import typing
 import datetime
 from django.views.decorators.debug import sensitive_variables
@@ -131,7 +132,18 @@ def clean_rate_data(data: typing.Dict) -> typing.Dict:
     created_at = data.get("create_date_time", None)
     if created_at:
         created_at = parse(created_at)
-        created_at = created_at.replace(tzinfo=MGLinkRateProvider.provider_timezone)
+        created_at.replace(microsecond=0)
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=MGLinkRateProvider.provider_timezone)
+
+        # This needs to be done because the provider sometimes sends the time as 00:00:00
+        # of which I presume they think is the end of the day but it's actually the start
+        # of the day. So data that is supposed to be for the end of the day is actually
+        # sent for the start of the day. Hence converting from the provider's timezone, GMT+0500,
+        # 2024-02-24 00:00:00+0500 to UTC would be, 2024-02-23 17:00:00+0000 (which is the previous day)
+        if created_at.time() == datetime.time(0, 0, 0, 0):
+            created_at = created_at.replace(hour=23, minute=59, second=59)
+
         data["create_date_time"] = created_at.strftime("%Y-%m-%dT%H:%M:%S%z")
     return data
 
@@ -155,7 +167,4 @@ mg_link_provider = MGLinkRateProvider(
     request_timeout=90.0,
 )
 
-# import rich
 
-# date = parse("2023-09-26")
-# rich.print(mg_link_provider.fetch_psx_rates(date, date))

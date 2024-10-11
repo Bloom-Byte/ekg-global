@@ -1,3 +1,4 @@
+from math import e
 from typing import Any, Dict
 import json
 from django.db.models.base import Model as Model
@@ -22,6 +23,7 @@ from .helpers import (
 from .transactions_upload import (
     handle_transactions_file,
     get_transactions_upload_template,
+    TransactionUploadError,
 )
 from .stock_summary import generate_portfolio_stocks_summary
 
@@ -57,6 +59,10 @@ class PortfolioListView(LoginRequiredMixin, generic.ListView):
             if transactions_file:
                 handle_transactions_file(transactions_file, request.user)
                 messages.success(request, "Transactions upload successful.")
+        except TransactionUploadError as exc:
+            log_exception(exc)
+            messages.error(request, str(exc))
+        
         except Exception as exc:
             log_exception(exc)
             messages.error(request, "Upload failed! Check the file and try again.")

@@ -213,7 +213,7 @@ class Investment(models.Model):
         null=True,
     )
     rate = models.DecimalField(max_digits=12, decimal_places=2)
-    quantity = models.IntegerField()
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
     transaction_date = models.DateField(validators=[validate_not_in_future], null=True)
     transaction_time = models.TimeField(blank=True, null=True)
     settlement_date = models.DateField(blank=True, null=True)

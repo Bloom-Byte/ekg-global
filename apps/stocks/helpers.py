@@ -33,6 +33,9 @@ UPDATEABLE_RATE_FIELDS = (
     "volume",
 )
 
+# No need for writing a DataCleaner class here, since we do not have much column cleaning to do.
+# Just use mappings to convert the columns to the expected names
+
 EXPECTED_RATE_COLUMNS = {
     "ticker": "stock",
     "mkt": "market",
@@ -55,6 +58,10 @@ EXPECTED_KSE_COLUMNS = {
 }
 
 
+class RateUploadError(Exception):
+    pass
+
+
 def handle_rates_file(rates_file: File) -> None:
     """
     Process the uploaded rates file.
@@ -68,7 +75,7 @@ def handle_rates_file(rates_file: File) -> None:
     # Ensure all expected columns are present in the DataFrame
     missing_columns = set(EXPECTED_RATE_COLUMNS.keys()) - set(df.columns)
     if missing_columns:
-        raise ValueError(f"Missing columns in rates file: {missing_columns}")
+        raise RateUploadError(f"Missing columns in rates file: {missing_columns}")
 
     new_rates = []
     existing_rates = []
@@ -90,7 +97,7 @@ def handle_rates_file(rates_file: File) -> None:
             # If the stock already exists, add the rate for update
             existing_rates.append(Rate(**data))
 
-    Rate.objects.bulk_create(new_rates, batch_size=998)
+    Rate.objects.bulk_create(new_rates, batch_size=5000)
     Rate.objects.bulk_update(existing_rates, UPDATEABLE_RATE_FIELDS, batch_size=5000)
     return None
 
@@ -111,7 +118,9 @@ def handle_kse_rates_file(kse_rates_file: File) -> None:
     # Ensure all expected columns are present in the DataFrame
     missing_columns = set(EXPECTED_KSE_COLUMNS.keys()) - set(df.columns)
     if missing_columns:
-        raise ValueError(f"Missing columns in KSE100 rates file: {missing_columns}")
+        raise RateUploadError(
+            f"Missing columns in KSE100 rates file: {missing_columns}"
+        )
 
     kse_rates = []
     for row in df.itertuples(index=False):

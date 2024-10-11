@@ -101,10 +101,10 @@ class _KwargsSchemaJSONSchema(typing.TypedDict):
 
     type: str
     """The type of the KwargsSchema"""
-    properties: typing.Dict[str, typing.Dict[str, typing.Any]]
-    """The properties of the KwargsSchema"""
-    required: typing.List[str]
-    """List of the required properties of the KwargsSchema"""
+    arguments: typing.Dict[str, typing.Dict[str, typing.Any]]
+    """The arguments of the KwargsSchema"""
+    required_arguments: typing.List[str]
+    """List of the required arguments of the KwargsSchema"""
 
 
 def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):
@@ -136,5 +136,5 @@ def kwargs_schema_to_json_schema(kwargs_schema: typing.Type[BaseKwargsSchema]):
 
         if default_value is None:
             json_schema["required_arguments"].append(name)
-
+    
     return json_schema

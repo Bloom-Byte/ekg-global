@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .helpers import handle_rates_file, handle_kse_rates_file
+from .helpers import handle_rates_file, handle_kse_rates_file, RateUploadError
 from helpers.logging import log_exception
 from helpers.exceptions import capture
 from .models import Stock
@@ -29,7 +29,10 @@ class UploadsView(LoginRequiredMixin, generic.TemplateView):
             if kse_rates_file:
                 handle_kse_rates_file(kse_rates_file)
                 messages.success(request, "KSE upload successful.")
-
+        except RateUploadError as exc:
+            log_exception(exc)
+            messages.error(request, str(exc))
+        
         except Exception as exc:
             log_exception(exc)
             messages.error(request, "Upload failed. Check the file and try again.")

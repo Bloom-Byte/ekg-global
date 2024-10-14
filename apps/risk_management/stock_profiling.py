@@ -16,7 +16,11 @@ from .criteria.criteria import Criteria, evaluate_criteria, CriterionStatus
 
 
 def get_stock_price_on_date(
-    stock: Stock, date: datetime.date, *, tolerance: int = 5
+    stock: Stock,
+    date: datetime.date,
+    *,
+    tolerance: int = 5,
+    positive_tolerance: bool = False,
 ) -> decimal.Decimal:
     """
     Get the price of a stock on a given date. If the price is not available for the given date,
@@ -26,14 +30,22 @@ def get_stock_price_on_date(
     :param stock: A Stock object to get the price for
     :param date: The date to get the price for
     :param tolerance: The number of days to go back if the price is not available for the given date
+    :param positive_tolerance: If True, the function will go forward in time instead of backwards
     :return: The price of the stock on the given date
     """
+    if tolerance < 1:
+        raise ValueError("Tolerance must be greater than 0")
+    
     price = stock.get_price_on_date(date)
     if price:
         return price
 
     for i in range(1, tolerance + 1):
-        previous_date = date - datetime.timedelta(days=i)
+        if positive_tolerance:
+            previous_date = date + datetime.timedelta(days=i)
+        else:
+            previous_date = date - datetime.timedelta(days=i)
+        
         price = stock.get_price_on_date(previous_date)
         if not price:
             continue

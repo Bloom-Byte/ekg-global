@@ -47,7 +47,7 @@ class Stock(models.Model):
     @property
     def price(self) -> typing.Optional[decimal.Decimal]:
         """Current price of the stock."""
-        latest_rate = self.rates.order_by("-added_at").first()
+        latest_rate = self.rates.only("close", "added_at").order_by("-added_at").first()
         if not latest_rate:
             return
         return decimal.Decimal(latest_rate.close).quantize(
@@ -58,7 +58,10 @@ class Stock(models.Model):
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:
         rate_on_date = (
-            self.rates.filter(added_at__date=date).order_by("-added_at").first()
+            self.rates.only("close", "added_at")
+            .filter(added_at__date=date)
+            .order_by("-added_at")
+            .first()
         )
 
         if not rate_on_date:
@@ -133,7 +136,12 @@ class KSE100Rate(models.Model):
     @classmethod
     @ttl_cache(ttl=60 * 5)
     def get_close_on_date(cls, date: datetime.date):
-        rate_on_date = cls.objects.filter(date=date).order_by("-date").first()
+        rate_on_date = (
+            cls.objects.only("close", "date")
+            .filter(date=date)
+            .order_by("-date")
+            .first()
+        )
         if not rate_on_date:
             return None
         return rate_on_date.close

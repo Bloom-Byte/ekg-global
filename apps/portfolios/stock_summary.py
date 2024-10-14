@@ -70,7 +70,10 @@ def get_stock_summary_from_investments(
     average_rate = aggregation["average_rate"]
     net_average_cost = float(net_quantity * average_rate)
     latest_rate_record = (
-        Rate.objects.filter(stock__ticker=stock).order_by("-added_at").first()
+        Rate.objects.only("stock", "added_at", "close")
+        .filter(stock__ticker=stock)
+        .order_by("-added_at")
+        .first()
     )
 
     market_rate = None
@@ -119,7 +122,6 @@ def _update_stock_summary_with_percentage_allocation(
 def generate_portfolio_stocks_summary(
     portfolio: Portfolio, dt_filter: str = "5D", timezone: str = None
 ) -> typing.List[StockSummary]:
-    
     with activate_timezone(timezone):
         start_date, _ = datetime_filter_to_date_range(dt_filter)
         portfolio_investments = (

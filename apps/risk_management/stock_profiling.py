@@ -15,6 +15,33 @@ from helpers.utils.datetime import timedelta_code_to_datetime_range, activate_ti
 from .criteria.criteria import Criteria, evaluate_criteria, CriterionStatus
 
 
+def get_stock_price_on_date(
+    stock: Stock, date: datetime.date, *, tolerance: int = 5
+) -> decimal.Decimal:
+    """
+    Get the price of a stock on a given date. If the price is not available for the given date,
+    the function will go back a number of days specified by the tolerance parameter to find the
+    closest available price.
+
+    :param stock: A Stock object to get the price for
+    :param date: The date to get the price for
+    :param tolerance: The number of days to go back if the price is not available for the given date
+    :return: The price of the stock on the given date
+    """
+    price = stock.get_price_on_date(date)
+    if price:
+        return price
+
+    for i in range(1, tolerance + 1):
+        previous_date = date - datetime.timedelta(days=i)
+        price = stock.get_price_on_date(previous_date)
+        if not price:
+            continue
+        return price
+
+    return decimal.Decimal(0.0)
+
+
 def calculate_stock_percentage_return(
     stock: Stock, start_date: datetime.date, end_date: datetime.date
 ) -> decimal.Decimal:
@@ -26,13 +53,11 @@ def calculate_stock_percentage_return(
     :param end_date: The end date of the period
     :return: The percentage return of the stock
     """
-    start_price = stock.get_price_on_date(start_date)
-    end_price = stock.get_price_on_date(end_date)
-
+    start_price = get_stock_price_on_date(stock, start_date, tolerance=10)
+    end_price = get_stock_price_on_date(stock, end_date, tolerance=10)
     if not start_price or not end_price:
-        return decimal.Decimal(0).quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
+        return decimal.Decimal(0.0)
+
     return (((end_price - start_price) / start_price) * 100).quantize(
         decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
     )

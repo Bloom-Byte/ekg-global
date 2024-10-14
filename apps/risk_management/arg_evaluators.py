@@ -29,7 +29,7 @@ def OPEN_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
 
     if timeperiod is not None:
         rates = filter_rate_qs_by_timeperiod(rates, timeperiod)
-    return rates.values_list("open", flat=True)
+    return rates.only("open").values_list("open", flat=True)
 
 
 @ensure_ndarray(array_dtype=float)
@@ -40,7 +40,7 @@ def HIGH_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
 
     if timeperiod is not None:
         rates = filter_rate_qs_by_timeperiod(rates, timeperiod)
-    return rates.values_list("high", flat=True)
+    return rates.only("high").values_list("high", flat=True)
 
 
 @ensure_ndarray(array_dtype=float)
@@ -51,7 +51,7 @@ def LOW_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
 
     if timeperiod is not None:
         rates = filter_rate_qs_by_timeperiod(rates, timeperiod)
-    return rates.values_list("low", flat=True)
+    return rates.only("low").values_list("low", flat=True)
 
 
 @ensure_ndarray(array_dtype=float)
@@ -62,7 +62,7 @@ def CLOSE_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
 
     if timeperiod is not None:
         rates = filter_rate_qs_by_timeperiod(rates, timeperiod)
-    return rates.values_list("close", flat=True)
+    return rates.only("close").values_list("close", flat=True)
 
 
 @ensure_ndarray(array_dtype=float)
@@ -73,7 +73,7 @@ def VOLUME_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[float]:
 
     if timeperiod is not None:
         rates = filter_rate_qs_by_timeperiod(rates, timeperiod)
-    return rates.values_list("volume", flat=True)
+    return rates.only("volume").values_list("volume", flat=True)
 
 
 @ensure_ndarray(array_dtype=float)
@@ -84,7 +84,7 @@ def KSE100_CLOSE_VALUES(stock: Stock, /, spec: FunctionSpec) -> typing.List[floa
     latest_close_values = []
     for kse100_stock in kse100_stocks:
         try:
-            latest_rate = kse100_stock.rates.latest("added_at")
+            latest_rate = kse100_stock.rates.only("close", "added_at").latest("added_at")
         except Rate.DoesNotExist:
             latest_close_values.append(0.0)
         else:

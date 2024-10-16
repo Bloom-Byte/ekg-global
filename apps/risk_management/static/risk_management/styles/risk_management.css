@@ -104,11 +104,6 @@
     display: none;
 }
 
-
-.risk-profile-table *::-webkit-scrollbar{
-    display: none !important;
-}
-
 .tabulator-table{
     background-color: transparent !important;
     color: #ccc !important;

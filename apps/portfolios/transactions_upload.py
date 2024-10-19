@@ -88,7 +88,9 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
     # Ensure all expected columns are present in the DataFrame
     missing_columns = set(EXPECTED_TRANSACTION_COLUMNS) - set(df.columns)
     if missing_columns:
-        raise ValueError(f"Missing columns in transactions file: {missing_columns}")
+        raise TransactionUploadError(
+            f"Missing columns in transactions file: {missing_columns}"
+        )
 
     new_investments = []
     for row in df.itertuples(index=True):
@@ -141,7 +143,7 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
             # Capture any TransactionUploadError and raise it with the row number
             # for easy row identification and debugging
             raise TransactionUploadError(
-                f"Error processing row {row.Index + 2}. {exc}" # added 2 to row.Index to account for 0-based index and the header row
+                f"Error processing row {row.Index + 2}. {exc}"  # added 2 to row.Index to account for 0-based index and the header row
             ) from exc
 
     Investment.objects.bulk_create(new_investments, batch_size=5000)

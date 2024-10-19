@@ -24,6 +24,7 @@ from .transactions_upload import (
     handle_transactions_file,
     get_transactions_upload_template,
     TransactionUploadError,
+    EXPECTED_TRANSACTION_COLUMNS,
 )
 from .stock_summary import generate_portfolio_stocks_summary
 
@@ -62,10 +63,14 @@ class PortfolioListView(LoginRequiredMixin, generic.ListView):
         except TransactionUploadError as exc:
             log_exception(exc)
             messages.error(request, str(exc))
-        
+
         except Exception as exc:
             log_exception(exc)
-            messages.error(request, "Upload failed! Check the file and try again.")
+            messages.error(
+                request,
+                f"Upload failed! Ensure the CSV file is in the correct format and contains the correct data. \
+                           Expected columns include; {', '.join(EXPECTED_TRANSACTION_COLUMNS)}",
+            )
 
         return redirect("portfolios:portfolio_list")
 

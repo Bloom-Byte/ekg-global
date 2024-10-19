@@ -6,7 +6,13 @@ from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .helpers import handle_rates_file, handle_kse_rates_file, RateUploadError
+from .helpers import (
+    handle_rates_file,
+    handle_kse_rates_file,
+    RateUploadError,
+    EXPECTED_KSE_COLUMNS,
+    EXPECTED_RATE_COLUMNS,
+)
 from helpers.logging import log_exception
 from helpers.exceptions import capture
 from .models import Stock
@@ -32,10 +38,19 @@ class UploadsView(LoginRequiredMixin, generic.TemplateView):
         except RateUploadError as exc:
             log_exception(exc)
             messages.error(request, str(exc))
-        
+
         except Exception as exc:
             log_exception(exc)
-            messages.error(request, "Upload failed. Check the file and try again.")
+            if rates_file:
+                extra_msg = f"Expected columns include; {', '.join(EXPECTED_RATE_COLUMNS.keys())}"
+            else:
+                extra_msg = f"Expected columns include; {', '.join(EXPECTED_KSE_COLUMNS.keys())}"
+
+            messages.error(
+                request,
+                "Upload failed! Ensure the CSV file is in the correct format and contains the correct data. "
+                + extra_msg,
+            )
 
         return redirect("stocks:uploads")
 

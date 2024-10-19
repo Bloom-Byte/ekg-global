@@ -76,7 +76,7 @@ def handle_rates_file(rates_file: File) -> None:
     missing_columns = set(EXPECTED_RATE_COLUMNS.keys()) - set(df.columns)
     if missing_columns:
         raise RateUploadError(
-            f"Missing columns in rates file: {", ".join(missing_columns)}"
+            f"Missing columns in rates file: {', '.join(missing_columns)}"
         )
 
     new_rates = []
@@ -121,7 +121,7 @@ def handle_kse_rates_file(kse_rates_file: File) -> None:
     missing_columns = set(EXPECTED_KSE_COLUMNS.keys()) - set(df.columns)
     if missing_columns:
         raise RateUploadError(
-            f"Missing columns in KSE100 rates file: {", ".join(missing_columns)}"
+            f"Missing columns in KSE100 rates file: {', '.join(missing_columns)}"
         )
 
     kse_rates = []

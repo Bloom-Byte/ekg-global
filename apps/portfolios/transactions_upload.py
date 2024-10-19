@@ -89,7 +89,7 @@ def handle_transactions_file(transactions_file: File, user: UserAccount) -> None
     missing_columns = set(EXPECTED_TRANSACTION_COLUMNS) - set(df.columns)
     if missing_columns:
         raise TransactionUploadError(
-            f"Missing columns in transactions file: {missing_columns}"
+            f"Missing columns in transactions file: {", ".join(missing_columns)}"
         )
 
     new_investments = []

@@ -177,8 +177,9 @@ Q_CLUSTER = {
     "compress": True,
     "save_limit": 250,
     "queue_limit": 500,
-    "timeout": 30,
-    "retry": 60,
+    "timeout": 300,
+    "retry": 330,
+    "max_attempts": 1,
     "cpu_affinity": 1,
     "workers": 2,  # Since we are not running any heavy tasks, we can keep this low
     "label": "Django Q",

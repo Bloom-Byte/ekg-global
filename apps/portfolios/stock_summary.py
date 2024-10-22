@@ -124,18 +124,16 @@ def generate_portfolio_stocks_summary(
 ) -> typing.List[StockSummary]:
     with activate_timezone(timezone):
         start_date, _ = datetime_filter_to_date_range(dt_filter)
-        portfolio_investments = (
-            portfolio.investments.select_related("stock")
-            .prefetch_related("stock__rates")
-            .filter(added_at__date__gte=start_date)
-        )
+        portfolio_investments = portfolio.investments.filter(
+            added_at__date__gte=start_date
+        ).select_related("stock")
 
     # If no investments exists, return a summary for the total only
     if not portfolio_investments.exists():
         return [StockSummary(symbol="TOTAL")]
 
     stocks_invested_in = get_stocks_invested_from_investments(portfolio_investments)
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         stocks_summary = list(
             executor.map(
                 lambda stock: get_stock_summary_from_investments(

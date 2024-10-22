@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from apps.live_rates.rate_providers import mg_link_provider
 from apps.live_rates.rates import save_mg_link_psx_rates_data
-from apps.live_rates.schedules import schedule_stock_rates_update
+from apps.live_rates.scheduled_tasks import schedule_stock_rates_update
 
 
 class Command(BaseCommand):

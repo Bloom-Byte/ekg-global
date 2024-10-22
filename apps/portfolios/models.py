@@ -114,7 +114,9 @@ class Portfolio(models.Model):
 
     def investments_costs(self):
         """Yields the capital invested (cost) of each investment in the portfolio."""
-        for investment in self.investments.all():
+        for investment in self.investments.select_related("stock").iterator(
+            chunk_size=100
+        ):
             yield investment.cost
 
     def investments_values(self, date: typing.Optional[datetime.date] = None):
@@ -123,7 +125,9 @@ class Portfolio(models.Model):
 
         :param
         """
-        for investment in self.investments.all():
+        for investment in self.investments.select_related("stock").iterator(
+            chunk_size=100
+        ):
             if date:
                 value = investment.get_value_on_date(date)
             else:
@@ -138,7 +142,9 @@ class Portfolio(models.Model):
 
         :param
         """
-        for investment in self.investments.all():
+        for investment in self.investments.select_related("stock").iterator(
+            chunk_size=100
+        ):
             if date:
                 return_value = investment.get_return_value_on_date(date)
             else:
@@ -153,6 +159,7 @@ class Portfolio(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
+
     def get_total_return_on_investments(
         self, date: typing.Optional[datetime.date] = None
     ):
@@ -166,7 +173,7 @@ class Portfolio(models.Model):
     ):
         invested_capital = self.invested_capital
         if invested_capital == 0:
-            return decimal.Decimal(0)
+            return decimal.Decimal(0.00)
 
         percentage_return_on_investments = (
             self.get_total_return_on_investments(date) / invested_capital
@@ -428,7 +435,7 @@ class Investment(models.Model):
         if not return_value:
             return None
 
-        percentage_return = (return_value / abs(self.cost)) * 100
+        percentage_return = (return_value / self.cost) * 100
         return percentage_return.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )

@@ -29,16 +29,7 @@ from .transactions_upload import (
 from .stock_summary import generate_portfolio_stocks_summary
 
 
-portfolio_qs = (
-    Portfolio.objects.select_related("owner")
-    .prefetch_related("investments", "investments__stock", "investments__stock__rates")
-    .all()
-)
-investment_qs = (
-    Investment.objects.select_related("portfolio", "stock")
-    .prefetch_related("stock__rates")
-    .all()
-)
+portfolio_qs = Portfolio.objects.select_related("owner").all()
 stock_qs = Stock.objects.prefetch_related("rates").all()
 
 
@@ -124,7 +115,7 @@ class PortfolioCreateView(LoginRequiredMixin, generic.View):
 # Instead, add the portfolio to the context
 class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
     template_name = "portfolios/portfolio_detail.html"
-    queryset = investment_qs
+    queryset = Investment.objects.all()
     paginate_by = 200
     context_object_name = "investments"
 
@@ -133,15 +124,21 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
 
         investments = context["investments"]
         portfolio = get_object_or_404(
-            portfolio_qs, id=self.kwargs["portfolio_id"], owner=self.request.user
+            portfolio_qs.prefetch_related("investments"),
+            id=self.kwargs["portfolio_id"],
+            owner=self.request.user,
         )
         stocks_summary_dt_filter = self.request.GET.get("filter_summary_by", "5D")
 
         context["portfolio"] = portfolio
         context["all_stocks"] = stock_qs
-        context["invested_stocks"] = get_stocks_invested_from_investments(investments)
+        context["invested_stocks"] = get_stocks_invested_from_investments(
+            investments.select_related("stock")
+        )
         context["pie_chart_data"] = json.dumps(
-            get_investments_allocation_piechart_data(investments)
+            get_investments_allocation_piechart_data(
+                investments.select_related("stock")
+            )
         )
 
         # Performance data is no longer calculated and sent pre-page load
@@ -175,7 +172,10 @@ class PortfolioPerformanceDataView(LoginRequiredMixin, generic.View):
         # Note that the portfolio queryset is used not the model.
         # This is because the queryset has prefetched and selected related data
         # Making it way more efficient that using the model
-        return get_object_or_404(portfolio_qs, id=self.kwargs["portfolio_id"])
+        return get_object_or_404(
+            portfolio_qs.prefetch_related("investments", "investments__stock"),
+            id=self.kwargs["portfolio_id"],
+        )
 
     def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
         data: Dict = json.loads(request.body)
@@ -333,7 +333,7 @@ class InvestmentAddView(LoginRequiredMixin, generic.View):
 
 
 class InvestmentDeleteView(LoginRequiredMixin, generic.View):
-    queryset = investment_qs
+    queryset = Investment.objects.select_related("portfolio", "portfolio__owner")
     http_method_names = ["get"]
 
     def get_queryset(self) -> QuerySet[Investment]:

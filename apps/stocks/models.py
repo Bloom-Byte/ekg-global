@@ -1,4 +1,5 @@
 import decimal
+import functools
 import typing
 import datetime
 import uuid
@@ -53,14 +54,14 @@ class Stock(models.Model):
         return decimal.Decimal(latest_rate.close).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
-
+    
     def get_price_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:
         rate_on_date = (
-            self.rates.only("close", "added_at")
-            .filter(added_at__date=date)
+            self.rates.filter(added_at__date=date)
             .order_by("-added_at")
+            .only("close", "added_at")
             .first()
         )
 
@@ -134,11 +135,11 @@ class KSE100Rate(models.Model):
         ordering = ["-date"]
 
     @classmethod
-    @ttl_cache(ttl=60 * 5)
     def get_close_on_date(cls, date: datetime.date):
         rate_on_date = (
             cls.objects.only("close", "date")
             .filter(date=date)
+            .only("close", "date")
             .order_by("-date")
             .first()
         )

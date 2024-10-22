@@ -135,7 +135,6 @@ def generate_stock_profile(
     return stock_profile
 
 
-@timeit
 def load_risk_profile(
     risk_profile: RiskProfile,
     stockset: str,
@@ -153,7 +152,7 @@ def load_risk_profile(
     if not stocks:
         return []
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         profiles = list(
             executor.map(
                 lambda stock: generate_stock_profile(stock, criteria, risk_profile),
@@ -186,7 +185,7 @@ def portfolio_stockset(risk_profile: RiskProfile, portofolio_id: uuid.UUID):
         return []
     else:
         return (
-            Stock.objects.prefetch_related("rates").filter(id__in=stock_ids).distinct()
+            Stock.objects.filter(id__in=stock_ids).prefetch_related("rates").distinct()
         )
 
 

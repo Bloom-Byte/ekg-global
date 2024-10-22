@@ -11,7 +11,11 @@ from .models import Investment, Portfolio
 from apps.stocks.models import KSE100Rate, Stock
 from helpers.utils.colors import random_colors
 from helpers.utils.models import get_objects_within_datetime_range
-from helpers.utils.datetime import activate_timezone, split, timedelta_code_to_datetime_range
+from helpers.utils.datetime import (
+    activate_timezone,
+    split,
+    timedelta_code_to_datetime_range,
+)
 from helpers.caching import ttl_cache
 from helpers.utils.misc import merge_dicts
 
@@ -21,7 +25,7 @@ def get_portfolio_stocks(portfolio: Portfolio):
     stock_ids = portfolio.investments.select_related("stock").values_list(
         "stock_id", flat=True
     )
-    return Stock.objects.prefetch_related("rates").filter(id__in=stock_ids)
+    return Stock.objects.filter(id__in=stock_ids)
 
 
 def get_portfolio_allocation_data(portfolio: Portfolio) -> typing.Dict[str, float]:
@@ -136,7 +140,7 @@ def get_kse_performance_data(
         start_date, end_date = datetime_filter_to_date_range(dt_filter)
         if not start_date:
             # If the start date is None, use the date of the first KSE100Rate
-            earliest_rate = KSE100Rate.objects.order_by("date").first()
+            earliest_rate = KSE100Rate.objects.only("date").order_by("date").first()
             if earliest_rate:
                 start_date = earliest_rate.date
 
@@ -157,7 +161,8 @@ def get_kse_performance_data(
             percentage_change_at_period_end = 0.00
             if pre_period_start_price and period_start_price:
                 percentage_change_at_period_start = (
-                    (period_start_price - pre_period_start_price) / pre_period_start_price
+                    (period_start_price - pre_period_start_price)
+                    / pre_period_start_price
                 ) * 100
 
             if period_start_price and period_end_price:
@@ -191,7 +196,7 @@ def get_portfolio_percentage_return_on_dates(
     if not dates:
         raise ValueError()
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         result = executor.map(portfolio.get_percentage_return_on_investments, dates)
     return list(result)
 
@@ -203,7 +208,7 @@ def get_investment_percentage_return_on_dates(
     if not dates:
         raise ValueError()
 
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=2) as executor:
         result = executor.map(
             lambda date: investment.get_percentage_return_on_date(date)
             or decimal.Decimal(0),
@@ -218,9 +223,18 @@ def get_portfolio_performance_data(
     timezone: str = None,
     stocks: typing.Optional[typing.List[str]] = None,
 ) -> typing.Dict[str, typing.Dict[str, float]]:
-    portfolio_investments = portfolio.investments.select_related(
-        "stock"
-    ).prefetch_related("stock__rates")
+    portfolio_investments = (
+        portfolio.investments.only(
+            "transaction_type",
+            "stock",
+            "rate",
+            "quantity",
+            "brokerage_fee",
+            *Investment.ADDITIONAL_FEES,
+        )
+        .select_related("stock")
+        .prefetch_related("stock__rates")
+    )
 
     with activate_timezone(timezone):
         start_date, end_date = datetime_filter_to_date_range(dt_filter)
@@ -238,7 +252,9 @@ def get_portfolio_performance_data(
                 period_end.isoformat(): float(percentage_returns[1]),
             }
 
-        def get_investment_percentage_return_values_for_period(period_start, period_end):
+        def get_investment_percentage_return_values_for_period(
+            period_start, period_end
+        ):
             nonlocal percentage_return_values
             nonlocal stocks
             period_start_iso_fmt = period_start.isoformat()
@@ -322,8 +338,10 @@ def get_portfolio_performance_graph_data(
 
 
 def get_stocks_invested_from_portfolio(portfolio: Portfolio) -> typing.List[str]:
-    stock_tickers = portfolio.investments.select_related("stock").values_list(
-        "stock__ticker", flat=True
+    stock_tickers = (
+        portfolio.investments.only("stock")
+        .select_related("stock")
+        .values_list("stock__ticker", flat=True)
     )
     return list(set(stock_tickers))
 

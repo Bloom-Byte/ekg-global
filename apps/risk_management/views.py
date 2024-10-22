@@ -89,7 +89,10 @@ class RiskProfileUpdateView(LoginRequiredMixin, generic.View):
         return qs.filter(owner=user)
 
     def get_object(self):
-        return get_object_or_404(self.get_queryset(), id=self.kwargs["profile_id"])
+        return get_object_or_404(
+            self.get_queryset(),
+            id=self.kwargs["profile_id"],
+        )
 
     @capture.capture(content="Oops! An error occurred")
     def put(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:
@@ -150,7 +153,14 @@ class StocksRiskProfileGenerationView(LoginRequiredMixin, generic.View):
         return qs.filter(owner=user)
 
     def get_object(self):
-        return get_object_or_404(self.get_queryset(), id=self.kwargs["profile_id"])
+        return get_object_or_404(
+            self.get_queryset().prefetch_related(
+                "owner__portfolios",
+                "owner__portfolios__investments",
+                "owner__portfolios__investments__stock",
+            ),
+            id=self.kwargs["profile_id"],
+        )
 
     @capture.capture(content="Oops! An error occurred")
     def get(self, request, *args: typing.Any, **kwargs: typing.Any) -> JsonResponse:

@@ -233,12 +233,47 @@ def evaluate_criterion(
     )
 
 
+# def evaluate_criteria(
+#     o: T, /, criteria: Criteria, *, ignore_unsupported_func: bool = False
+# ) -> typing.Dict[str, CriterionStatus]:
+#     """
+#     Run multiple criterion evaluations on an object.
+#     The criterions are evaluated concurrently and so should be independent of each other
+
+#     :param o: The object to evaluate the criteria on
+#     :param criteria: The criteria containing the criterions to evaluate
+#     :param ignore_unsupported_func: If True, an exception will not be raised if any
+#         function in a criterion is not supported. The criterion will be evaluated as failed
+#     :return: A dictionary of the criterion and their evaluation status
+#     """
+#     if not criteria:
+#         return {}
+
+#     async def main() -> typing.List[CriterionStatus]:
+#         async_evaluate_criterion = sync_to_async(evaluate_criterion)
+#         tasks = []
+#         for criterion in criteria:
+#             task = asyncio.create_task(
+#                 async_evaluate_criterion(
+#                     o, criterion, ignore_unsupported_func=ignore_unsupported_func
+#                 )
+#             )
+#             tasks.append(task)
+#         return await asyncio.gather(*tasks)
+
+#     statuses = asyncio.run(main())
+#     result = {}
+#     for criterion, status in zip(criteria, statuses):
+#         result[str(criterion)] = status
+#     return result
+
+
 def evaluate_criteria(
     o: T, /, criteria: Criteria, *, ignore_unsupported_func: bool = False
 ) -> typing.Dict[str, CriterionStatus]:
     """
     Run multiple criterion evaluations on an object.
-    The criterions are evaluated concurrently and so should be independent of each other
+    The criterions are evaluated sequentially using a regular for loop.
 
     :param o: The object to evaluate the criteria on
     :param criteria: The criteria containing the criterions to evaluate
@@ -249,22 +284,17 @@ def evaluate_criteria(
     if not criteria:
         return {}
 
-    async def main() -> typing.List[CriterionStatus]:
-        async_evaluate_criterion = sync_to_async(evaluate_criterion)
-        tasks = []
-        for criterion in criteria:
-            task = asyncio.create_task(
-                async_evaluate_criterion(
-                    o, criterion, ignore_unsupported_func=ignore_unsupported_func
-                )
-            )
-            tasks.append(task)
-        return await asyncio.gather(*tasks)
+    statuses = []
+    for criterion in criteria:
+        status = evaluate_criterion(
+            o, criterion, ignore_unsupported_func=ignore_unsupported_func
+        )
+        statuses.append(status)
 
-    statuses = asyncio.run(main())
     result = {}
     for criterion, status in zip(criteria, statuses):
         result[str(criterion)] = status
+
     return result
 
 

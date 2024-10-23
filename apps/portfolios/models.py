@@ -9,6 +9,14 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
+from helpers.caching import ttl_cache
+from helpers.utils.time import timeit
+from helpers.utils.misc import batched
+
+
+# NOTE: Some the properties in these models are cached to avoid recalculating them every time they are accessed
+# This basically means that instances of this model are expected to be created once and not modified. If modified,
+# the existing cached properties will not be updated and will return the old values. This is a trade-off for performance
 
 class Portfolio(models.Model):
     """Model definition for Portfolio."""
@@ -67,7 +75,8 @@ class Portfolio(models.Model):
         """
         return self.get_value()
 
-    @property
+    @functools.cached_property  # Might remove later
+    # @property
     def invested_capital(self):
         """
         The total capital invested in the portfolio.
@@ -112,12 +121,27 @@ class Portfolio(models.Model):
         """
         return self.get_total_investments_value()
 
+    @functools.cached_property
+    def investment_list(self):
+        """
+        Private property. Use with caution.
+
+        Returns the (cached) list of all investments in the portfolio.
+
+        Used internally to improve performance and avoid recalculating already cached investments values
+        every time they are accessed.
+        """
+        return list(
+            self.investments.select_related("stock")
+            .prefetch_related("stock__rates")
+            .all()
+        )
+
     def investments_costs(self):
         """Yields the capital invested (cost) of each investment in the portfolio."""
-        for investment in self.investments.select_related("stock").iterator(
-            chunk_size=100
-        ):
-            yield investment.cost
+        for investment_batch in batched(self.investment_list, batch_size=100):
+            for investment in investment_batch:
+                yield investment.cost
 
     def investments_values(self, date: typing.Optional[datetime.date] = None):
         """
@@ -125,16 +149,15 @@ class Portfolio(models.Model):
 
         :param
         """
-        for investment in self.investments.select_related("stock").iterator(
-            chunk_size=100
-        ):
-            if date:
-                value = investment.get_value_on_date(date)
-            else:
-                value = investment.value
-            if not value:
-                continue
-            yield value
+        for investment_batch in batched(self.investment_list, batch_size=100):
+            for investment in investment_batch:
+                if date:
+                    value = investment.get_value_on_date(date)
+                else:
+                    value = investment.value
+                if not value:
+                    continue
+                yield value
 
     def returns_on_investments(self, date: typing.Optional[datetime.date] = None):
         """
@@ -142,16 +165,15 @@ class Portfolio(models.Model):
 
         :param
         """
-        for investment in self.investments.select_related("stock").iterator(
-            chunk_size=100
-        ):
-            if date:
-                return_value = investment.get_return_value_on_date(date)
-            else:
-                return_value = investment.return_value
-            if not return_value:
-                continue
-            yield return_value
+        for investment_batch in batched(self.investment_list, batch_size=100):
+            for investment in investment_batch:
+                if date:
+                    return_value = investment.get_return_value_on_date(date)
+                else:
+                    return_value = investment.return_value
+                if not return_value:
+                    continue
+                yield return_value
 
     def get_total_investments_value(self, date: typing.Optional[datetime.date] = None):
         total_investments_value = math.fsum(self.investments_values(date))
@@ -159,7 +181,7 @@ class Portfolio(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
-
+    @timeit
     def get_total_return_on_investments(
         self, date: typing.Optional[datetime.date] = None
     ):
@@ -326,7 +348,8 @@ class Investment(models.Model):
         """The symbol of the stock."""
         return self.stock.ticker
 
-    @functools.cached_property
+    # @functools.cached_property
+    @property
     def base_cost(self):
         """The cost of an investment before any additional costs."""
         base_cost = self.rate * self.quantity
@@ -335,6 +358,7 @@ class Investment(models.Model):
         )
 
     @functools.cached_property
+    # @property
     def additional_fees(self):
         """The total additional fees paid on each unit of the stock invested in."""
         total = decimal.Decimal(0)
@@ -345,6 +369,7 @@ class Investment(models.Model):
         return total.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
 
     @functools.cached_property
+    # @property
     def cost(self):
         """
         Capital invested before any profit or loss. Initial market value/cost of the investment.
@@ -359,6 +384,7 @@ class Investment(models.Model):
         return self.base_cost + total_fees
 
     @functools.cached_property
+    # @property
     def current_rate(self):
         """Returns the current price/rate of the stock invested in"""
         return self.stock.price
@@ -403,6 +429,7 @@ class Investment(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
+    @ttl_cache(ttl=60)
     def get_value_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:

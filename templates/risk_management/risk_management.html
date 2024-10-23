@@ -8,8 +8,12 @@
 {% endblock title %}
 
 {% block stylesheets %}
+<link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator_semanticui.min.css" rel="stylesheet" rel="preload">
+<link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet" rel="preload">
+<link href="{% static 'core/styles/tabs.css' %}" rel="stylesheet" rel="preload">
+<link href="{% static 'risk_management/styles/functions_modal.css' %}" rel="stylesheet" rel="preload">
+
 <link href="https://unpkg.com/tabulator-tables@6.2.5/dist/css/tabulator_semanticui.min.css" rel="stylesheet">
- 
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
 <link href="{% static 'core/styles/tabs.css' %}" rel="stylesheet">
 <link href="{% static 'risk_management/styles/functions_modal.css' %}" rel="stylesheet">

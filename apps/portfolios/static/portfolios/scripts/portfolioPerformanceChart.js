@@ -1,5 +1,5 @@
 const portfolioPerformanceSection = document.querySelector("#portfolio-performance");
-const performanceDataRefreshInterval = 1 * 60 * 1000; // 1 minute
+const performanceDataRefreshInterval = 5 * 60 * 1000; // 1 minute
 
 
 function getLineChartData(rawData) {

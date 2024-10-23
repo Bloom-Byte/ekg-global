@@ -6,6 +6,8 @@ import attrs
 import cattrs
 from asgiref.sync import sync_to_async
 
+from helpers.utils.time import timeit
+
 from .functions import FunctionSpec, evaluate as evaluate_function, make_function_spec
 from .comparisons import ComparisonOperator, get_comparison_executor
 from .exceptions import UnsupportedFunction
@@ -268,6 +270,7 @@ def evaluate_criterion(
 #     return result
 
 
+# @timeit
 def evaluate_criteria(
     o: T, /, criteria: Criteria, *, ignore_unsupported_func: bool = False
 ) -> typing.Dict[str, CriterionStatus]:

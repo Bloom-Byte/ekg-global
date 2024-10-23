@@ -93,6 +93,7 @@ PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES = (
 )
 
 
+# @timeit
 def generate_stock_profile(
     stock: Stock, criteria: Criteria, risk_profile: RiskProfile
 ) -> dict:
@@ -103,10 +104,11 @@ def generate_stock_profile(
     :param criteria: The criteria to evaluate the stock against
     :return: A dictionary containing the stock's profile and evaluation
     """
-    stock_profile = {}
-    # First add the basic information about the stock
-    stock_profile["symbol"] = stock.ticker
-    stock_profile["close"] = stock.price
+    stock_profile = {
+        # First add the basic information about the stock
+        "symbol": stock.ticker,
+        "close": stock.price
+    }
 
     with activate_timezone(risk_profile.owner.timezone):
         # Calculate the percentage return for the stock over user defined time periods
@@ -127,8 +129,8 @@ def generate_stock_profile(
             stock_profile[f"{timedelta_code} return (%)"] = float(percentage_return)
 
         evaluation_result = evaluate_criteria(stock, criteria=criteria)
-        percentage_ranking = calculate_percentage_ranking(evaluation_result)
         stock_profile.update(evaluation_result)
+        percentage_ranking = calculate_percentage_ranking(evaluation_result)
         # This is the percentage ranking of the stock based on the evaluation result
         # It should be the last key in the dictionary
         stock_profile["EK score (%)"] = percentage_ranking

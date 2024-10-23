@@ -113,8 +113,8 @@ def _update_stock_summary_with_percentage_allocation(
         stock_summary.percentage_allocation = None
         return stock_summary
 
-    net_quantity = stock_summary.net_quantity
-    percentage_allocation = (net_quantity / total_quantity_of_stocks_invested_in) * 100
+    quantity = abs(stock_summary.net_quantity)
+    percentage_allocation = (quantity / total_quantity_of_stocks_invested_in) * 100
     stock_summary.percentage_allocation = percentage_allocation
     return stock_summary
 

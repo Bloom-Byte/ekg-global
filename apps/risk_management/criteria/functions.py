@@ -351,9 +351,12 @@ class Error(SupportsRichComparison):
         return False
 
 
-def evaluate(
-    o: T, /, spec: FunctionSpec
-) -> typing.Union[SupportsRichComparison, Error]:
+_SupportRichComparison = typing.TypeVar(
+    "_SupportRichComparison", bound=SupportsRichComparison, covariant=True
+)
+
+
+def evaluate(o: T, /, spec: FunctionSpec) -> _SupportRichComparison:
     """
     Run a TA-LIB function evaluation on an object
 

@@ -20,7 +20,29 @@
 	<!-- PAGE TITLE HERE -->
 	{% block title %}
 	{% endblock title %}
-	
+
+	<!-- Preloads -->
+	<link rel="prefetch" href="{% static 'images/favicon.png' %}" as="image">
+	<link rel="preload" href="{% static 'vendor/jquery-nice-select/css/nice-select.css' %}" as="style">
+	<link rel="preload" href="{% static 'vendor/jquery-autocomplete/jquery-ui.css' %}" as="style">
+	<link rel="preload" href="https://cdn.jsdelivr.net/npm/noty/lib/noty.min.css" as="style">
+	<link rel="preload" href="https://cdn.jsdelivr.net/npm/noty/lib/themes/semanticui.css" as="style">
+	<link rel="preload" href="{% static 'core/styles/main.css' %}" as="style">
+	<link rel="preload" href="{% static 'vendor/global/global.min.js' %}" as="script">
+	<link rel="preload" href="{% static 'vendor/jquery-nice-select/js/jquery.nice-select.min.js' %}" as="script">
+	<link rel="preload" href="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}" as="script">
+	<link rel="preload" href="{% static 'js/custom.min.js' %}" as="script">
+	<link rel="preload" href="{% static 'js/dlabnav-init.js' %}" as="script">
+	<link rel="preload" href="https://cdn.jsdelivr.net/npm/noty/lib/noty.min.js" as="script">
+	<link rel="preload" href="{% static 'core/scripts/utils.js' %}" as="script">
+	<link rel="preload" href="{% static 'css/style.css' %}" as="style">
+
+	<!-- Prefetches -->
+	<link rel="prefetch" href="{% static 'core/styles/form_card.css' %}" as="style">
+	<link href="{% static 'core/styles/tabs.css' %}" rel="prefetch" as="style">
+	<link rel="prefetch" href="{% static 'core/scripts/formCard.js' %}" as="script">
+	<link rel="prefetch" href="{% static 'core/scripts/tabs.js' %}" as="script">
+
 	<!-- FAVICONS ICON -->
 	
 	<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}">
@@ -339,7 +361,7 @@
 	<script src="{% static 'vendor/jquery-autocomplete/jquery-ui.js' %}"></script> 
 	
 	<!-- Noty.js -->
-	<script src="https://cdn.jsdelivr.net/npm/noty/lib/noty.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/noty/lib/noty.min.js" async></script>
 	<!-- Custom Scripts -->
 	<script src="{% static 'core/scripts/utils.js' %}"></script>
 	

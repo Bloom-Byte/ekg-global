@@ -1,8 +1,21 @@
 from inspect import isclass
 import collections.abc
 from io import BytesIO
-from typing import Union, Callable, Any, TypeVar, Dict, Type
+from typing import (
+    Iterator,
+    Union,
+    Callable,
+    Any,
+    TypeVar,
+    Dict,
+    Type,
+    List,
+    Iterable,
+    AsyncIterator,
+    AsyncIterable,
+)
 import base64
+from itertools import islice
 
 from .choice import ExtendedEnum
 
@@ -34,7 +47,7 @@ def is_iterable_type(tp: Type[Any]) -> bool:
 
 def is_generic_type(tp: Type[Any]) -> bool:
     """Check if a type is a generic type like List[str], Dict[str, int], etc."""
-    return hasattr(tp, "__origin__") or tp is Any
+    return hasattr(tp, "__origin__")
 
 
 def is_exception_class(exc):
@@ -260,6 +273,43 @@ def python_type_to_html_input_type(py_type: type) -> str:
     return "text"
 
 
+T = TypeVar("T")
+
+
+def batched(i: Union[Iterator[T], Iterable[T]], batch_size: int):
+    """
+    Create batches of size n from the given iterable.
+
+    :param iterable: The iterable to split into batches.
+    :param batch_size: The batch size.
+    :yield: Batches of the iterable as lists.
+    """
+    iterator = iter(i)
+    while batch := list(islice(iterator, batch_size)):
+        yield batch
+
+
+async def async_batched(
+    async_iter: Union[AsyncIterable[T], AsyncIterator[T]], batch_size: int
+) -> AsyncIterator[List[T]]:
+    """
+    Create batches of size batch_size from the given async iterable.
+    
+    :param async_iter: The async iterable to split into batches.
+    :param batch_size: The batch size.
+    :yield: Batches of the async iterable as lists.
+    """
+    batch = []
+    async for item in async_iter:
+        batch.append(item)
+        if len(batch) == batch_size:
+            yield batch
+            batch = []
+
+    if batch:
+        yield batch
+
+
 __all__ = [
     "is_exception_class",
     "str_to_base64",
@@ -274,4 +324,5 @@ __all__ = [
     "get_dict_diff",
     "underscore_dict_keys",
     "python_type_to_html_input_type",
+    "batched",
 ]

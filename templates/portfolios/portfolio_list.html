@@ -4,6 +4,11 @@
 {% load tz %}
 
 {% block stylesheets %}
+<link rel="preload" href="{% static 'core/styles/form_card.css' %}" as="style" onload="this.rel='stylesheet'">
+<noscript><link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet"></noscript> 
+<link rel="preload" href="{% static 'portfolios/styles/portfolio_list.css' %}" as="style" onload="this.rel='stylesheet'">
+<noscript><link href="{% static 'portfolios/styles/portfolio_list.css' %}" rel="stylesheet"></noscript>
+
 <link href="{% static 'core/styles/form_card.css' %}" rel="stylesheet">
 <link href="{% static 'portfolios/styles/portfolio_list.css' %}" rel="stylesheet">
 {% endblock stylesheets %}

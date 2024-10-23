@@ -82,7 +82,7 @@ class Portfolio(models.Model):
 
         the total capital used as investment cost
         """
-        total_investments_cost = math.fsum(list(self.investments_costs()))
+        total_investments_cost = math.fsum(tuple(self.investments_costs()))
         return decimal.Decimal.from_float(total_investments_cost).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -137,26 +137,11 @@ class Portfolio(models.Model):
         for investment in self.investment_list:
             yield investment.cost
 
-    def investments_values(self, date: typing.Optional[datetime.date] = None):
-        """
-        Yields the current value of each investment in the portfolio.
-
-        :param date:
-        """
-        for investment in self.investment_list:
-            if date:
-                value = investment.get_value_on_date(date)
-            else:
-                value = investment.value
-            if not value:
-                continue
-            yield value
-
     def returns_on_investments(self, date: typing.Optional[datetime.date] = None):
         """
         Yields the return on each investment in the portfolio.
 
-        :param date:
+        :param date: The date to calculate the return on investments. If not provided, the current date is used.
         """
         for investment in self.investment_list:
             if date:
@@ -168,17 +153,31 @@ class Portfolio(models.Model):
             yield return_value
 
     def get_total_investments_value(self, date: typing.Optional[datetime.date] = None):
-        total_investments_value = math.fsum(list(self.investments_values(date)))
-        return decimal.Decimal.from_float(total_investments_value).quantize(
+        """
+        Calculates and returns the total value of all investments in the portfolio.
+
+        :param date: The date to calculate the value of investments. If not provided, the current date is used.
+        """
+        total_return_on_investments = self.get_total_return_on_investments(date)
+        if not total_return_on_investments:
+            return self.invested_capital
+
+        return (self.invested_capital + total_return_on_investments).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
+    @timeit
     @ttl_cache(ttl=30)
     def get_total_return_on_investments(
         self, date: typing.Optional[datetime.date] = None
     ):
+        """
+        Calculates and returns the total return on all investments in the portfolio.
+
+        :param date: The date to calculate the return on investments. If not provided, the current date is used.
+        """
         total_return_on_investments = math.fsum(
-            list(self.returns_on_investments(date))
+            tuple(self.returns_on_investments(date))
         )
         return decimal.Decimal.from_float(total_return_on_investments).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
@@ -187,6 +186,11 @@ class Portfolio(models.Model):
     def get_percentage_return_on_investments(
         self, date: typing.Optional[datetime.date] = None
     ):
+        """
+        Calculates and returns the percentage return on the invested capital.
+
+        :param date: The date to calculate the return on investments. If not provided, the current date is used.
+        """
         invested_capital = self.invested_capital
         if invested_capital == 0:
             return decimal.Decimal(0.00)
@@ -199,6 +203,15 @@ class Portfolio(models.Model):
         )
 
     def get_value(self, date: typing.Optional[datetime.date] = None):
+        """
+        Calculate and returns the actual value of the portfolio.
+
+        The sum of the value of investments in the portfolio,
+        and the remaining cash balance. Or, the initial capital
+        plus the total return on investments.
+
+        :param date: The date to calculate the value of investments. If not provided, the current date is used.
+        """
         value = self.capital + self.get_total_return_on_investments(date)
         return value.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
 
@@ -376,7 +389,7 @@ class Investment(models.Model):
 
     @functools.cached_property
     def current_rate(self):
-        """Returns the current price/rate of the stock invested in"""
+        """The current price/rate of the stock invested in"""
         return self.stock.price
 
     @property
@@ -408,7 +421,7 @@ class Investment(models.Model):
     @property
     def percentage_return(self) -> typing.Optional[decimal.Decimal]:
         """
-        The return percentage return of the investment, either profit or loss.
+        The current percentage return of the investment, either profit or loss.
         """
         return_value = self.return_value
         if not return_value:
@@ -423,6 +436,11 @@ class Investment(models.Model):
     def get_value_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:
+        """
+        Calculate the value of the investment on a given date.
+
+        :param date: The date to calculate the value of the investment. If not provided, the current date is used.
+        """
         stock_price_on_date = self.stock.get_price_on_date(date)
         if not stock_price_on_date:
             return None
@@ -433,6 +451,11 @@ class Investment(models.Model):
     def get_return_value_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:
+        """
+        Calculate the return value of the investment on a given date.
+
+        :param date: The date to calculate the return value of the investment. If not provided, the current date is used.
+        """
         value = self.get_value_on_date(date)
         if not value:
             return None
@@ -447,6 +470,8 @@ class Investment(models.Model):
     ) -> typing.Optional[decimal.Decimal]:
         """
         The current percentage return of the investment, either profit or loss.
+
+        :param date: The date to calculate the return on investments. If not provided, the current date is used.
         """
         return_value = self.get_return_value_on_date(date)
         if not return_value:

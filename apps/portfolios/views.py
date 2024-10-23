@@ -116,7 +116,7 @@ class PortfolioCreateView(LoginRequiredMixin, generic.View):
 class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
     template_name = "portfolios/portfolio_detail.html"
     queryset = Investment.objects.all()
-    paginate_by = 200
+    paginate_by = 100
     context_object_name = "investments"
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
@@ -124,7 +124,9 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
 
         investments = context["investments"]
         portfolio = get_object_or_404(
-            portfolio_qs.prefetch_related("investments"),
+            portfolio_qs.prefetch_related(
+                "investments", "investments__stock", "investments__stock__rates"
+            ),
             id=self.kwargs["portfolio_id"],
             owner=self.request.user,
         )
@@ -158,8 +160,10 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self) -> QuerySet[Portfolio]:
         user = self.request.user
         qs = super().get_queryset()
-        return qs.filter(
-            portfolio_id=self.kwargs["portfolio_id"], portfolio__owner=user
+        return (
+            qs.filter(portfolio_id=self.kwargs["portfolio_id"], portfolio__owner=user)
+            .select_related("stock")
+            .prefetch_related("stock__rates")
         )
 
 

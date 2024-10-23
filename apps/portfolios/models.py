@@ -11,12 +11,12 @@ from django.core.exceptions import ValidationError
 
 from helpers.caching import ttl_cache
 from helpers.utils.time import timeit
-from helpers.utils.misc import batched
 
 
 # NOTE: Some the properties in these models are cached to avoid recalculating them every time they are accessed
 # This basically means that instances of this model are expected to be created once and not modified. If modified,
 # the existing cached properties will not be updated and will return the old values. This is a trade-off for performance
+
 
 class Portfolio(models.Model):
     """Model definition for Portfolio."""
@@ -75,15 +75,14 @@ class Portfolio(models.Model):
         """
         return self.get_value()
 
-    @functools.cached_property  # Might remove later
-    # @property
+    @functools.cached_property
     def invested_capital(self):
         """
         The total capital invested in the portfolio.
 
         the total capital used as investment cost
         """
-        total_investments_cost = math.fsum(self.investments_costs())
+        total_investments_cost = math.fsum(list(self.investments_costs()))
         return decimal.Decimal.from_float(total_investments_cost).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -131,61 +130,56 @@ class Portfolio(models.Model):
         Used internally to improve performance and avoid recalculating already cached investments values
         every time they are accessed.
         """
-        return list(
-            self.investments.select_related("stock")
-            .prefetch_related("stock__rates")
-            .all()
-        )
+        return list(self.investments.all())
 
     def investments_costs(self):
         """Yields the capital invested (cost) of each investment in the portfolio."""
-        for investment_batch in batched(self.investment_list, batch_size=100):
-            for investment in investment_batch:
-                yield investment.cost
+        for investment in self.investment_list:
+            yield investment.cost
 
     def investments_values(self, date: typing.Optional[datetime.date] = None):
         """
         Yields the current value of each investment in the portfolio.
 
-        :param
+        :param date:
         """
-        for investment_batch in batched(self.investment_list, batch_size=100):
-            for investment in investment_batch:
-                if date:
-                    value = investment.get_value_on_date(date)
-                else:
-                    value = investment.value
-                if not value:
-                    continue
-                yield value
+        for investment in self.investment_list:
+            if date:
+                value = investment.get_value_on_date(date)
+            else:
+                value = investment.value
+            if not value:
+                continue
+            yield value
 
     def returns_on_investments(self, date: typing.Optional[datetime.date] = None):
         """
         Yields the return on each investment in the portfolio.
 
-        :param
+        :param date:
         """
-        for investment_batch in batched(self.investment_list, batch_size=100):
-            for investment in investment_batch:
-                if date:
-                    return_value = investment.get_return_value_on_date(date)
-                else:
-                    return_value = investment.return_value
-                if not return_value:
-                    continue
-                yield return_value
+        for investment in self.investment_list:
+            if date:
+                return_value = investment.get_return_value_on_date(date)
+            else:
+                return_value = investment.return_value
+            if not return_value:
+                continue
+            yield return_value
 
     def get_total_investments_value(self, date: typing.Optional[datetime.date] = None):
-        total_investments_value = math.fsum(self.investments_values(date))
+        total_investments_value = math.fsum(list(self.investments_values(date)))
         return decimal.Decimal.from_float(total_investments_value).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
-    @timeit
+    @ttl_cache(ttl=30)
     def get_total_return_on_investments(
         self, date: typing.Optional[datetime.date] = None
     ):
-        total_return_on_investments = math.fsum(self.returns_on_investments(date))
+        total_return_on_investments = math.fsum(
+            list(self.returns_on_investments(date))
+        )
         return decimal.Decimal.from_float(total_return_on_investments).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -198,7 +192,7 @@ class Portfolio(models.Model):
             return decimal.Decimal(0.00)
 
         percentage_return_on_investments = (
-            self.get_total_return_on_investments(date) / invested_capital
+            self.get_total_return_on_investments(date) / abs(invested_capital)
         ) * 100
         return percentage_return_on_investments.quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
@@ -348,8 +342,7 @@ class Investment(models.Model):
         """The symbol of the stock."""
         return self.stock.ticker
 
-    # @functools.cached_property
-    @property
+    @functools.cached_property
     def base_cost(self):
         """The cost of an investment before any additional costs."""
         base_cost = self.rate * self.quantity
@@ -358,7 +351,6 @@ class Investment(models.Model):
         )
 
     @functools.cached_property
-    # @property
     def additional_fees(self):
         """The total additional fees paid on each unit of the stock invested in."""
         total = decimal.Decimal(0)
@@ -369,7 +361,6 @@ class Investment(models.Model):
         return total.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
 
     @functools.cached_property
-    # @property
     def cost(self):
         """
         Capital invested before any profit or loss. Initial market value/cost of the investment.
@@ -384,7 +375,6 @@ class Investment(models.Model):
         return self.base_cost + total_fees
 
     @functools.cached_property
-    # @property
     def current_rate(self):
         """Returns the current price/rate of the stock invested in"""
         return self.stock.price
@@ -429,7 +419,7 @@ class Investment(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
-    @ttl_cache(ttl=60)
+    @ttl_cache(ttl=30)
     def get_value_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:

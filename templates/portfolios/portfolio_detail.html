@@ -565,7 +565,7 @@
                         <span class="me-3 bgl-warning text-warning">PKR</span>
                         <div class="media-body">
                             <p class="mb-1">Core Capital</p>
-                            <h4 class="mb-0">{{ portfolio.capital|intcomma }}</h4>
+                            <h4 class="mb-0">{{ portfolio.capital }}</h4>
                         </div>
                     </div>
                 </div>
@@ -577,7 +577,7 @@
                         <span class="me-3 bgl-success text-success">PKR</span>
                         <div class="media-body">
                             <p class="mb-1">Net Balance</p>
-                            <h4 class="mb-0">{{ portfolio.cash_balance|intcomma }}</h4>
+                            <h4 class="mb-0">{{ portfolio.cash_balance }}</h4>
                         </div>
                     </div>
                 </div>
@@ -585,10 +585,11 @@
     
             <div class="widget-stat card">
                 <div class="card-body  p-4">
+                    {% with portfolio_value=portfolio.value %}
                     <div class="media ai-icon">
                         <span 
-                            {% if portfolio.current_value %}
-                                {% if portfolio.current_value < portfolio.capital %}
+                            {% if portfolio_value %}
+                                {% if portfolio_value < portfolio.capital %}
                                     class="me-3 bgl-danger text-danger"
                                 {% else %}
                                     class="me-3 bgl-success text-success"
@@ -602,9 +603,10 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Net Value</p>
-                            <h4 class="mb-0">{{ portfolio.value|intcomma }}</h4>
+                            <h4 class="mb-0">{{ portfolio_value }}</h4>
                         </div>
                     </div>
+                    {% endwith %}
                 </div>
             </div>
     
@@ -614,7 +616,7 @@
                         <span class="me-3 bgl-info text-info">PKR</span>
                         <div class="media-body">
                             <p class="mb-1">Core Investment</p>
-                            <h4 class="mb-0">{{ portfolio.invested_capital|intcomma }}</h4>
+                            <h4 class="mb-0">{{ portfolio.invested_capital }}</h4>
                         </div>
                     </div>
                 </div>
@@ -622,10 +624,11 @@
     
             <div class="widget-stat card">
                 <div class="card-body  p-4">
+                    {% with total_investments_value=portfolio.total_investments_value %}
                     <div class="media ai-icon">
                         <span 
-                            {% if portfolio.total_investments_value %}
-                                {% if portfolio.total_investments_value < portfolio.invested_capital %}
+                            {% if total_investments_value %}
+                                {% if total_investments_value < portfolio.invested_capital %}
                                     class="me-3 bgl-danger text-danger"
                                 {% else %}
                                     class="me-3 bgl-success text-success"
@@ -639,18 +642,20 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Investment Value</p>
-                            <h4 class="mb-0">{{ portfolio.total_investments_value|intcomma }}</h4>
+                            <h4 class="mb-0">{{ total_investments_value }}</h4>
                         </div>
                     </div>
+                    {% endwith %}
                 </div>
             </div>
     
             <div class="widget-stat card">
                 <div class="card-body  p-4">
+                    {% with total_return_on_investments=portfolio.total_return_on_investments %}
                     <div class="media ai-icon">
                         <span 
-                        {% if portfolio.total_return_on_investments %}
-                            {% if portfolio.total_return_on_investments.is_signed %}
+                        {% if total_return_on_investments %}
+                            {% if total_return_on_investments.is_signed %}
                                 class="me-3 bgl-danger text-danger"
                             {% else %}
                                 class="me-3 bgl-success text-success"
@@ -664,30 +669,34 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Unrealized Gain or Loss</p>
-                            <h4 class="mb-0">{{ portfolio.total_return_on_investments|intcomma }}</h4>
+                            <h4 class="mb-0">{{ total_return_on_investments }}</h4>
     
-                            {% if portfolio.total_return_on_investments %}
-                            <span 
-                                {% if portfolio.percentage_return_on_investments.is_signed %}
-                                    class="badge light badge-danger"
-                                {% else %}
-                                    class="badge light badge-success"
-                                {% endif %}
-                            >
-                                {{ portfolio.percentage_return_on_investments }}%
-                            </span>
+                            {% if total_return_on_investments %}
+                                {% with percentage_return_on_investments=portfolio.percentage_return_on_investments%}
+                                <span 
+                                    {% if percentage_return_on_investments.is_signed %}
+                                        class="badge light badge-danger"
+                                    {% else %}
+                                        class="badge light badge-success"
+                                    {% endif %}
+                                >
+                                    {{ percentage_return_on_investments }}%
+                                </span>
+                                {% endwith %}
                             {% endif %}
                         </div>
                     </div>
+                    {% endwith %}
                 </div>
             </div>
 
             <div class="widget-stat card">
                 <div class="card-body  p-4">
+                    {% with todays_return_on_investments=portfolio.todays_return_on_investments %}
                     <div class="media ai-icon">
                         <span 
-                        {% if portfolio.todays_return_on_investments %}
-                            {% if portfolio.todays_return_on_investments.is_signed %}
+                        {% if todays_return_on_investments %}
+                            {% if todays_return_on_investments.is_signed %}
                                 class="me-3 bgl-danger text-danger"
                             {% else %}
                                 class="me-3 bgl-success text-success"
@@ -701,9 +710,10 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Net Return (1D)</p>
-                            <h4 class="mb-0">{{ portfolio.todays_return_on_investments|intcomma }}</h4>
+                            <h4 class="mb-0">{{ todays_return_on_investments }}</h4>
                         </div>
                     </div>
+                    {% endwith %}
                 </div>
             </div>
 
@@ -726,7 +736,7 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Dividends</p>
-                            <h4 class="mb-0">{{ portfolio.dividends|intcomma }}</h4>
+                            <h4 class="mb-0">{{ portfolio.dividends }}</h4>
                         </div>
                     </div>
                 </div>
@@ -904,19 +914,21 @@
                                         <td>{{ investment.current_rate | default:"__" }}</td>
                                         <td>{{ investment.value | default:"__" }}</td>
                                         <td style="text-align: right;">
-                                            {{ investment.return_value | default:"__" }}
-                                            
-                                            {% if investment.return_value %}
-                                                {% if investment.percentage_return.is_signed %}
-                                                <strong class="badge light badge-danger">
-                                                    {{ investment.percentage_return | default:"__" }}%
-                                                </strong>
-                                                {% else %}
-                                                <strong class="badge light badge-success">
-                                                    {{ investment.percentage_return | default:"__" }}%
-                                                </strong>
+                                            {% with return_value=investment.return_value percentage_return=investment.percentage_return %}
+                                                {{ return_value | default:"__" }}
+                                                
+                                                {% if return_value %}
+                                                    {% if percentage_return.is_signed %}
+                                                    <strong class="badge light badge-danger">
+                                                        {{ percentage_return | default:"__" }}%
+                                                    </strong>
+                                                    {% else %}
+                                                    <strong class="badge light badge-success">
+                                                        {{ percentage_return | default:"__" }}%
+                                                    </strong>
+                                                    {% endif %}
                                                 {% endif %}
-                                            {% endif %}
+                                            {% endwith %}
                                         </td>
                                         <td>
                                             <a 

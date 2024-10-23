@@ -1,3 +1,4 @@
+import math
 import typing
 import decimal
 import functools
@@ -113,8 +114,9 @@ def _update_stock_summary_with_percentage_allocation(
         stock_summary.percentage_allocation = None
         return stock_summary
 
-    quantity = abs(stock_summary.net_quantity)
-    percentage_allocation = (quantity / total_quantity_of_stocks_invested_in) * 100
+    percentage_allocation = (
+        stock_summary.net_quantity / abs(total_quantity_of_stocks_invested_in) * 100
+    )
     stock_summary.percentage_allocation = percentage_allocation
     return stock_summary
 
@@ -125,7 +127,7 @@ def generate_portfolio_stocks_summary(
     with activate_timezone(timezone):
         start_date, _ = datetime_filter_to_date_range(dt_filter)
         portfolio_investments = portfolio.investments.filter(
-            added_at__date__gte=start_date
+            transaction_date__gte=start_date
         ).select_related("stock")
 
     # If no investments exists, return a summary for the total only
@@ -134,7 +136,7 @@ def generate_portfolio_stocks_summary(
 
     stocks_invested_in = get_stocks_invested_from_investments(portfolio_investments)
     with ThreadPoolExecutor(max_workers=2) as executor:
-        stocks_summary = list(
+        stocks_summaries = list(
             executor.map(
                 lambda stock: get_stock_summary_from_investments(
                     stock, portfolio_investments
@@ -143,28 +145,39 @@ def generate_portfolio_stocks_summary(
             )
         )
 
-    net_total_quantity_of_stocks_invested_in = sum(
-        summary.net_quantity for summary in stocks_summary
+    net_total_quantity_of_stocks_invested_in = math.fsum(
+        summary.net_quantity for summary in stocks_summaries
     )
-    net_total_average_cost = sum(summary.net_quantity for summary in stocks_summary)
-    total_market_value = sum(
-        summary.market_value for summary in stocks_summary if summary.market_value
+    net_total_average_cost = math.fsum(
+        summary.net_quantity for summary in stocks_summaries
     )
-    net_total_return_on_investments = sum(
+    total_market_value = math.fsum(
+        summary.market_value for summary in stocks_summaries if summary.market_value
+    )
+    net_total_return_on_investments = math.fsum(
         summary.net_return_on_investments
-        for summary in stocks_summary
+        for summary in stocks_summaries
         if summary.net_return_on_investments
     )
-    net_percentage_return_on_investments = sum(
+    net_percentage_return_on_investments = math.fsum(
         summary.percentage_return_on_investments
-        for summary in stocks_summary
+        for summary in stocks_summaries
         if summary.percentage_return_on_investments
     )
 
-    for summary in stocks_summary:
+    for summary in stocks_summaries:
         summary = _update_stock_summary_with_percentage_allocation(
             summary, net_total_quantity_of_stocks_invested_in
         )
+
+    if net_total_quantity_of_stocks_invested_in:
+        net_total_percentage_allocation = math.fsum(
+            summary.percentage_allocation
+            for summary in stocks_summaries
+            if summary.percentage_allocation
+        )
+    else:
+        net_total_percentage_allocation = None
 
     total_summary = StockSummary(
         **{
@@ -176,10 +189,8 @@ def generate_portfolio_stocks_summary(
             "market_value": total_market_value,
             "net_return_on_investments": net_total_return_on_investments,
             "percentage_return_on_investments": net_percentage_return_on_investments,
-            "percentage_allocation": 100.00
-            if net_total_quantity_of_stocks_invested_in
-            else None,
+            "percentage_allocation": net_total_percentage_allocation,
         }
     )
-    stocks_summary.append(total_summary)
-    return stocks_summary
+    stocks_summaries.append(total_summary)
+    return stocks_summaries

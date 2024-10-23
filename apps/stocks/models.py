@@ -7,6 +7,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from helpers.caching import ttl_cache
+
 
 
 class StockIndices(models.IntegerChoices):
@@ -53,6 +55,7 @@ class Stock(models.Model):
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
     
+    @ttl_cache(ttl=30)
     def get_price_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:

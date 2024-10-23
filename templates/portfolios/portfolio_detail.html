@@ -565,7 +565,7 @@
                         <span class="me-3 bgl-warning text-warning">PKR</span>
                         <div class="media-body">
                             <p class="mb-1">Core Capital</p>
-                            <h4 class="mb-0">{{ portfolio.capital }}</h4>
+                            <h4 class="mb-0">{{ portfolio.capital|intcomma }}</h4>
                         </div>
                     </div>
                 </div>
@@ -577,7 +577,7 @@
                         <span class="me-3 bgl-success text-success">PKR</span>
                         <div class="media-body">
                             <p class="mb-1">Net Balance</p>
-                            <h4 class="mb-0">{{ portfolio.cash_balance }}</h4>
+                            <h4 class="mb-0">{{ portfolio.cash_balance|intcomma }}</h4>
                         </div>
                     </div>
                 </div>
@@ -603,7 +603,7 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Net Value</p>
-                            <h4 class="mb-0">{{ portfolio_value }}</h4>
+                            <h4 class="mb-0">{{ portfolio_value|intcomma }}</h4>
                         </div>
                     </div>
                     {% endwith %}
@@ -616,7 +616,7 @@
                         <span class="me-3 bgl-info text-info">PKR</span>
                         <div class="media-body">
                             <p class="mb-1">Core Investment</p>
-                            <h4 class="mb-0">{{ portfolio.invested_capital }}</h4>
+                            <h4 class="mb-0">{{ portfolio.invested_capital|intcomma }}</h4>
                         </div>
                     </div>
                 </div>
@@ -642,7 +642,7 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Investment Value</p>
-                            <h4 class="mb-0">{{ total_investments_value }}</h4>
+                            <h4 class="mb-0">{{ total_investments_value|intcomma }}</h4>
                         </div>
                     </div>
                     {% endwith %}
@@ -669,7 +669,7 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Unrealized Gain or Loss</p>
-                            <h4 class="mb-0">{{ total_return_on_investments }}</h4>
+                            <h4 class="mb-0">{{ total_return_on_investments|intcomma }}</h4>
     
                             {% if total_return_on_investments %}
                                 {% with percentage_return_on_investments=portfolio.percentage_return_on_investments%}
@@ -710,7 +710,7 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Net Return (1D)</p>
-                            <h4 class="mb-0">{{ todays_return_on_investments }}</h4>
+                            <h4 class="mb-0">{{ todays_return_on_investments|intcomma }}</h4>
                         </div>
                     </div>
                     {% endwith %}
@@ -736,7 +736,7 @@
                         </span>
                         <div class="media-body">
                             <p class="mb-1">Dividends</p>
-                            <h4 class="mb-0">{{ portfolio.dividends }}</h4>
+                            <h4 class="mb-0">{{ portfolio.dividends|intcomma }}</h4>
                         </div>
                     </div>
                 </div>

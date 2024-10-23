@@ -40,7 +40,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "helpers.response.middleware.MaintenanceMiddleware",  # Handles application maintenance mode
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -161,12 +160,12 @@ CSRF_TRUSTED_ORIGINS = ["https://be.doulab.bloombyte.dev"]
 # HELPERS SETTINGS #
 ####################
 
-HELPERS_SETTINGS = {
-    "MAINTENANCE_MODE": {
-        "status": os.getenv("MAINTENANCE_MODE", "off").lower() in ["on", "true"],
-        "message": os.getenv("MAINTENANCE_MODE_MESSAGE", "default:minimal_dark"),
-    },
-}
+# HELPERS_SETTINGS = {
+#     "MAINTENANCE_MODE": {
+#         "status": os.getenv("MAINTENANCE_MODE", "off").lower() in ["on", "true"],
+#         "message": os.getenv("MAINTENANCE_MODE_MESSAGE", "default:minimal_dark"),
+#     },
+# }
 
 MG_LINK_CLIENT_USERNAME = os.getenv("MG_LINK_CLIENT_USERNAME")
 MG_LINK_CLIENT_PASSWORD = os.getenv("MG_LINK_CLIENT_PASSWORD")

@@ -93,7 +93,7 @@ PERCENTAGE_RETURN_INDICATORS_TIMEDELTA_CODES = (
 )
 
 
-# @timeit
+@timeit
 def generate_stock_profile(
     stock: Stock, criteria: Criteria, risk_profile: RiskProfile
 ) -> dict:
@@ -137,6 +137,7 @@ def generate_stock_profile(
     return stock_profile
 
 
+@timeit
 def load_risk_profile(
     risk_profile: RiskProfile,
     stockset: str,
@@ -187,7 +188,7 @@ def portfolio_stockset(risk_profile: RiskProfile, portofolio_id: uuid.UUID):
         return []
     else:
         return (
-            Stock.objects.filter(id__in=stock_ids).prefetch_related("rates").distinct()
+            Stock.objects.filter(id__in=stock_ids).distinct()
         )
 
 

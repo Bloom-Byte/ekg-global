@@ -233,7 +233,7 @@ def get_portfolio_performance_data(
             *Investment.ADDITIONAL_FEES,
         )
         .select_related("stock")
-        .prefetch_related("stock__rates")
+        # .prefetch_related("stock__rates")
     )
 
     with activate_timezone(timezone):

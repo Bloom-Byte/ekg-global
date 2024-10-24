@@ -161,7 +161,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         return (
             qs.filter(portfolio_id=self.kwargs["portfolio_id"], portfolio__owner=user)
             .select_related("stock")
-            .prefetch_related("stock__rates")
+            # .prefetch_related("stock__rates")
         )
 
 

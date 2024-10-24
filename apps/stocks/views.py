@@ -17,8 +17,6 @@ from helpers.logging import log_exception
 from helpers.exceptions import capture
 from .models import Stock
 
-stock_qs = Stock.objects.prefetch_related("rates").all()
-
 
 class UploadsView(LoginRequiredMixin, generic.TemplateView):
     http_method_names = ["get", "post"]
@@ -63,7 +61,7 @@ class StockLatestPriceView(LoginRequiredMixin, generic.View):
     def post(self, request, *args: Any, **kwargs: Any) -> JsonResponse:
         data: Dict = json.loads(request.body)
         ticker = data["stock"]
-        stock = get_object_or_404(stock_qs, ticker=ticker)
+        stock = get_object_or_404(Stock, ticker=ticker)
         latest_price = stock.price
         if latest_price is None:
             return JsonResponse(

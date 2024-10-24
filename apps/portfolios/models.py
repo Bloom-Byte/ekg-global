@@ -86,9 +86,7 @@ class Portfolio(models.Model):
             return investment.cost
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            costs = executor.map(
-                get_cost, self.investments.all()
-            )
+            costs = executor.map(get_cost, self.investments.all())
         return costs
 
     @functools.cached_property
@@ -161,7 +159,6 @@ class Portfolio(models.Model):
             )
         return return_values
 
-    @timeit
     @ttl_cache(ttl=30)
     def get_total_return_on_investments(
         self, date: typing.Optional[datetime.date] = None

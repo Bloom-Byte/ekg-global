@@ -1,4 +1,3 @@
-from math import e
 from typing import Any, Dict
 import json
 from django.db.models.base import Model as Model
@@ -30,7 +29,6 @@ from .stock_summary import generate_portfolio_stocks_summary
 
 
 portfolio_qs = Portfolio.objects.select_related("owner").all()
-stock_qs = Stock.objects.prefetch_related("rates").all()
 
 
 class PortfolioListView(LoginRequiredMixin, generic.ListView):
@@ -125,7 +123,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         investments = context["investments"]
         portfolio = get_object_or_404(
             portfolio_qs.prefetch_related(
-                "investments", "investments__stock", "investments__stock__rates"
+                "investments"
             ),
             id=self.kwargs["portfolio_id"],
             owner=self.request.user,
@@ -133,7 +131,7 @@ class PortfolioDetailView(LoginRequiredMixin, generic.ListView):
         stocks_summary_dt_filter = self.request.GET.get("filter_summary_by", "5D")
 
         context["portfolio"] = portfolio
-        context["all_stocks"] = stock_qs
+        context["all_stocks"] = Stock.objects.values("ticker", "title")
         context["invested_stocks"] = get_stocks_invested_from_investments(
             investments.select_related("stock")
         )

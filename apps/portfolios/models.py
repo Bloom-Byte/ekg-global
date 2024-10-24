@@ -8,6 +8,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from concurrent.futures import ThreadPoolExecutor
+from asgiref.sync import sync_to_async
+import asyncio
 
 from helpers.caching import ttl_cache
 from helpers.utils.time import timeit
@@ -75,6 +78,19 @@ class Portfolio(models.Model):
         """
         return self.get_value()
 
+    @property
+    def investments_costs(self):
+        """Calculates and returns the cost of each investment in the portfolio."""
+
+        def get_cost(investment):
+            return investment.cost
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            costs = executor.map(
+                get_cost, self.investments.all()
+            )
+        return costs
+
     @functools.cached_property
     def invested_capital(self):
         """
@@ -82,7 +98,7 @@ class Portfolio(models.Model):
 
         the total capital used as investment cost
         """
-        total_investments_cost = math.fsum(tuple(self.investments_costs()))
+        total_investments_cost = math.fsum(self.investments_costs)
         return decimal.Decimal.from_float(total_investments_cost).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
@@ -120,37 +136,45 @@ class Portfolio(models.Model):
         """
         return self.get_total_investments_value()
 
-    @functools.cached_property
-    def investment_list(self):
+    def get_returns_on_investments(self, date: typing.Optional[datetime.date] = None):
         """
-        Private property. Use with caution.
-
-        Returns the (cached) list of all investments in the portfolio.
-
-        Used internally to improve performance and avoid recalculating already cached investments values
-        every time they are accessed.
-        """
-        return list(self.investments.all())
-
-    def investments_costs(self):
-        """Yields the capital invested (cost) of each investment in the portfolio."""
-        for investment in self.investment_list:
-            yield investment.cost
-
-    def returns_on_investments(self, date: typing.Optional[datetime.date] = None):
-        """
-        Yields the return on each investment in the portfolio.
+        Calculates and returns the return on each investment in the portfolio.
 
         :param date: The date to calculate the return on investments. If not provided, the current date is used.
+        :return: A generator of the return on investments for each investment in the portfolio.
         """
-        for investment in self.investment_list:
+
+        def get_return_value(investment):
             if date:
                 return_value = investment.get_return_value_on_date(date)
             else:
                 return_value = investment.return_value
-            if not return_value:
-                continue
-            yield return_value
+
+            if return_value is None:
+                return decimal.Decimal(0.00)
+            return return_value
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            return_values = executor.map(
+                get_return_value,
+                self.investments.all(),
+            )
+        return return_values
+
+    @timeit
+    @ttl_cache(ttl=30)
+    def get_total_return_on_investments(
+        self, date: typing.Optional[datetime.date] = None
+    ):
+        """
+        Calculates and returns the total return on all investments in the portfolio.
+
+        :param date: The date to calculate the return on investments. If not provided, the current date is used.
+        """
+        total_return_on_investments = math.fsum(self.get_returns_on_investments(date))
+        return decimal.Decimal.from_float(total_return_on_investments).quantize(
+            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
+        )
 
     def get_total_investments_value(self, date: typing.Optional[datetime.date] = None):
         """
@@ -163,23 +187,6 @@ class Portfolio(models.Model):
             return self.invested_capital
 
         return (self.invested_capital + total_return_on_investments).quantize(
-            decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
-        )
-
-    @timeit
-    @ttl_cache(ttl=30)
-    def get_total_return_on_investments(
-        self, date: typing.Optional[datetime.date] = None
-    ):
-        """
-        Calculates and returns the total return on all investments in the portfolio.
-
-        :param date: The date to calculate the return on investments. If not provided, the current date is used.
-        """
-        total_return_on_investments = math.fsum(
-            tuple(self.returns_on_investments(date))
-        )
-        return decimal.Decimal.from_float(total_return_on_investments).quantize(
             decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP
         )
 
@@ -448,6 +455,7 @@ class Investment(models.Model):
         value = stock_price_on_date * self.quantity
         return value.quantize(decimal.Decimal("0.01"), rounding=decimal.ROUND_HALF_UP)
 
+    # @timeit
     def get_return_value_on_date(
         self, date: datetime.date
     ) -> typing.Optional[decimal.Decimal]:

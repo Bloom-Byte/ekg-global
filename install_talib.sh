@@ -13,7 +13,7 @@ fi
 TA_LIB_VERSION="0.4.0"
 TA_LIB_URL="http://prdownloads.sourceforge.net/ta-lib/ta-lib-${TA_LIB_VERSION}-src.tar.gz"
 PYTHON_VERSION=$(python3 --version | awk '{print $2}' | cut -d'.' -f1,2)  # Default to active Python version
-VENV_DIR="ta-lib-test-env"  # Default test virtual environment directory
+VENV_DIR="venv"  # Default test virtual environment directory
 VENV_CREATED=false  # Flag to track if the virtual environment was created
 
 # Usage function

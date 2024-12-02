@@ -48,7 +48,7 @@ jobs:
 
       - name: Deploy to EC2 using Docker Compose
         run: |
-          ssh -o StrictHostKeyChecking=no dev@${{ secrets.EC2_IP }} << 'EOF'
-            docker compose -f /home/dev/ekg/docker-compose.yaml pull
-            docker compose -f /home/dev/ekg/docker-compose.yaml up -d
+          ssh -o StrictHostKeyChecking=no admin@${{ secrets.EC2_IP }} << 'EOF'
+            docker compose -f /home/admin/ekg/docker-compose.yaml pull
+            docker compose -f /home/admin/ekg/docker-compose.yaml up -d
           EOF

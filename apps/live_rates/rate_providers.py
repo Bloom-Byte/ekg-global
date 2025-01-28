@@ -79,6 +79,7 @@ class MGLinkRateProvider:
                 },
             )
             if response.status_code != 200:
+                print(response.json())
                 response.raise_for_status()
             else:
                 self.authentication_successful(response.json())

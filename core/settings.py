@@ -147,7 +147,7 @@ LOGIN_URL = "accounts:signin"
 
 if DEBUG is False:
     # PRODUCTION SETTINGS ONLY
-    ALLOWED_HOSTS = ["be.doulab.bloombyte.dev", "77.237.246.39"]
+    ALLOWED_HOSTS = ["doulab.project.bytechain.dev", "193.180.209.63"]
 
 else:
     # DEVELOPMENT SETTINGS ONLY

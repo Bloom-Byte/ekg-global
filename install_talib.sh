@@ -94,7 +94,7 @@ echo "Activating virtual environment..."
 source "$VENV_DIR/bin/activate"
 
 echo "Installing TA-Lib Python wrapper in virtual environment..."
-python3 -m pip install ta-lib || { echo "Failed to install TA-Lib Python wrapper"; exit 1; }
+python3 -m pip install ta-lib==0.4.32 || { echo "Failed to install TA-Lib Python wrapper"; exit 1; }
 
 echo "Installing 'numpy<2.0.0' for compatibility with TA-Lib..."
 python3 -m pip install 'numpy<2.0.0' || { echo "Failed to install 'numpy<2.0.0'"; exit 1; }

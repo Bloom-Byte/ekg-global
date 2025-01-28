@@ -151,10 +151,10 @@ if DEBUG is False:
 
 else:
     # DEVELOPMENT SETTINGS ONLY
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "be.doulab.bloombyte.dev"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "doulab.project.bytechain.dev"]
 
 
-CSRF_TRUSTED_ORIGINS = ["https://be.doulab.bloombyte.dev"]
+CSRF_TRUSTED_ORIGINS = ["https://doulab.project.bytechain.dev"]
 
 ####################
 # HELPERS SETTINGS #

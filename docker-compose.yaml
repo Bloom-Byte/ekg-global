@@ -4,6 +4,7 @@ networks:
     driver: bridge
 services:
   ekg:
+    build: .
     image: bloombyte/ekg:latest
     volumes:
       - /home/dev/ekg/.env:/django/.env
@@ -16,6 +17,7 @@ services:
       - ekg_net
 
   qcluster:
+    build: .
     image: bloombyte/ekg:latest
     volumes:
       - /home/dev/ekg/.env:/django/.env

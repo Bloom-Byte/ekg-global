@@ -19,3 +19,7 @@
 - Run the server using `python manage.py runserver`
 
 > This project uses a postgres database.++
+
+## With Docker
+
+Run `docker compose up` to start the services
